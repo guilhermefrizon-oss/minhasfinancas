@@ -28,6 +28,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
 import { getFirestore, doc, setDoc, getDoc,
          initializeFirestore, persistentLocalCache }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDeNulc4_FmV2AZbkU9fXOCm7405Axm9uM",
@@ -39,6 +40,10 @@ const firebaseConfig = {
 };
 
 const fbApp = initializeApp(firebaseConfig);
+const analytics = getAnalytics(fbApp);
+window._fbAnalytics = analytics;
+window._fbLogEvent = logEvent;
+logEvent(analytics, 'page_view', { page_title: 'Meus Gastos', page_location: window.location.href });
 const auth  = getAuth(fbApp);
 
 // Firestore com cache offline (nova API)
@@ -69,6 +74,7 @@ onAuthStateChanged(auth, user => {
   const splash = document.getElementById('splash-screen');
   if(splash) splash.style.display = 'none';
   if(user){
+    logEvent(analytics, 'login', { method: 'email' });
     window._onFbLogin && window._onFbLogin(user);
   } else {
     window._onFbLogout && window._onFbLogout();
