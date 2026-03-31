@@ -1658,7 +1658,7 @@ const DATA_VERSION='v3-2025';
 async function loadDataFromCloud(uid){
   console.log('[App] Carregando dados...');
   const timeout = new Promise(resolve => {
-    setTimeout(() => { console.warn('[App] Timeout — usando cache'); resolve(null); }, 3000);
+    setTimeout(() => { console.warn('[App] Timeout (10s) — Firebase demorou, usando cache local'); resolve(null); }, 10000);
   });
   const fetchData = (async () => {
     try{
@@ -1768,21 +1768,25 @@ window._onFbLogin = async function(user){
       localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
       localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
     } else {
-      // Sem dados na nuvem: usa cache local ou começa do zero
+      // Sem dados na nuvem (timeout ou conta nova): usa cache local ou começa do zero
       const localD = localStorage.getItem('gastos_cache_desp');
       const localR = localStorage.getItem('gastos_cache_rec');
       DATA.despesas = localD ? JSON.parse(localD) : [];
       DATA.receitas = localR ? JSON.parse(localR) : [];
-      // Se tinha dados locais, agenda sync para a nuvem
+      // Se tinha dados locais E o cloud retornou null por timeout (não por conta nova),
+      // agenda retry para tentar sincronizar com a nuvem em 5s
       if(localD && DATA.despesas.length > 0){
-        setTimeout(() => syncToFirestore(), 2000);
+        console.log('[App] Dados locais encontrados — agendando retry de sync...');
+        setTimeout(() => syncToFirestore(), 5000);
       }
     }
   } catch(e){
     // Qualquer erro: inicia com dados vazios em vez de travar
     console.warn('Erro no login:', e);
-    DATA.despesas = [];
-    DATA.receitas = [];
+    const localD = localStorage.getItem('gastos_cache_desp');
+    const localR = localStorage.getItem('gastos_cache_rec');
+    DATA.despesas = localD ? JSON.parse(localD) : [];
+    DATA.receitas = localR ? JSON.parse(localR) : [];
   } finally {
     // 3. SEMPRE chega aqui — mostra o app
     document.body.classList.add('app-ready');
