@@ -1081,6 +1081,7 @@ body.app-ready .page { visibility: visible; }
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.5"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           <input type="text" id="desp-search" placeholder="Buscar despesa..." oninput="renderDespTable()" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'">
         </div>
+        <button onclick="exportDespCSV()" title="Exportar CSV" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;color:var(--text2);cursor:pointer;font-size:11px;white-space:nowrap;transition:all .15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">⬇ CSV</button>
         <div id="desp-total-badge" style="font-size:13px;font-weight:700;color:var(--red);white-space:nowrap"></div>
       </div>
     </div>
@@ -1195,9 +1196,16 @@ body.app-ready .page { visibility: visible; }
   </div>
   <div class="cards" id="cards-rec"></div>
   <div class="table-box">
-    <div class="table-header">
+    <div class="table-header" style="flex-wrap:wrap;gap:10px">
       <div class="table-title" id="rec-table-title">Receitas</div>
-      <div id="rec-total-badge" style="font-size:13px;font-weight:700;color:var(--green)"></div>
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:180px;justify-content:flex-end">
+        <div style="position:relative;flex:1;max-width:240px">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.5"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <input type="text" id="rec-search" placeholder="Buscar receita..." oninput="renderRecTable()" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <button onclick="exportRecCSV()" title="Exportar CSV" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;color:var(--text2);cursor:pointer;font-size:11px;white-space:nowrap;transition:all .15s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">⬇ CSV</button>
+        <div id="rec-total-badge" style="font-size:13px;font-weight:700;color:var(--green);white-space:nowrap"></div>
+      </div>
     </div>
     <div class="table-scroll">
       <table>
@@ -2364,7 +2372,13 @@ function stepRecMonth(delta){const months=allMonths();const idx=months.indexOf(r
 
 function renderRecTable(){
   const m=recSelectedMonth;
-  let items=DATA.receitas.filter(r=>r.mes===m);
+  const searchEl=document.getElementById('rec-search');
+  const q=(searchEl?searchEl.value:'').toLowerCase().trim();
+  let items=DATA.receitas.filter(r=>r.mes===m).filter(r=>
+    !q ||
+    (r.nome||'').toLowerCase().includes(q) ||
+    (r.cat||'').toLowerCase().includes(q)
+  );
   /* FIX 2: apply sort */
   items=[...items].sort((a,b)=>{
     let va,vb;
@@ -2396,6 +2410,27 @@ function renderRecTable(){
     +`<tr class="total-row"><td colspan="2">Total recebido</td><td style="color:var(--green)">${fmt(totalRecebido)}</td><td></td><td></td></tr>`
     :`<tr><td colspan="5" class="empty-msg">Nenhuma receita neste mês.</td></tr>`;
 }
+
+/* ══════ CSV EXPORT ══════ */
+function csvEscape(v){const s=String(v==null?'':v);return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;}
+function downloadCSV(filename,rows){
+  const csv=rows.map(r=>r.map(csvEscape).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},200);
+}
+function exportDespCSV(){
+  const rows=[['Descrição','Categoria','Valor','Vencimento','Status','Mês']];
+  DATA.despesas.forEach(d=>rows.push([d.nome||'',catLabel(d.cat)||'',d.val!=null?d.val:'',d.venc||'',d.status||'',d.mes||'']));
+  downloadCSV('despesas.csv',rows);showToast('📥 CSV exportado!');
+}
+function exportRecCSV(){
+  const rows=[['Descrição','Categoria','Valor','Status','Mês']];
+  DATA.receitas.forEach(r=>rows.push([r.nome||'',r.cat||'',r.val!=null?r.val:'',r.status||'Recebido',r.mes||'']));
+  downloadCSV('receitas.csv',rows);showToast('📥 CSV exportado!');
+}
+
 function renderRecCharts(){
   const months=allMonths();
   const rec=months.map(m=>DATA.receitas.filter(r=>r.mes===m).reduce((s,r)=>s+(r.val||0),0));
