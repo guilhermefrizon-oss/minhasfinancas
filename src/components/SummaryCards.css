@@ -1,0 +1,70 @@
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.card-icon {
+  font-size: 1.2rem;
+}
+
+.card strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: block;
+}
+
+.card.income strong {
+  color: #12a454;
+}
+
+.card.expenses strong {
+  color: #e52e4d;
+}
+
+.card.balance.positive {
+  background: #12a454;
+}
+
+.card.balance.positive .card-header {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.card.balance.positive strong {
+  color: #fff;
+}
+
+.card.balance.negative {
+  background: #e52e4d;
+}
+
+.card.balance.negative .card-header {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.card.balance.negative strong {
+  color: #fff;
+}

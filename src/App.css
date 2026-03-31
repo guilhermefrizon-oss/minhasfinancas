@@ -1,0 +1,30 @@
+.app {
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+.app-header {
+  background: #6933ff;
+  padding: 1.25rem 1.5rem;
+  color: #fff;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.app-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .app-main {
+    padding: 1.25rem 1rem;
+  }
+}
