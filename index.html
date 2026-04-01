@@ -2832,15 +2832,25 @@ async function loadUserProfileData(){
   document.getElementById('profile-email-val').textContent = user.email;
   document.getElementById('profile-email-display').textContent = user.email;
 
+  // Aplica cache local imediatamente enquanto busca da rede
+  const cached = localStorage.getItem('gastos_user_profile_' + user.uid);
+  if(cached){ try{ _userProfileData = JSON.parse(cached); renderUserProfile(); } catch(_){} }
+
   try{
-    const snap = await fbFns().getDoc(fbFns().doc(fbDb(),'users',user.uid));
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000));
+    const snap = await Promise.race([
+      fbFns().getDoc(fbFns().doc(fbDb(),'users',user.uid)),
+      timeout
+    ]);
     if(snap.exists()){
       _userProfileData = snap.data();
+      localStorage.setItem('gastos_user_profile_' + user.uid, JSON.stringify(_userProfileData));
     } else {
       _userProfileData = { nome: '', email: user.email, telefone: '' };
     }
   } catch(e){
-    _userProfileData = { nome: '', email: user.email, telefone: '' };
+    // Usa cache local já aplicado acima, ou fallback mínimo
+    if(!cached) _userProfileData = { nome: '', email: user.email, telefone: '' };
   }
   renderUserProfile();
 }
@@ -2904,20 +2914,50 @@ async function saveUserProfile(){
   const btn = document.getElementById('btn-save-profile');
   btn.textContent = 'Salvando...';
   btn.disabled = true;
+
+  // Salva em cache local imediatamente (garante que não se perde)
+  try{ localStorage.setItem('gastos_user_profile_' + user.uid, JSON.stringify(_userProfileData)); } catch(_){}
+
+  // Atualiza header imediatamente sem esperar a rede
+  if(_userProfileData.nome) updateHeaderProfile(user);
+
+  try{
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 8000)
+    );
+    await Promise.race([
+      fbFns().setDoc(fbFns().doc(fbDb(),'users',user.uid), {
+        ..._userProfileData,
+        atualizadoEm: Date.now()
+      }),
+      timeout
+    ]);
+    showToast('Perfil atualizado! ✅');
+  } catch(e){
+    if(e.message === 'timeout'){
+      // Salvou localmente, vai sincronizar quando a conexão voltar
+      showToast('Salvo localmente. Sincronizará quando conectar. ⚡');
+      // Agenda retry em background
+      setTimeout(() => saveUserProfileToCloud(user), 5000);
+    } else {
+      showToast('Erro ao salvar. Tente novamente.');
+    }
+  } finally {
+    btn.textContent = 'Salvar';
+    btn.disabled = false;
+    closeUserProfile();
+  }
+}
+
+async function saveUserProfileToCloud(user){
   try{
     await fbFns().setDoc(fbFns().doc(fbDb(),'users',user.uid), {
       ..._userProfileData,
       atualizadoEm: Date.now()
     });
-    // Atualiza o nome no header e na saudação
-    updateHeaderProfile(user);
-    showToast('Perfil atualizado! ✅');
-    closeUserProfile();
+    console.log('[Perfil] Sincronizado com a nuvem ✓');
   } catch(e){
-    showToast('Erro ao salvar. Tente novamente.');
-  } finally {
-    btn.textContent = 'Salvar';
-    btn.disabled = false;
+    console.warn('[Perfil] Falha no retry de sync:', e);
   }
 }
 
