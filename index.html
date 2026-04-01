@@ -834,6 +834,17 @@ body.app-ready .nav,
 body.app-ready .bottom-nav,
 body.app-ready .page { visibility: visible; }
 
+/* ── Skeleton screen ── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.skeleton { animation: skeleton-pulse 1.4s ease-in-out infinite; }
+.sk-block {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+}
+
 </style>
 </head>
 <body>
@@ -957,6 +968,24 @@ body.app-ready .page { visibility: visible; }
 
 <!-- OVERVIEW -->
 <div class="page active" id="page-overview">
+  <!-- SKELETON LOADING -->
+  <div id="overview-skeleton" style="display:none">
+    <!-- bloco mês destaque -->
+    <div class="sk-block skeleton" style="height:120px;margin-bottom:1.25rem"></div>
+    <!-- 4 mini-cards -->
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:1.25rem">
+      <div class="sk-block skeleton" style="height:80px"></div>
+      <div class="sk-block skeleton" style="height:80px"></div>
+      <div class="sk-block skeleton" style="height:80px"></div>
+      <div class="sk-block skeleton" style="height:80px"></div>
+    </div>
+    <!-- gráfico 1 -->
+    <div class="sk-block skeleton" style="height:220px;margin-bottom:1.25rem"></div>
+    <!-- gráfico 2 -->
+    <div class="sk-block skeleton" style="height:140px;margin-bottom:1.25rem"></div>
+  </div>
+  <!-- CONTEÚDO REAL -->
+  <div id="overview-real-content">
   <!-- CAMPO RÁPIDO -->
   <div class="quick-bar" style="margin-top:.25rem">
     <input class="quick-input" id="quick-input" type="text" placeholder='Digite: "mercado 120" ou "salário 3500 receita"' oninput="quickPreview()" onkeydown="if(event.key==='Enter')quickSubmit()">
@@ -1049,6 +1078,7 @@ body.app-ready .page { visibility: visible; }
     <div class="chart-header"><div class="chart-title">Saldo mensal (Receita − Despesa)</div></div>
     <div style="position:relative;width:100%;height:190px"><canvas id="chartSaldo"></canvas></div>
   </div>
+  </div><!-- #overview-real-content -->
 </div>
 
 <!-- DESPESAS -->
@@ -1806,6 +1836,11 @@ function startRealtimeSync(uid) {
 
 /* ── Callbacks de auth ── */
 window._onFbLogin = async function(user){
+  // Mostra skeleton, oculta conteúdo real
+  const sk = document.getElementById('overview-skeleton');
+  const ov = document.getElementById('overview-real-content');
+  if(sk) sk.style.display = 'block';
+  if(ov) ov.style.display = 'none';
   try{
     // 1. Oculta tela de login, mantém splash enquanto carrega
     document.getElementById('login-screen').classList.remove('visible');
@@ -1842,7 +1877,9 @@ window._onFbLogin = async function(user){
     DATA.despesas = localD ? JSON.parse(localD) : [];
     DATA.receitas = localR ? JSON.parse(localR) : [];
   } finally {
-    // 3. SEMPRE chega aqui — mostra o app
+    // 3. SEMPRE chega aqui — esconde skeleton, mostra o app
+    if(sk) sk.style.display = 'none';
+    if(ov) ov.style.display = 'block';
     document.body.classList.add('app-ready');
     updateHeaderProfile(user);
     renderOverview();
