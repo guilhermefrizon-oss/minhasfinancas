@@ -264,7 +264,7 @@ option { background: var(--surface2); }
   .month-picker-btn { font-size: 13px; padding: 7px 12px; }
   .section-label { margin-bottom: 8px; }
   /* Cards overview compactos */
-  #cards-overview > div > div { padding: 7px 10px; }
+
 }
 
 /* ── QUICK ADD ── */
@@ -1382,7 +1382,7 @@ body.app-ready .page { visibility: visible; }
       </div>
     </div>
   </div>
-  <div id="cards-overview" style="margin-bottom:1.1rem"></div>
+
   <div class="chart-box">
     <div class="chart-header">
       <div>
@@ -2389,39 +2389,7 @@ function showPage(id){
 }
 
 /* ══════ OVERVIEW ══════ */
-function miniStat(label,value,color,sub){
-  return '<div style="display:flex;flex-direction:column;gap:2px;padding:8px 16px;border-right:1px solid var(--border)">'
-    +'<span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap">'+label+'</span>'
-    +'<span style="font-size:13px;font-weight:700;color:'+color+';white-space:nowrap">'+value+'</span>'
-    +(sub?'<span style="font-size:9px;color:var(--text3)">'+sub+'</span>':'')
-    +'</div>';
-}
-function updateOverviewCards(months,rec,desp){
-  const m=overviewSelectedMonth;
-  let html='';
-  if(m){
-    const idx=months.indexOf(m),r=rec[idx]||0,d=desp[idx]||0,s=r-d;
-    const falta=DATA.despesas.filter(x=>x.mes===m&&x.status==='Falta Pagar').reduce((a,x)=>a+(x.val||0),0);
-    document.getElementById('overview-month-label').textContent=mesLabel(m);
-    html=miniStat('Receita',fmt(r),'var(--green)')
-        +miniStat('Despesa',fmt(d),'var(--red)')
-        +miniStat('Saldo',fmt(s),s>=0?'var(--green)':'var(--red)')
-        +miniStat('Falta pagar',fmt(falta),falta>0?'var(--amber)':'var(--text3)');
-  } else {
-    const avgR=rec.filter(v=>v>0).reduce((a,b)=>a+b,0)/(rec.filter(v=>v>0).length||1);
-    const avgD=desp.filter(v=>v>0).reduce((a,b)=>a+b,0)/(desp.filter(v=>v>0).length||1);
-    const maxD=Math.max(...desp),maxM=months[desp.indexOf(maxD)];
-    const st=rec.reduce((a,b)=>a+b,0)-desp.reduce((a,b)=>a+b,0);
-    document.getElementById('overview-month-label').textContent='todos os meses';
-    html=miniStat('Rec. média',fmt(avgR),'var(--green)')
-        +miniStat('Desp. média',fmt(avgD),'var(--red)')
-        +miniStat('Saldo acum.',fmt(st),st>=0?'var(--green)':'var(--red)')
-        +miniStat('Maior mês',fmt(maxD),'var(--amber)',maxM?mesLabel(maxM):'');
-  }
-  document.getElementById('cards-overview').innerHTML=
-    '<div style="display:flex;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">'
-    +html+'</div>';
-}
+function updateOverviewCards(){}
 
 let currentPeriod=12,customRangeFrom=null,customRangeTo=null;
 function setPeriod(n){
