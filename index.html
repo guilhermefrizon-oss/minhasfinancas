@@ -1606,22 +1606,76 @@ body.app-ready .page { visibility: visible; }
 </div>
 
 <!-- POPUP + LANÇAMENTO (PONTO 5) -->
-<div id="add-popup" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,9,30,0.75);align-items:flex-end;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:1.5rem;width:100%;max-width:520px;box-shadow:0 -8px 40px rgba(0,0,0,.5)">
-    <div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:1.25rem">O que deseja adicionar?</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem">
-      <button onclick="openAddForm('despesa')" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:1.25rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .15s;font-family:var(--font)" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="12" stroke="#f06060" stroke-width="2.2"/><path d="M16 10v6M16 22v.5" stroke="#f06060" stroke-width="2.2" stroke-linecap="round"/></svg>
-        <div style="font-size:15px;font-weight:700;color:var(--text)">Despesa</div>
-        <div style="font-size:11px;color:var(--text3)">Registrar um gasto</div>
+<style>
+#add-popup { display:none; position:fixed; inset:0; z-index:500; background:rgba(8,7,24,0.72); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); align-items:center; justify-content:center; }
+#add-popup.open { display:flex; animation: apFadeIn .18s ease; }
+@keyframes apFadeIn { from{opacity:0} to{opacity:1} }
+.ap-card {
+  background: rgba(26,24,48,0.92);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 24px;
+  padding: 2rem 1.75rem 1.5rem;
+  width: min(400px, 92vw);
+  box-shadow: 0 32px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(123,140,255,.06);
+  animation: apSlideUp .22s cubic-bezier(.16,1,.3,1);
+}
+@keyframes apSlideUp { from{transform:translateY(18px);opacity:0} to{transform:translateY(0);opacity:1} }
+.ap-title { font-size:13px; font-weight:600; color:var(--text3); text-align:center; letter-spacing:.06em; text-transform:uppercase; margin-bottom:1.5rem; }
+.ap-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1rem; }
+.ap-btn {
+  display:flex; flex-direction:column; align-items:flex-start; gap:14px;
+  padding:1.25rem 1.15rem 1.1rem;
+  border-radius:16px; border:1px solid rgba(255,255,255,0.06);
+  cursor:pointer; transition:all .18s; font-family:var(--font);
+  position:relative; overflow:hidden;
+  background: rgba(255,255,255,0.03);
+}
+.ap-btn:hover { transform:translateY(-2px); border-color:rgba(255,255,255,0.13); }
+.ap-btn-desp:hover { background: rgba(240,96,96,0.07); }
+.ap-btn-rec:hover  { background: rgba(52,210,122,0.07); }
+.ap-btn-icon {
+  width:44px; height:44px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+}
+.ap-btn-desp .ap-btn-icon { background: rgba(240,96,96,0.14); }
+.ap-btn-rec  .ap-btn-icon { background: rgba(52,210,122,0.14); }
+.ap-btn-label { font-size:15px; font-weight:700; color:var(--text); }
+.ap-btn-sub   { font-size:11px; color:var(--text3); margin-top:-10px; font-weight:400; }
+.ap-cancel {
+  width:100%; padding:11px; background:none;
+  border:1px solid rgba(255,255,255,0.06); border-radius:12px;
+  color:var(--text3); font-family:var(--font); font-size:13px; font-weight:500;
+  cursor:pointer; transition:all .15s; letter-spacing:.02em;
+}
+.ap-cancel:hover { background:rgba(255,255,255,0.04); color:var(--text2); }
+</style>
+
+<div id="add-popup">
+  <div class="ap-card">
+    <div class="ap-title">Novo lançamento</div>
+    <div class="ap-options">
+      <button class="ap-btn ap-btn-desp" onclick="openAddForm('despesa')">
+        <div class="ap-btn-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="#f06060" stroke-width="2.2" stroke-linecap="round" transform="rotate(45 12 12)"/>
+            <circle cx="12" cy="12" r="9" stroke="#f06060" stroke-width="1.8"/>
+          </svg>
+        </div>
+        <div class="ap-btn-label">Despesa</div>
+        <div class="ap-btn-sub">Registrar um gasto</div>
       </button>
-      <button onclick="openAddForm('receita')" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:1.25rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .15s;font-family:var(--font)" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="12" stroke="#34d27a" stroke-width="2.2"/><path d="M16 10v12M10 16h12" stroke="#34d27a" stroke-width="2.2" stroke-linecap="round"/></svg>
-        <div style="font-size:15px;font-weight:700;color:var(--text)">Receita</div>
-        <div style="font-size:11px;color:var(--text3)">Registrar entrada</div>
+      <button class="ap-btn ap-btn-rec" onclick="openAddForm('receita')">
+        <div class="ap-btn-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="#34d27a" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="9" stroke="#34d27a" stroke-width="1.8"/>
+          </svg>
+        </div>
+        <div class="ap-btn-label">Receita</div>
+        <div class="ap-btn-sub">Registrar entrada</div>
       </button>
     </div>
-    <button onclick="closeAddPopup()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s">Cancelar</button>
+    <button class="ap-cancel" onclick="closeAddPopup()">Cancelar</button>
   </div>
 </div>
 
@@ -2337,8 +2391,8 @@ let overviewSelectedMonth=null,despSelectedMonth=null,recSelectedMonth=null;
 let barC,saldoC,recC,saldoRecC;
 
 /* FIX 5: Popup + Lançamento */
-function openAddPopup(){document.getElementById('add-popup').style.display='flex';}
-function closeAddPopup(){document.getElementById('add-popup').style.display='none';}
+function openAddPopup(){const p=document.getElementById('add-popup');p.style.display='flex';p.classList.add('open');}
+function closeAddPopup(){const p=document.getElementById('add-popup');p.classList.remove('open');p.style.display='none';}
 function openAddForm(tipo){
   closeAddPopup();
   const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
