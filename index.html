@@ -25,7 +25,8 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          sendPasswordResetEmail, signOut, onAuthStateChanged,
          browserLocalPersistence, browserSessionPersistence, setPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot }
+import { getFirestore, doc, setDoc, getDoc, onSnapshot,
+         enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 
@@ -46,8 +47,15 @@ window._fbLogEvent = logEvent;
 logEvent(analytics, 'page_view', { page_title: 'Meus Gastos', page_location: window.location.href });
 const auth  = getAuth(fbApp);
 
-// Firestore com modo padrão (conexão de rede normal)
+// Firestore com persistência offline via IndexedDB
 const db = getFirestore(fbApp);
+enableIndexedDbPersistence(db).catch(err => {
+  if (err.code === 'failed-precondition') {
+    console.warn('[Firestore] Persistência offline indisponível: múltiplas abas abertas.');
+  } else if (err.code === 'unimplemented') {
+    console.warn('[Firestore] Este navegador não suporta persistência offline.');
+  }
+});
 
 // Define persistência local (mantém login após fechar app)
 setPersistence(auth, browserLocalPersistence).catch(()=>{});
@@ -2768,12 +2776,14 @@ function applyGreeting(nomeCompleto){
 function applyHeaderName(nomeCompleto){
   const primeiro = nomeCompleto.split(' ')[0];
   const initial = primeiro.charAt(0).toUpperCase();
-  document.getElementById('header-profile-avatar').textContent = initial;
-  document.getElementById('header-profile-name').textContent = primeiro;
+  const avatarEl = document.getElementById('header-profile-avatar');
+  const nameEl = document.getElementById('header-profile-name');
+  if(avatarEl) avatarEl.textContent = initial;
+  if(nameEl) nameEl.textContent = primeiro;
   const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
-  document.getElementById('header-profile-avatar').style.background=colors[primeiro.charCodeAt(0)%colors.length]+'33';
+  if(avatarEl) avatarEl.style.background=colors[primeiro.charCodeAt(0)%colors.length]+'33';
   // Saudação — só primeiro nome
-  applyGreeting(primeiro);
+  if(typeof applyGreeting === 'function') applyGreeting(primeiro);
 }
 
 function updateHeaderProfile(user){
