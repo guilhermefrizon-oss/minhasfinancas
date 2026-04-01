@@ -1093,18 +1093,22 @@ body.app-ready .page { visibility: visible; }
   position: fixed;
   inset: 0;
   z-index: 950;
-  background: rgba(10,9,30,.85);
-  align-items: flex-end;
+  background: rgba(8,7,24,0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  align-items: center;
   justify-content: center;
+  padding: 1.5rem;
 }
-#edit-field-modal.visible { display: flex; }
+#edit-field-modal.visible { display: flex; animation: mOverlayIn .18s ease; }
 .edit-field-sheet {
-  background: var(--surface);
-  border-radius: var(--radius) var(--radius) 0 0;
-  width: 100%;
-  max-width: 480px;
-  padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom,0px));
-  box-shadow: 0 -8px 32px rgba(0,0,0,.4);
+  background: rgba(22,20,44,0.95);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  width: min(420px, 92vw);
+  padding: 1.75rem;
+  box-shadow: 0 32px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(123,140,255,.05);
+  animation: mBoxIn .22s cubic-bezier(.16,1,.3,1);
 }
 
 </style>
@@ -1453,9 +1457,9 @@ body.app-ready .page { visibility: visible; }
 </div>
 
 <!-- MODAL EDIÇÃO DESPESA -->
-<div id="edit-modal" style="display:none;position:fixed;inset:0;z-index:520;background:rgba(10,9,30,0.8);align-items:center;justify-content:center;overflow-y:auto">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;width:min(460px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.5);margin:auto">
-    <div style="font-size:15px;font-weight:700;margin-bottom:1.2rem" id="modal-title">Editar lançamento</div>
+<div id="edit-modal" class="modal-overlay" style="z-index:520">
+  <div class="modal-box" style="width:min(460px,92vw)">
+    <div class="modal-title" id="modal-title">Editar lançamento</div>
     <div style="display:grid;gap:12px">
       <div class="form-group" id="edit-name-wrap">
         <label>Nome da conta</label>
@@ -1492,22 +1496,22 @@ body.app-ready .page { visibility: visible; }
           </label>
         </div>
       </div>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btn-add" style="flex:1" onclick="saveEdit()">Salvar</button>
-        <button class="btn-add" style="flex:1;background:var(--surface2);color:var(--text2);border:1px solid var(--border)" onclick="closeModal()">Cancelar</button>
+      <div class="modal-actions">
+        <button class="modal-btn-primary" onclick="saveEdit()">Salvar</button>
+        <button class="modal-btn-secondary" onclick="closeModal()">Cancelar</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- MODAL ÍCONE PICKER -->
-<div id="icon-modal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(10,9,30,0.85);align-items:center;justify-content:center;overflow-y:auto">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;width:min(540px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.5);margin:auto">
-    <div style="font-size:15px;font-weight:700;margin-bottom:1rem">Escolher ícone</div>
+<div id="icon-modal" class="modal-overlay" style="z-index:600">
+  <div class="modal-box" style="width:min(540px,92vw)">
+    <div class="modal-title">Escolher ícone</div>
     <input type="text" id="icon-search" placeholder="Buscar..." oninput="filterIcons()" style="margin-bottom:1rem;width:100%">
     <div id="icon-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px;max-height:340px;overflow-y:auto"></div>
     <div style="margin-top:1rem;display:flex;justify-content:flex-end">
-      <button class="edit-btn" onclick="closeIconModal()">Fechar</button>
+      <button class="modal-btn-secondary" style="flex:0 0 auto;padding:10px 20px" onclick="closeIconModal()">Fechar</button>
     </div>
   </div>
 </div>
@@ -1581,9 +1585,9 @@ body.app-ready .page { visibility: visible; }
 </div>
 
 <!-- MODAL EDITAR RECEITA -->
-<div id="edit-rec-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,9,30,0.8);align-items:center;justify-content:center;overflow-y:auto">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;width:min(420px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.5);margin:auto">
-    <div style="font-size:15px;font-weight:700;margin-bottom:1.2rem" id="edit-rec-modal-title">Editar receita</div>
+<div id="edit-rec-modal" class="modal-overlay" style="z-index:500">
+  <div class="modal-box" style="width:min(420px,92vw)">
+    <div class="modal-title" id="edit-rec-modal-title">Editar receita</div>
     <div style="display:grid;gap:12px">
       <div class="form-group"><label>Descrição</label><input type="text" id="edit-rec-nome" placeholder="Ex: Salário"></div>
       <div class="form-group"><label>Categoria</label>
@@ -1597,15 +1601,127 @@ body.app-ready .page { visibility: visible; }
       <div class="form-group"><label>Valor (R$)</label><input type="number" id="edit-rec-valor" min="0" step="0.01" placeholder="0,00"></div>
       <div class="form-group"><label>Status</label><select id="edit-rec-status"><option value="Recebido">Recebido</option><option value="Aguardando">Aguardando Pagamento</option></select></div>
       <div class="form-group"><label>Mês</label><input type="month" id="edit-rec-mes"></div>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btn-add" style="flex:1" onclick="saveRecEdit()">Salvar</button>
-        <button class="btn-add" style="flex:1;background:var(--surface2);color:var(--text2);border:1px solid var(--border)" onclick="closeRecModal()">Cancelar</button>
+      <div class="modal-actions">
+        <button class="modal-btn-primary" onclick="saveRecEdit()">Salvar</button>
+        <button class="modal-btn-secondary" onclick="closeRecModal()">Cancelar</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- POPUP + LANÇAMENTO (PONTO 5) -->
+/* ══════════════ SISTEMA DE MODAIS ══════════════ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(8,7,24,0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+.modal-overlay.open { display: flex; animation: mOverlayIn .18s ease; }
+@keyframes mOverlayIn { from{opacity:0} to{opacity:1} }
+
+.modal-box {
+  background: rgba(22,20,44,0.95);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 1.75rem;
+  width: min(500px, 92vw);
+  box-shadow: 0 32px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(123,140,255,.05);
+  margin: auto;
+  animation: mBoxIn .22s cubic-bezier(.16,1,.3,1);
+}
+@keyframes mBoxIn { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1.35rem;
+}
+
+/* Botões dos modais */
+.modal-btn-primary {
+  flex: 1;
+  padding: 12px;
+  background: linear-gradient(135deg, #7b8cff, #a78bfa);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .15s;
+  letter-spacing: .2px;
+}
+.modal-btn-primary:hover { opacity: .88; }
+.modal-btn-secondary {
+  flex: 1;
+  padding: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+}
+.modal-btn-secondary:hover { background: rgba(255,255,255,0.07); }
+.modal-btn-danger {
+  flex: 1;
+  padding: 12px;
+  background: rgba(240,96,96,0.15);
+  border: 1px solid rgba(240,96,96,0.3);
+  border-radius: 12px;
+  color: var(--red);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+}
+.modal-btn-danger:hover { background: rgba(240,96,96,0.25); }
+.modal-btn-icon {
+  flex: 0 0 auto;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.modal-btn-icon:hover { background: rgba(255,255,255,0.08); }
+.modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+
+/* Formulário dentro de modais */
+.modal-overlay .form-group label {
+  color: var(--text3);
+}
+.modal-overlay input,
+.modal-overlay select {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+}
+.modal-overlay input:focus,
+.modal-overlay select:focus {
+  border-color: rgba(123,140,255,0.5);
+  outline: none;
+  background: rgba(255,255,255,0.06);
+}
+
+<!-- POPUP + LANÇAMENTO -->
 <style>
 #add-popup { display:none; position:fixed; inset:0; z-index:500; background:rgba(8,7,24,0.72); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); align-items:center; justify-content:center; }
 #add-popup.open { display:flex; animation: apFadeIn .18s ease; }
@@ -1680,9 +1796,9 @@ body.app-ready .page { visibility: visible; }
 </div>
 
 <!-- MODAL ADICIONAR DESPESA -->
-<div id="add-desp-modal" style="display:none;position:fixed;inset:0;z-index:510;background:rgba(10,9,30,0.85);align-items:center;justify-content:center;overflow-y:auto">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;width:min(520px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.5);margin:auto">
-    <div style="font-size:15px;font-weight:700;margin-bottom:1.2rem">Nova Despesa</div>
+<div id="add-desp-modal" class="modal-overlay" style="z-index:510">
+  <div class="modal-box" style="width:min(520px,92vw)">
+    <div class="modal-title">Nova Despesa</div>
     <div style="display:grid;gap:12px">
       <div class="form-group">
         <label>Ícone e descrição</label>
@@ -1727,9 +1843,9 @@ body.app-ready .page { visibility: visible; }
           <div class="form-group"><label>Mês final</label><input type="month" id="in-mes-fim"></div>
         </div>
       </div>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btn-add" style="flex:1" onclick="addEntry()">+ Adicionar despesa</button>
-        <button class="btn-add" style="flex:0 0 auto;background:var(--surface2);color:var(--text2);border:1px solid var(--border)" onclick="closeAddDesp()">✕</button>
+      <div class="modal-actions">
+        <button class="modal-btn-primary" onclick="addEntry()">+ Adicionar despesa</button>
+        <button class="modal-btn-icon" onclick="closeAddDesp()">✕</button>
       </div>
       <!-- GERENCIAR CONTAS -->
       <div style="margin-top:.5rem;padding-top:1rem;border-top:1px solid var(--border)">
@@ -1748,9 +1864,9 @@ body.app-ready .page { visibility: visible; }
 </div>
 
 <!-- MODAL ADICIONAR RECEITA -->
-<div id="add-rec-modal" style="display:none;position:fixed;inset:0;z-index:510;background:rgba(10,9,30,0.85);align-items:center;justify-content:center;overflow-y:auto">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;width:min(480px,92vw);box-shadow:0 20px 60px rgba(0,0,0,0.5);margin:auto">
-    <div style="font-size:15px;font-weight:700;margin-bottom:1.2rem">Nova Receita</div>
+<div id="add-rec-modal" class="modal-overlay" style="z-index:510">
+  <div class="modal-box" style="width:min(480px,92vw)">
+    <div class="modal-title">Nova Receita</div>
     <div style="display:grid;gap:12px">
       <div class="form-group"><label>Descrição</label><input type="text" id="in-rec-desc" placeholder="Ex: Salário, Freela, Vale Refeição"></div>
       <div class="form-group"><label>Categoria</label>
@@ -1778,9 +1894,9 @@ body.app-ready .page { visibility: visible; }
           <div class="form-group"><label>Mês final</label><input type="month" id="in-rec-mes-fim"></div>
         </div>
       </div>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btn-add" style="flex:1" onclick="addReceita()">+ Adicionar receita</button>
-        <button class="btn-add" style="flex:0 0 auto;background:var(--surface2);color:var(--text2);border:1px solid var(--border)" onclick="closeAddRec()">✕</button>
+      <div class="modal-actions">
+        <button class="modal-btn-primary" onclick="addReceita()">+ Adicionar receita</button>
+        <button class="modal-btn-icon" onclick="closeAddRec()">✕</button>
       </div>
     </div>
   </div>
@@ -2362,9 +2478,9 @@ function itemIcon(nome,icon){
 
 /* ══════ ICON PICKER ══════ */
 let selectedIcon=null, selectedIconEdit=null, iconPickerTarget=null;
-function openIconPicker(){iconPickerTarget='new';renderIconGrid(selectedIcon);document.getElementById('icon-modal').style.display='flex';document.getElementById('icon-search').value='';filterIcons();}
-function openIconPickerEdit(){iconPickerTarget='edit';renderIconGrid(selectedIconEdit);document.getElementById('icon-modal').style.display='flex';document.getElementById('icon-search').value='';filterIcons();}
-function closeIconModal(){document.getElementById('icon-modal').style.display='none';}
+function openIconPicker(){iconPickerTarget='new';renderIconGrid(selectedIcon);document.getElementById('icon-modal').classList.add('open');document.getElementById('icon-search').value='';filterIcons();}
+function openIconPickerEdit(){iconPickerTarget='edit';renderIconGrid(selectedIconEdit);document.getElementById('icon-modal').classList.add('open');document.getElementById('icon-search').value='';filterIcons();}
+function closeIconModal(){document.getElementById('icon-modal').classList.remove('open');}
 function filterIcons(){const q=document.getElementById('icon-search').value.toLowerCase();const filtered=ALL_ICONS_LIST.filter(i=>i.label.toLowerCase().includes(q));renderIconGrid(iconPickerTarget==='edit'?selectedIconEdit:selectedIcon,filtered);}
 function renderIconGrid(active,list=ALL_ICONS_LIST){
   /* FIX 3: Só ícone, sem label */
@@ -2401,16 +2517,16 @@ function openAddForm(tipo){
     document.getElementById('in-mes-ini').value=cm;
     document.getElementById('in-mes-fim').value=cm;
     renderManageList();
-    document.getElementById('add-desp-modal').style.display='flex';
+    document.getElementById('add-desp-modal').classList.add('open');
   } else {
     document.getElementById('in-rec-mes').value=cm;
     document.getElementById('in-rec-mes-ini').value=cm;
     document.getElementById('in-rec-mes-fim').value=cm;
-    document.getElementById('add-rec-modal').style.display='flex';
+    document.getElementById('add-rec-modal').classList.add('open');
   }
 }
-function closeAddDesp(){document.getElementById('add-desp-modal').style.display='none';}
-function closeAddRec(){document.getElementById('add-rec-modal').style.display='none';}
+function closeAddDesp(){document.getElementById('add-desp-modal').classList.remove('open');}
+function closeAddRec(){document.getElementById('add-rec-modal').classList.remove('open');}
 document.getElementById('add-popup').addEventListener('click',function(e){if(e.target===this)closeAddPopup();});
 document.getElementById('add-desp-modal').addEventListener('click',function(e){if(e.target===this)closeAddDesp();});
 document.getElementById('add-rec-modal').addEventListener('click',function(e){if(e.target===this)closeAddRec();});
@@ -2700,7 +2816,7 @@ function openModal(id){
   document.getElementById('edit-valor').value=d.val>0?d.val:'';
   document.getElementById('edit-venc-scope-wrap').style.display='none';
   document.querySelector('input[name="venc-scope"][value="only"]').checked=true;
-  document.getElementById('edit-modal').style.display='flex';
+  document.getElementById('edit-modal').classList.add('open');
 }
 document.getElementById('edit-venc').addEventListener('change',function(){
   document.getElementById('edit-venc-scope-wrap').style.display=this.value&&this.value!==originalVenc?'block':'none';
@@ -2744,9 +2860,9 @@ function saveEdit(){
   saveData();closeModal();renderDespTable();renderManageList();showToast('Atualizado!');
 }
 function closeModal(){
-  document.getElementById('edit-modal').style.display='none';
+  document.getElementById('edit-modal').classList.remove('open');
   // Se era edição em lote, reabre o modal de gerenciamento
-  if(editingBulkName) document.getElementById('add-desp-modal').style.display='flex';
+  if(editingBulkName) document.getElementById('add-desp-modal').classList.add('open');
   editingId=null;originalVenc=null;editingBulkName=null;selectedIconEdit=null;
 }
 document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
@@ -2874,7 +2990,7 @@ function openRecModal(id){
   document.getElementById('edit-rec-valor').value=r.val>0?r.val:'';
   document.getElementById('edit-rec-status').value=r.status||'Recebido';
   document.getElementById('edit-rec-mes').value=r.mes;
-  document.getElementById('edit-rec-modal').style.display='flex';
+  document.getElementById('edit-rec-modal').classList.add('open');
 }
 function saveRecEdit(){
   if(!editingRecId)return;
@@ -2887,7 +3003,7 @@ function saveRecEdit(){
   if(nome)r.nome=nome;r.cat=cat;if(!isNaN(val)&&val>0)r.val=val;if(mes)r.mes=mes;r.status=status;
   saveData();closeRecModal();renderReceitas();showToast('Receita atualizada!');
 }
-function closeRecModal(){document.getElementById('edit-rec-modal').style.display='none';editingRecId=null;}
+function closeRecModal(){document.getElementById('edit-rec-modal').classList.remove('open');editingRecId=null;}
 document.getElementById('edit-rec-modal').addEventListener('click',function(e){if(e.target===this)closeRecModal();});
 function deleteRecEntry(id){
   id=Number(id);
@@ -2945,8 +3061,8 @@ function editAllByName(nome){
   document.getElementById('edit-valor').value=d.val>0?d.val:'';
   document.getElementById('edit-venc-scope-wrap').style.display='none';
   // Garante que o modal de edição aparece por cima do modal de despesa
-  document.getElementById('add-desp-modal').style.display='none';
-  document.getElementById('edit-modal').style.display='flex';
+  document.getElementById('add-desp-modal').classList.remove('open');
+  document.getElementById('edit-modal').classList.add('open');
 }
 
 function toggleMesRange(){const v=document.getElementById('in-recorr').value;document.getElementById('mes-unico-wrap').style.display=v==='unico'?'flex':'none';document.getElementById('mes-range-wrap').style.display=v==='recorrente'?'block':'none';}
@@ -3244,16 +3360,16 @@ function selectProfile(id){
   document.getElementById('pin-avatar').textContent=p.avatar;
   document.getElementById('pin-title').textContent=p.nome;
   document.getElementById('pin-error').textContent='';
-  document.getElementById('pin-modal').style.display='flex';
+  document.getElementById('pin-modal').classList.add('open');
 }
 function pinPress(digit){if(pinBuffer.length>=4)return;pinBuffer+=digit;updatePinDots();if(pinBuffer.length===4)setTimeout(checkPin,80);}
 function pinBackspace(){pinBuffer=pinBuffer.slice(0,-1);updatePinDots();document.getElementById('pin-error').textContent='';}
-function pinCancel(){pinBuffer='';pinTarget=null;document.getElementById('pin-modal').style.display='none';}
+function pinCancel(){pinBuffer='';pinTarget=null;document.getElementById('pin-modal').classList.remove('open');}
 function updatePinDots(){document.querySelectorAll('.pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<pinBuffer.length));}
 function checkPin(){
   const p=PROFILES.find(x=>x.id===pinTarget);if(!p)return;
   if(hashPin(pinBuffer)===p.pin){
-    document.getElementById('pin-modal').style.display='none';
+    document.getElementById('pin-modal').classList.remove('open');
     setActiveProfileId(pinTarget);
     /* FIX 1: recarregar dados completamente isolados do novo perfil */
     DATA=loadData();
@@ -3266,9 +3382,9 @@ function checkPin(){
     document.getElementById('pin-error').textContent='PIN incorreto.';pinBuffer='';updatePinDots();
   }
 }
-function openCreateProfile(){editingProfileId=null;selectedAvatar='👤';document.getElementById('create-profile-title').textContent='Novo perfil';document.getElementById('cp-nome').value='';document.getElementById('cp-pin').value='';document.getElementById('cp-pin2').value='';document.getElementById('cp-error').textContent='';renderEmojiPicker();document.getElementById('create-profile-modal').style.display='flex';}
-function openEditProfile(id){const p=PROFILES.find(x=>x.id===id);if(!p)return;editingProfileId=id;selectedAvatar=p.avatar;document.getElementById('create-profile-title').textContent='Editar perfil';document.getElementById('cp-nome').value=p.nome;document.getElementById('cp-pin').value='';document.getElementById('cp-pin2').value='';document.getElementById('cp-error').textContent='';renderEmojiPicker();document.getElementById('create-profile-modal').style.display='flex';}
-function closeCreateProfile(){document.getElementById('create-profile-modal').style.display='none';editingProfileId=null;}
+function openCreateProfile(){editingProfileId=null;selectedAvatar='👤';document.getElementById('create-profile-title').textContent='Novo perfil';document.getElementById('cp-nome').value='';document.getElementById('cp-pin').value='';document.getElementById('cp-pin2').value='';document.getElementById('cp-error').textContent='';renderEmojiPicker();document.getElementById('create-profile-modal').classList.add('open');}
+function openEditProfile(id){const p=PROFILES.find(x=>x.id===id);if(!p)return;editingProfileId=id;selectedAvatar=p.avatar;document.getElementById('create-profile-title').textContent='Editar perfil';document.getElementById('cp-nome').value=p.nome;document.getElementById('cp-pin').value='';document.getElementById('cp-pin2').value='';document.getElementById('cp-error').textContent='';renderEmojiPicker();document.getElementById('create-profile-modal').classList.add('open');}
+function closeCreateProfile(){document.getElementById('create-profile-modal').classList.remove('open');editingProfileId=null;}
 function renderEmojiPicker(){const emojis=['👤','👨','👩','👦','👧','🧒','👴','👵','🧑','👨‍💼','👩‍💼','🧑‍💻','👨‍🍳','👩‍🎨','🦸','🐱'];document.getElementById('emoji-picker').innerHTML=emojis.map(e=>`<span class="${e===selectedAvatar?'selected':''}" onclick="selectEmoji('${e}')">${e}</span>`).join('');}
 function selectEmoji(e){selectedAvatar=e;renderEmojiPicker();}
 function saveProfile(){
@@ -3707,14 +3823,14 @@ let _confirmCallback = null;
 function showConfirm(msg, cb){
   document.getElementById('confirm-msg').textContent = msg;
   _confirmCallback = cb;
-  document.getElementById('confirm-modal').style.display = 'flex';
+  document.getElementById('confirm-modal').classList.add('open');
 }
 function confirmOk(){
-  document.getElementById('confirm-modal').style.display = 'none';
+  document.getElementById('confirm-modal').classList.remove('open');
   if(_confirmCallback){ _confirmCallback(); _confirmCallback=null; }
 }
 function confirmCancel(){
-  document.getElementById('confirm-modal').style.display = 'none';
+  document.getElementById('confirm-modal').classList.remove('open');
   _confirmCallback = null;
 }
 
@@ -3763,8 +3879,8 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- MODAL PIN -->
-<div id="pin-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(10,9,30,0.92);align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem 1.5rem;width:min(340px,90vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+<div id="pin-modal" class="modal-overlay" style="z-index:900">
+  <div class="modal-box" style="width:min(340px,90vw);text-align:center">
     <div id="pin-avatar" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px"></div>
     <div id="pin-title" style="font-size:16px;font-weight:700;margin-bottom:4px"></div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem">Digite o PIN de 4 dígitos</div>
@@ -3784,9 +3900,9 @@ if('serviceWorker' in navigator){
 </div>
 
 <!-- MODAL CRIAR/EDITAR PERFIL -->
-<div id="create-profile-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(10,9,30,0.92);align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem 1.5rem;width:min(380px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.6)">
-    <div style="font-size:15px;font-weight:700;margin-bottom:1.25rem" id="create-profile-title">Novo perfil</div>
+<div id="create-profile-modal" class="modal-overlay" style="z-index:900">
+  <div class="modal-box" style="width:min(380px,92vw)">
+    <div class="modal-title" id="create-profile-title">Novo perfil</div>
     <div style="margin-bottom:1.25rem">
       <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px">Avatar</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap" id="emoji-picker"></div>
@@ -3796,9 +3912,9 @@ if('serviceWorker' in navigator){
       <div class="form-group"><label>PIN (4 dígitos)</label><input type="password" id="cp-pin" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*"></div>
       <div class="form-group"><label>Confirmar PIN</label><input type="password" id="cp-pin2" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*"></div>
       <div id="cp-error" style="font-size:12px;color:var(--red);min-height:16px"></div>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btn-add" style="flex:1" onclick="saveProfile()">Salvar</button>
-        <button class="btn-add" style="flex:1;background:var(--surface2);color:var(--text2);border:1px solid var(--border)" onclick="closeCreateProfile()">Cancelar</button>
+      <div class="modal-actions">
+        <button class="modal-btn-primary" onclick="saveProfile()">Salvar</button>
+        <button class="modal-btn-secondary" onclick="closeCreateProfile()">Cancelar</button>
       </div>
     </div>
   </div>
@@ -3806,14 +3922,14 @@ if('serviceWorker' in navigator){
 
 
 <!-- MODAL CONFIRMAR EXCLUSÃO -->
-<div id="confirm-modal" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(10,9,30,0.85);align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;width:min(340px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center">
+<div id="confirm-modal" class="modal-overlay" style="z-index:700">
+  <div class="modal-box" style="width:min(340px,90vw);text-align:center">
     <div style="font-size:28px;margin-bottom:12px">🗑️</div>
-    <div style="font-size:15px;font-weight:700;margin-bottom:6px" id="confirm-msg">Tem certeza?</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text)" id="confirm-msg">Tem certeza?</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem">Esta ação não pode ser desfeita.</div>
-    <div style="display:flex;gap:10px">
-      <button onclick="confirmCancel()" style="flex:1;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s">Cancelar</button>
-      <button onclick="confirmOk()" style="flex:1;padding:11px;background:var(--red);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Excluir</button>
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" onclick="confirmCancel()">Cancelar</button>
+      <button class="modal-btn-danger" onclick="confirmOk()">Excluir</button>
     </div>
   </div>
 </div>
@@ -3941,15 +4057,15 @@ if('serviceWorker' in navigator){
 <!-- Modal edição de campo -->
 <div id="edit-field-modal">
   <div class="edit-field-sheet">
-    <div style="font-size:15px;font-weight:700;margin-bottom:1.25rem" id="edit-field-title">Editar</div>
+    <div class="modal-title" id="edit-field-title">Editar</div>
     <div class="form-group" style="margin-bottom:1rem">
       <label id="edit-field-label">Campo</label>
       <input id="edit-field-input" type="text" style="width:100%" onkeydown="if(event.key==='Enter')saveEditField()">
     </div>
     <div id="edit-field-error" style="font-size:12px;color:var(--red);margin-bottom:10px;display:none"></div>
-    <div style="display:flex;gap:10px">
-      <button class="btn-add" onclick="saveEditField()" style="flex:1">Salvar</button>
-      <button class="btn-add" onclick="closeEditField()" style="flex:1;background:var(--surface2);color:var(--text2);border:1px solid var(--border)">Cancelar</button>
+    <div class="modal-actions">
+      <button class="modal-btn-primary" onclick="saveEditField()">Salvar</button>
+      <button class="modal-btn-secondary" onclick="closeEditField()">Cancelar</button>
     </div>
   </div>
 </div>
