@@ -25,7 +25,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          sendPasswordResetEmail, signOut, onAuthStateChanged,
          browserLocalPersistence, browserSessionPersistence, setPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc,
+import { getFirestore, doc, setDoc, getDoc, onSnapshot,
          initializeFirestore, persistentLocalCache }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
@@ -65,7 +65,7 @@ window._fbFns  = {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
   sendPasswordResetEmail, signOut, onAuthStateChanged,
   setPersistence, browserLocalPersistence, browserSessionPersistence,
-  doc, setDoc, getDoc
+  doc, setDoc, getDoc, onSnapshot
 };
 
 // Observer de auth
@@ -1758,6 +1758,51 @@ function loadData(){
   };
 }
 
+let _unsubscribeSync = null; // guarda o unsubscribe do onSnapshot
+
+function startRealtimeSync(uid) {
+  // Cancela listener anterior se existir
+  if (_unsubscribeSync) {
+    _unsubscribeSync();
+    _unsubscribeSync = null;
+  }
+
+  const fns = fbFns();
+  const docRef = fns.doc(fbDb(), 'gastos', uid);
+  _unsubscribeSync = fns.onSnapshot(docRef, (snap) => {
+    // Ignora snapshots disparados pela própria escrita local (evita loop)
+    if (snap.metadata.hasPendingWrites) return;
+
+    if (snap.exists()) {
+      const d = snap.data();
+      const newDesp = d.despesas || [];
+      const newRec  = d.receitas  || [];
+
+      // Só atualiza se houver diferença real (evita re-render desnecessário)
+      const changed =
+        JSON.stringify(newDesp) !== JSON.stringify(DATA.despesas) ||
+        JSON.stringify(newRec)  !== JSON.stringify(DATA.receitas);
+
+      if (changed) {
+        DATA.despesas = newDesp;
+        DATA.receitas = newRec;
+        localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
+        localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
+        // Re-renderiza tudo silenciosamente
+        renderOverview();
+        renderDespTable && renderDespTable();
+        renderRecTable  && renderRecTable();
+        renderNotif     && renderNotif();
+        updateNotifBadge();
+        showSyncStatus('saved');
+        console.log('[Sync] Dados atualizados do Firestore ✓');
+      }
+    }
+  }, (err) => {
+    console.warn('[Sync] Erro no listener onSnapshot:', err);
+  });
+}
+
 /* ── Callbacks de auth ── */
 window._onFbLogin = async function(user){
   try{
@@ -1786,6 +1831,8 @@ window._onFbLogin = async function(user){
         setTimeout(() => syncToFirestore(), 5000);
       }
     }
+    // Inicia sincronização em tempo real
+    startRealtimeSync(user.uid);
   } catch(e){
     // Qualquer erro: inicia com dados vazios em vez de travar
     console.warn('Erro no login:', e);
@@ -1803,6 +1850,10 @@ window._onFbLogin = async function(user){
 };
 
 window._onFbLogout = function(){
+  if (_unsubscribeSync) {
+    _unsubscribeSync();
+    _unsubscribeSync = null;
+  }
   localStorage.removeItem('gastos_cache_desp');
   localStorage.removeItem('gastos_cache_rec');
   DATA={despesas:[],receitas:[]};
