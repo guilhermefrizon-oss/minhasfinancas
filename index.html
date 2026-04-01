@@ -61,8 +61,20 @@ window._fbFns  = {
   doc, setDoc, getDoc, onSnapshot
 };
 
+// Fallback: se Firebase SDK falhar ou onAuthStateChanged não disparar, esconde splash em 8s
+const _splashFallbackTimer = setTimeout(() => {
+  const splash = document.getElementById('splash-screen');
+  if (splash && splash.style.display !== 'none') {
+    console.warn('[App] Firebase não respondeu em 8s — forçando tela de login');
+    splash.style.display = 'none';
+    const ls = document.getElementById('login-screen');
+    if (ls) ls.classList.add('visible');
+  }
+}, 8000);
+
 // Observer de auth
 onAuthStateChanged(auth, user => {
+  clearTimeout(_splashFallbackTimer);
   window._fbUser = user || null;
   const splash = document.getElementById('splash-screen');
   if(splash) splash.style.display = 'none';
@@ -1690,13 +1702,20 @@ async function doLogout(){
 const DATA_VERSION='v3-2025';
 
 async function loadDataFromCloud(uid){
-  console.log('[App] Carregando dados...');
-  const timeout = new Promise(resolve => {
-    setTimeout(() => { console.warn('[App] Timeout (10s) — Firebase demorou, usando cache local'); resolve(null); }, 10000);
-  });
-  const fetchData = (async () => {
+  const MAX_ATTEMPTS = 3;
+  for(let attempt = 0; attempt < MAX_ATTEMPTS; attempt++){
+    if(attempt > 0){
+      const delay = Math.pow(2, attempt - 1) * 2000; // 2s, 4s
+      console.log(`[App] Retry em ${delay/1000}s... (tentativa ${attempt + 1}/${MAX_ATTEMPTS})`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+    console.log(`[App] Carregando dados... (tentativa ${attempt + 1}/${MAX_ATTEMPTS})`);
     try{
-      const snap = await fbFns().getDoc(fbFns().doc(fbDb(),'gastos',uid));
+      const fetchPromise = fbFns().getDoc(fbFns().doc(fbDb(),'gastos',uid));
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 6000)
+      );
+      const snap = await Promise.race([fetchPromise, timeoutPromise]);
       if(snap.exists()){
         console.log('[App] Dados carregados ✓');
         const d = snap.data();
@@ -1705,11 +1724,18 @@ async function loadDataFromCloud(uid){
       console.log('[App] Conta nova — sem dados ainda');
       return null;
     } catch(e){
-      console.warn('[App] Erro Firestore:', e.code, e.message);
-      return null;
+      const code = e.code || e.message;
+      console.warn(`[App] Erro Firestore (tentativa ${attempt + 1}):`, code);
+      if(code === 'permission-denied'){
+        console.warn('[App] Permissão negada — abortando retries');
+        return null;
+      }
+      if(attempt === MAX_ATTEMPTS - 1){
+        console.warn('[App] Todas as tentativas falharam, usando cache local');
+      }
     }
-  })();
-  return Promise.race([fetchData, timeout]);
+  }
+  return null;
 }
 
 let _saveTimer=null;
@@ -1773,8 +1799,13 @@ async function syncToFirestore(){
   }
 }
 
-// Sincroniza quando voltar a ter conexão
-window.addEventListener('online', ()=>{ if(_pendingSync) syncToFirestore(); });
+// Sincroniza quando voltar a ter conexão e atualiza status
+window.addEventListener('online', ()=>{
+  showSyncStatus('saving');
+  if(_pendingSync) syncToFirestore();
+  if(window._fbUser) startRealtimeSync(window._fbUser.uid);
+});
+window.addEventListener('offline', ()=>{ showSyncStatus('offline'); });
 
 function loadData(){
   // Enquanto não tiver dados do Firebase, usa cache local
@@ -1828,6 +1859,15 @@ function startRealtimeSync(uid) {
     }
   }, (err) => {
     console.warn('[Sync] Erro no listener onSnapshot:', err);
+    showSyncStatus('offline');
+    if(err.code === 'unavailable'){
+      // Tenta reconectar após backoff quando offline
+      const delay = 10000;
+      console.log(`[Sync] Reconectando em ${delay/1000}s...`);
+      setTimeout(() => {
+        if(window._fbUser) startRealtimeSync(window._fbUser.uid);
+      }, delay);
+    }
   });
 }
 
@@ -1840,28 +1880,34 @@ window._onFbLogin = async function(user){
     // 1. Oculta tela de login
     document.getElementById('login-screen').classList.remove('visible');
 
-    // 2. Tenta carregar dados da nuvem
-    let cloud = null;
-    try{ cloud = await loadDataFromCloud(user.uid); } catch(e){ console.warn(e); }
-
-    if(cloud){
-      DATA.despesas = cloud.despesas;
-      DATA.receitas = cloud.receitas;
-      localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
-      localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
-    } else {
-      const localD = localStorage.getItem('gastos_cache_desp');
-      const localR = localStorage.getItem('gastos_cache_rec');
+    // 2. Carrega cache local imediatamente como fallback (evita tela branca)
+    const localD = localStorage.getItem('gastos_cache_desp');
+    const localR = localStorage.getItem('gastos_cache_rec');
+    if(localD || localR){
       DATA.despesas = localD ? JSON.parse(localD) : [];
       DATA.receitas = localR ? JSON.parse(localR) : [];
-      if(localD && DATA.despesas.length > 0){
-        console.log('[App] Dados locais encontrados — agendando retry de sync em 5s...');
-        setTimeout(() => loadDataFromCloud(user.uid).then(c => {
-          if(c){ DATA.despesas=c.despesas; DATA.receitas=c.receitas; renderOverview(); }
-        }).catch(e => console.warn('[App] Retry falhou:', e)), 5000);
-      }
+      console.log('[App] Cache local carregado como fallback imediato');
     }
-    // Inicia sincronização em tempo real
+
+    // 3. Tenta carregar dados da nuvem em background (não bloqueia a UI)
+    loadDataFromCloud(user.uid).then(cloud => {
+      if(cloud){
+        const changed =
+          JSON.stringify(cloud.despesas) !== JSON.stringify(DATA.despesas) ||
+          JSON.stringify(cloud.receitas)  !== JSON.stringify(DATA.receitas);
+        if(changed){
+          DATA.despesas = cloud.despesas;
+          DATA.receitas = cloud.receitas;
+          localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
+          localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
+          renderOverview();
+          renderDespTable && renderDespTable();
+          renderRecTable  && renderRecTable();
+        }
+      }
+    }).catch(e => console.warn('[App] Sync inicial falhou:', e));
+
+    // 4. Inicia sincronização em tempo real
     startRealtimeSync(user.uid);
   } catch(e){
     console.warn('Erro no login:', e);
