@@ -1691,26 +1691,46 @@ async function doSignup(){
   }
 }
 
-async function doReset(){
-  const email=document.getElementById('reset-email').value.trim();
-  hideLoginError('reset-error');
-  if(!email){ showLoginError('reset-error','Digite seu email.'); return; }
-  setLoginLoading('btn-reset',true);
-  try{
-    await fbFns().sendPasswordResetEmail(fbAuth(), email);
-    const s=document.getElementById('reset-success');
-    s.textContent='Email enviado! Verifique sua caixa de entrada.';
-    s.classList.add('visible');
-    setLoginLoading('btn-reset',false);
-  } catch(e){
-    showLoginError('reset-error', fbErrorMsg(e.code));
-    setLoginLoading('btn-reset',false);
-  }
-}
+async function loadDataFromCloud(uid){
+  console.log('[App] 🔄 Carregando dados (tentativa 1/3)...');
+  
+  const timeout = new Promise(resolve => {
+    setTimeout(() => { 
+      console.warn('[App] ⏱️ Timeout (5s)'); 
+      resolve(null); 
+    }, 5000);
+  });
 
-async function doLogout(){
-  if(!confirm('Sair da conta?')) return;
-  await fbFns().signOut(fbAuth());
+  const fetchData = (async () => {
+    try{
+      console.log('[App] 📡 Conectando ao Firestore...');
+      const docRef = fbFns().doc(fbDb(), 'gastos', uid);
+      
+      // Tentar ler do servidor
+      const snap = await fbFns().getDoc(docRef, { source: 'server' });
+      
+      if(snap.exists()){
+        console.log('[App] ✅ Dados do servidor carregados!');
+        const d = snap.data();
+        return { despesas: d.despesas||[], receitas: d.receitas||[] };
+      }
+      
+      console.log('[App] 📝 Primeira vez (sem dados)');
+      return null;
+    } catch(e){
+      console.error('[App] ❌ Erro Firestore:', e.code, '—', e.message);
+      
+      // Se for erro de permissão, avisar
+      if(e.code === 'permission-denied'){
+        console.error('[App] 🚫 ERRO: Sem permissão! Verifique as Regras Firestore');
+        alert('❌ Erro de permissão no Firebase!\n\nContate o administrador.');
+      }
+      
+      return null;
+    }
+  })();
+
+  return Promise.race([fetchData, timeout]);
 }
 
 /* ── Carregar / salvar dados no Firestore ── */
