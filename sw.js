@@ -1,4 +1,4 @@
-const CACHE = 'meus-gastos-v4';
+const CACHE = 'meus-gastos-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -28,7 +28,23 @@ self.addEventListener('fetch', e => {
   if (!url.startsWith('http')) return;
 
   // Ignora requests do Firebase (auth, firestore) — nunca cachear
-  if (url.includes('firebase') || url.includes('firestore') || url.includes('googleapis')) return;
+  let parsedUrl;
+  try { parsedUrl = new URL(url); } catch (_) { return; }
+  const hostname = parsedUrl.hostname;
+  if (
+    hostname.endsWith('.firebase.com') ||
+    hostname.endsWith('.firebaseapp.com') ||
+    hostname.endsWith('.firebaseio.com') ||
+    hostname.endsWith('.firestore.googleapis.com') ||
+    hostname.endsWith('.googleapis.com') ||
+    hostname === 'googleapis.com' ||
+    hostname.endsWith('.gstatic.com') ||
+    hostname === 'gstatic.com' ||
+    hostname.endsWith('.securetoken.googleapis.com')
+  ) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
 
   // Para o HTML principal, sempre busca na rede primeiro
   if (e.request.mode === 'navigate') {
