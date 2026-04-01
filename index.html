@@ -1785,25 +1785,33 @@ const DATA_VERSION='v3-2025';
 
 async function loadDataFromCloud(uid){
   console.log('[App] Carregando dados...');
-  const timeout = new Promise(resolve => {
-    setTimeout(() => { console.warn('[App] Timeout (10s) — Firebase demorou, usando cache local'); resolve(null); }, 10000);
-  });
-  const fetchData = (async () => {
-    try{
-      const snap = await fbFns().getDoc(fbFns().doc(fbDb(),'gastos',uid));
-      if(snap.exists()){
-        console.log('[App] Dados carregados ✓');
-        const d = snap.data();
-        return { despesas: d.despesas||[], receitas: d.receitas||[] };
+  const MAX_ATTEMPTS = 2;
+  for(let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++){
+    const timeout = new Promise(resolve => {
+      setTimeout(() => { console.warn(`[App] Timeout (3s) — tentativa ${attempt}/${MAX_ATTEMPTS}`); resolve(null); }, 3000);
+    });
+    const fetchData = (async () => {
+      try{
+        const snap = await fbFns().getDoc(fbFns().doc(fbDb(),'gastos',uid));
+        if(snap.exists()){
+          console.log('[App] Dados carregados ✓');
+          const d = snap.data();
+          return { despesas: d.despesas||[], receitas: d.receitas||[] };
+        }
+        console.log('[App] Conta nova — sem dados ainda');
+        return null;
+      } catch(e){
+        console.warn('[App] Erro Firestore:', e.code, e.message);
+        return null;
       }
-      console.log('[App] Conta nova — sem dados ainda');
-      return null;
-    } catch(e){
-      console.warn('[App] Erro Firestore:', e.code, e.message);
-      return null;
+    })();
+    const result = await Promise.race([fetchData, timeout]);
+    if(result !== null) return result;
+    if(attempt < MAX_ATTEMPTS){
+      await new Promise(r => setTimeout(r, Math.pow(2, attempt - 1) * 1000));
     }
-  })();
-  return Promise.race([fetchData, timeout]);
+  }
+  return null;
 }
 
 let _saveTimer=null;
@@ -1881,6 +1889,7 @@ function loadData(){
 }
 
 let _unsubscribeSync = null; // guarda o unsubscribe do onSnapshot
+let _syncRetryCount = 0;
 
 function startRealtimeSync(uid) {
   // Cancela listener anterior se existir
@@ -1888,6 +1897,7 @@ function startRealtimeSync(uid) {
     _unsubscribeSync();
     _unsubscribeSync = null;
   }
+  _syncRetryCount = 0;
 
   const fns = fbFns();
   const docRef = fns.doc(fbDb(), 'gastos', uid);
@@ -1912,8 +1922,8 @@ function startRealtimeSync(uid) {
         localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
         // Re-renderiza tudo silenciosamente
         renderOverview();
-        renderDespTable && renderDespTable();
-        renderRecTable  && renderRecTable();
+        if(typeof renderDespTable === 'function' && document.getElementById('page-despesas')?.classList.contains('active')) renderDespTable();
+        if(typeof renderRecTable  === 'function' && document.getElementById('page-receitas')?.classList.contains('active'))  renderRecTable();
         renderNotif     && renderNotif();
         updateNotifBadge();
         showSyncStatus('saved');
@@ -1922,6 +1932,19 @@ function startRealtimeSync(uid) {
     }
   }, (err) => {
     console.warn('[Sync] Erro no listener onSnapshot:', err);
+    showSyncStatus('offline');
+    if(err.code === 'unavailable' || err.code === 'unauthenticated'){
+      if(_syncRetryCount < 3){
+        const delay = Math.min(Math.pow(2, _syncRetryCount) * 2000, 30000);
+        _syncRetryCount++;
+        console.log(`[Sync] Reconectando em ${delay/1000}s... (tentativa ${_syncRetryCount}/3)`);
+        setTimeout(() => {
+          if(window._fbUser) startRealtimeSync(window._fbUser.uid);
+        }, delay);
+      } else {
+        console.warn('[Sync] Máximo de tentativas atingido.');
+      }
+    }
   });
 }
 
@@ -1949,10 +1972,10 @@ window._onFbLogin = async function(user){
       DATA.despesas = localD ? JSON.parse(localD) : [];
       DATA.receitas = localR ? JSON.parse(localR) : [];
       if(localD && DATA.despesas.length > 0){
-        console.log('[App] Dados locais encontrados — agendando retry de sync em 5s...');
+        console.log('[App] Dados locais encontrados — agendando retry de sync em 3s...');
         setTimeout(() => loadDataFromCloud(user.uid).then(c => {
           if(c){ DATA.despesas=c.despesas; DATA.receitas=c.receitas; renderOverview(); }
-        }).catch(e => console.warn('[App] Retry falhou:', e)), 5000);
+        }).catch(e => console.warn('[App] Retry falhou:', e)), 3000);
       }
     }
     // Inicia sincronização em tempo real
