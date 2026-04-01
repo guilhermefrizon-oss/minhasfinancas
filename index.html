@@ -1836,16 +1836,14 @@ function startRealtimeSync(uid) {
 
 /* ── Callbacks de auth ── */
 window._onFbLogin = async function(user){
-  // Mostra skeleton, oculta conteúdo real
+  // Mostra skeleton enquanto carrega dados
   const sk = document.getElementById('overview-skeleton');
-  const ov = document.getElementById('overview-real-content');
   if(sk) sk.style.display = 'block';
-  if(ov) ov.style.display = 'none';
   try{
-    // 1. Oculta tela de login, mantém splash enquanto carrega
+    // 1. Oculta tela de login
     document.getElementById('login-screen').classList.remove('visible');
 
-    // 2. Tenta carregar dados da nuvem (com timeout de 6s)
+    // 2. Tenta carregar dados da nuvem
     let cloud = null;
     try{ cloud = await loadDataFromCloud(user.uid); } catch(e){ console.warn(e); }
 
@@ -1855,13 +1853,10 @@ window._onFbLogin = async function(user){
       localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
       localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
     } else {
-      // Sem dados na nuvem (timeout ou conta nova): usa cache local ou começa do zero
       const localD = localStorage.getItem('gastos_cache_desp');
       const localR = localStorage.getItem('gastos_cache_rec');
       DATA.despesas = localD ? JSON.parse(localD) : [];
       DATA.receitas = localR ? JSON.parse(localR) : [];
-      // Se tinha dados locais E o cloud retornou null por timeout (não por conta nova),
-      // agenda retry para tentar sincronizar com a nuvem em 5s
       if(localD && DATA.despesas.length > 0){
         console.log('[App] Dados locais encontrados — agendando retry de sync...');
         setTimeout(() => syncToFirestore(), 5000);
@@ -1870,16 +1865,15 @@ window._onFbLogin = async function(user){
     // Inicia sincronização em tempo real
     startRealtimeSync(user.uid);
   } catch(e){
-    // Qualquer erro: inicia com dados vazios em vez de travar
     console.warn('Erro no login:', e);
     const localD = localStorage.getItem('gastos_cache_desp');
     const localR = localStorage.getItem('gastos_cache_rec');
     DATA.despesas = localD ? JSON.parse(localD) : [];
     DATA.receitas = localR ? JSON.parse(localR) : [];
+    document.body.classList.add('app-ready');
   } finally {
-    // 3. SEMPRE chega aqui — esconde skeleton, mostra o app
+    // SEMPRE executa — esconde skeleton, mostra o app
     if(sk) sk.style.display = 'none';
-    if(ov) ov.style.display = 'block';
     document.body.classList.add('app-ready');
     updateHeaderProfile(user);
     renderOverview();
