@@ -837,6 +837,100 @@ body.app-ready .page { visibility: visible; }
   border-radius: var(--radius-sm);
 }
 
+
+/* ══════ TELA DE PERFIL DO USUÁRIO ══════ */
+#user-profile-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: var(--bg);
+  flex-direction: column;
+  overflow-y: auto;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+#user-profile-screen.visible { display: flex; }
+.profile-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.profile-back {
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  line-height: 1;
+  transition: background .15s;
+}
+.profile-back:hover { background: var(--surface2); }
+.profile-avatar-big {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 auto 6px;
+  flex-shrink: 0;
+}
+.profile-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin: 1.25rem 1.25rem .5rem;
+}
+.profile-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .9rem 1.25rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.profile-field-row:hover { background: var(--surface2); }
+.profile-field-row:first-child { border-top: 1px solid var(--border); }
+.profile-field-label { font-size: 12px; color: var(--text3); margin-bottom: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.profile-field-value { font-size: 15px; color: var(--text); font-weight: 500; }
+.profile-field-arrow { color: var(--text3); font-size: 14px; flex-shrink: 0; }
+
+/* Modal de edição de campo */
+#edit-field-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  background: rgba(10,9,30,.85);
+  align-items: flex-end;
+  justify-content: center;
+}
+#edit-field-modal.visible { display: flex; }
+.edit-field-sheet {
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom,0px));
+  box-shadow: 0 -8px 32px rgba(0,0,0,.4);
+}
+
 </style>
 </head>
 <body>
@@ -979,13 +1073,9 @@ body.app-ready .page { visibility: visible; }
   <!-- CONTEÚDO REAL -->
   <div id="overview-real-content">
   <!-- SAUDAÇÃO -->
-  <div id="overview-greeting" style="margin-top:.25rem;margin-bottom:1.1rem;display:flex;align-items:center;justify-content:space-between;gap:12px">
-    <div>
-      <div id="overview-greeting-label" style="font-size:13px;color:var(--text3);font-weight:500;margin-bottom:2px"></div>
-      <div id="overview-greeting-name" style="font-size:22px;font-weight:800;color:var(--text);line-height:1.2"></div>
-      <div id="overview-greeting-msg" style="font-size:12px;color:var(--text3);margin-top:3px;font-style:italic"></div>
-    </div>
-    <div id="overview-greeting-emoji" style="font-size:32px;flex-shrink:0;line-height:1"></div>
+  <div id="overview-greeting" style="margin-top:.25rem;margin-bottom:1rem">
+    <div style="font-size:13px;color:var(--text2);font-weight:500">Olá,</div>
+    <div id="overview-greeting-name" style="font-size:22px;font-weight:800;color:var(--text);line-height:1.2"></div>
   </div>
   <!-- CAMPO RÁPIDO -->
   <div class="quick-bar" style="margin-top:.25rem">
@@ -2642,64 +2732,159 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 /* ══════ SISTEMA DE PERFIS — UI ══════ */
 let pinTarget=null,pinBuffer='',editingProfileId=null,selectedAvatar='👤';
 
-function getGreeting(){
-  const h = new Date().getHours();
-  if(h >= 5  && h < 12) return { label:'Bom dia',      emoji:'☀️',  msg:'Que seu dia seja ótimo!' };
-  if(h >= 12 && h < 18) return { label:'Boa tarde',    emoji:'🌤️', msg:'Continue firme nos seus objetivos!' };
-  if(h >= 18 && h < 22) return { label:'Boa noite',    emoji:'🌙',  msg:'Hora de revisar o dia!' };
-  return                        { label:'Boa madrugada',emoji:'⭐',  msg:'Cuidando das finanças a qualquer hora!' };
+function applyHeaderName(nomeCompleto){
+  const primeiro = nomeCompleto.split(' ')[0];
+  const initial = primeiro.charAt(0).toUpperCase();
+  document.getElementById('header-profile-avatar').textContent = initial;
+  document.getElementById('header-profile-name').textContent = primeiro;
+  const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
+  document.getElementById('header-profile-avatar').style.background=colors[primeiro.charCodeAt(0)%colors.length]+'33';
+  // Saudação — só primeiro nome
+  applyGreeting(primeiro);
 }
-function applyGreeting(primeiroNome){
-  const g = getGreeting();
-  const label = document.getElementById('overview-greeting-label');
-  const name  = document.getElementById('overview-greeting-name');
-  const msg   = document.getElementById('overview-greeting-msg');
-  const emoji = document.getElementById('overview-greeting-emoji');
-  if(label) label.textContent = g.label + ',';
-  if(name)  name.textContent  = primeiroNome;
-  if(msg)   msg.textContent   = g.msg;
-  if(emoji) emoji.textContent = g.emoji;
-}
+
 function updateHeaderProfile(user){
   user = user || window._fbUser;
   if(!user) return;
+  // Se já tem em cache, aplica imediatamente sem esperar rede
+  if(_userProfileData && _userProfileData.nome){
+    applyHeaderName(_userProfileData.nome);
+    return;
+  }
+  // Busca do Firestore
   fbFns().getDoc(fbFns().doc(fbDb(),'users',user.uid)).then(snap=>{
-    const nomeCompleto = snap.exists() ? snap.data().nome : user.email.split('@')[0];
-    const primeiroNome = nomeCompleto.split(' ')[0]; // só o primeiro nome
-    const initial = primeiroNome.charAt(0).toUpperCase();
-    document.getElementById('header-profile-avatar').textContent = initial;
-    document.getElementById('header-profile-name').textContent = primeiroNome;
-    applyGreeting(primeiroNome);
-    const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
-    document.getElementById('header-profile-avatar').style.background=colors[primeiroNome.charCodeAt(0)%colors.length]+'33';
+    if(snap.exists() && snap.data().nome){
+      _userProfileData = snap.data();
+      applyHeaderName(snap.data().nome);
+    } else {
+      // Fallback: usa parte antes do @ e do ponto
+      const emailName = user.email.split('@')[0].replace(/[._]/g,' ').replace(/\w/g,c=>c.toUpperCase());
+      applyHeaderName(emailName);
+    }
   }).catch(()=>{
-    const fallback = user.email.split('@')[0];
-    document.getElementById('header-profile-avatar').textContent = fallback.charAt(0).toUpperCase();
-    document.getElementById('header-profile-name').textContent = fallback;
-    applyGreeting(fallback);
+    const emailName = user.email.split('@')[0].replace(/[._]/g,' ').replace(/\w/g,c=>c.toUpperCase());
+    applyHeaderName(emailName);
   });
 }
 
-/* Menu do usuário (substitui tela de perfis) */
-function toggleUserMenu(){
-  let menu=document.getElementById('user-menu-dropdown');
-  if(menu){ menu.remove(); return; }
-  const btn=document.getElementById('profile-header-btn');
-  const rect=btn.getBoundingClientRect();
-  menu=document.createElement('div');
-  menu.id='user-menu-dropdown';
-  menu.style.cssText=`position:fixed;top:${rect.bottom+6}px;right:${window.innerWidth-rect.right}px;z-index:600;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,.4);min-width:160px;overflow:hidden`;
-  const user=window._fbUser;
-  menu.innerHTML=`
-    <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text3)">${user?user.email:''}</div>
-    <button onclick="doLogout();this.closest('#user-menu-dropdown').remove()" style="width:100%;padding:10px 14px;background:none;border:none;text-align:left;color:var(--red);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2H2v10h3M9.5 9.5L12 7l-2.5-2.5M5 7h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Sair
-    </button>`;
-  document.body.appendChild(menu);
-  setTimeout(()=>document.addEventListener('click', function h(e){
-    if(!menu.contains(e.target)&&!btn.contains(e.target)){menu.remove();document.removeEventListener('click',h);}
-  }),0);
+/* ══════ PERFIL DO USUÁRIO ══════ */
+let _userProfileData = {}; // cache local dos dados do perfil
+let _editingField = null;
+
+function toggleUserMenu(){ openUserProfile(); }
+
+function openUserProfile(){
+  const screen = document.getElementById('user-profile-screen');
+  screen.classList.add('visible');
+  loadUserProfileData();
+}
+function closeUserProfile(){
+  document.getElementById('user-profile-screen').classList.remove('visible');
+}
+
+async function loadUserProfileData(){
+  const user = window._fbUser;
+  if(!user) return;
+  // Preenche email imediatamente
+  document.getElementById('profile-email-val').textContent = user.email;
+  document.getElementById('profile-email-display').textContent = user.email;
+
+  try{
+    const snap = await fbFns().getDoc(fbFns().doc(fbDb(),'users',user.uid));
+    if(snap.exists()){
+      _userProfileData = snap.data();
+    } else {
+      _userProfileData = { nome: '', email: user.email, telefone: '' };
+    }
+  } catch(e){
+    _userProfileData = { nome: '', email: user.email, telefone: '' };
+  }
+  renderUserProfile();
+}
+
+function renderUserProfile(){
+  const nome = _userProfileData.nome || '';
+  const telefone = _userProfileData.telefone || '—';
+  const email = _userProfileData.email || window._fbUser?.email || '';
+  const primeiroNome = nome.split(' ')[0] || email.split('@')[0];
+
+  document.getElementById('profile-nome-val').textContent = nome || '—';
+  document.getElementById('profile-telefone-val').textContent = telefone;
+  document.getElementById('profile-email-val').textContent = email;
+  document.getElementById('profile-fullname-display').textContent = nome || primeiroNome;
+  document.getElementById('profile-email-display').textContent = email;
+
+  // Avatar grande
+  const avatarEl = document.getElementById('profile-avatar-big');
+  avatarEl.textContent = primeiroNome.charAt(0).toUpperCase();
+  const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
+  avatarEl.style.background = colors[primeiroNome.charCodeAt(0)%colors.length];
+}
+
+function openEditField(field, title, currentValue, inputType='text'){
+  _editingField = field;
+  document.getElementById('edit-field-title').textContent = title;
+  document.getElementById('edit-field-label').textContent = title;
+  document.getElementById('edit-field-input').type = inputType;
+  document.getElementById('edit-field-input').value = currentValue === '—' ? '' : currentValue;
+  document.getElementById('edit-field-error').style.display = 'none';
+  document.getElementById('edit-field-modal').classList.add('visible');
+  setTimeout(()=>document.getElementById('edit-field-input').focus(), 100);
+}
+function closeEditField(){
+  document.getElementById('edit-field-modal').classList.remove('visible');
+  _editingField = null;
+}
+function saveEditField(){
+  const val = document.getElementById('edit-field-input').value.trim();
+  const errEl = document.getElementById('edit-field-error');
+  if(_editingField === 'nome' && !val){
+    errEl.textContent = 'Nome não pode estar vazio.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(_editingField === 'email'){
+    if(!val || !val.includes('@')){
+      errEl.textContent = 'Email inválido.';
+      errEl.style.display = 'block';
+      return;
+    }
+  }
+  _userProfileData[_editingField] = val;
+  closeEditField();
+  renderUserProfile();
+}
+
+async function saveUserProfile(){
+  const user = window._fbUser;
+  if(!user) return;
+  const btn = document.getElementById('btn-save-profile');
+  btn.textContent = 'Salvando...';
+  btn.disabled = true;
+  try{
+    await fbFns().setDoc(fbFns().doc(fbDb(),'users',user.uid), {
+      ..._userProfileData,
+      atualizadoEm: Date.now()
+    });
+    // Atualiza o nome no header e na saudação
+    updateHeaderProfile(user);
+    showToast('Perfil atualizado! ✅');
+    closeUserProfile();
+  } catch(e){
+    showToast('Erro ao salvar. Tente novamente.');
+  } finally {
+    btn.textContent = 'Salvar';
+    btn.disabled = false;
+  }
+}
+
+function openChangePassword(){
+  const email = window._fbUser?.email;
+  if(!email) return;
+  if(!confirm('Enviar email de redefinição de senha para ' + email + '?')) return;
+  fbFns().sendPasswordResetEmail(window._fbAuth, email)
+    .then(()=>showToast('Email enviado! Verifique sua caixa de entrada.'))
+    .catch(()=>showToast('Erro ao enviar email.'));
 }
 function openProfileScreen(){PROFILES=loadProfiles();renderProfileList();document.getElementById('profile-screen').style.display='flex';document.getElementById('profile-close-btn').style.display=getActiveProfileId()?'block':'none';}
 function closeProfileScreen(){document.getElementById('profile-screen').style.display='none';}
@@ -3354,6 +3539,84 @@ if('serviceWorker' in navigator){
   </button>
 
 </nav>
+
+
+<!-- ══════ TELA DE PERFIL ══════ -->
+<div id="user-profile-screen">
+  <div class="profile-topbar">
+    <button class="profile-back" onclick="closeUserProfile()">&#8592;</button>
+    <div style="font-size:15px;font-weight:700;flex:1">Meu Perfil</div>
+    <button onclick="saveUserProfile()" id="btn-save-profile" class="edit-btn" style="font-size:13px;font-weight:700;color:var(--purple);border-color:var(--purple)">Salvar</button>
+  </div>
+
+  <!-- Avatar -->
+  <div style="padding:1.5rem 1.25rem 0;display:flex;flex-direction:column;align-items:center">
+    <div class="profile-avatar-big" id="profile-avatar-big"></div>
+    <div style="font-size:18px;font-weight:800;color:var(--text)" id="profile-fullname-display"></div>
+    <div style="font-size:12px;color:var(--text3);margin-top:3px" id="profile-email-display"></div>
+  </div>
+
+  <!-- Dados pessoais -->
+  <div class="profile-section-title">Dados pessoais</div>
+  <div>
+    <div class="profile-field-row" onclick="openEditField('nome','Nome completo',document.getElementById('profile-nome-val').textContent)">
+      <div>
+        <div class="profile-field-label">Nome completo</div>
+        <div class="profile-field-value" id="profile-nome-val">—</div>
+      </div>
+      <div class="profile-field-arrow">›</div>
+    </div>
+    <div class="profile-field-row" onclick="openEditField('telefone','Telefone',document.getElementById('profile-telefone-val').textContent,'tel')">
+      <div>
+        <div class="profile-field-label">Telefone</div>
+        <div class="profile-field-value" id="profile-telefone-val">—</div>
+      </div>
+      <div class="profile-field-arrow">›</div>
+    </div>
+  </div>
+
+  <!-- Conta -->
+  <div class="profile-section-title">Conta</div>
+  <div>
+    <div class="profile-field-row" onclick="openEditField('email','Email',document.getElementById('profile-email-val').textContent,'email')">
+      <div>
+        <div class="profile-field-label">Email</div>
+        <div class="profile-field-value" id="profile-email-val">—</div>
+      </div>
+      <div class="profile-field-arrow">›</div>
+    </div>
+    <div class="profile-field-row" onclick="openChangePassword()">
+      <div>
+        <div class="profile-field-label">Senha</div>
+        <div class="profile-field-value">••••••••</div>
+      </div>
+      <div class="profile-field-arrow">›</div>
+    </div>
+  </div>
+
+  <!-- Sair -->
+  <div style="padding:1.5rem 1.25rem">
+    <button onclick="doLogout()" style="width:100%;padding:13px;background:var(--red-bg);border:1px solid rgba(240,96,96,.25);border-radius:var(--radius-sm);color:var(--red);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s">
+      Sair da conta
+    </button>
+  </div>
+</div>
+
+<!-- Modal edição de campo -->
+<div id="edit-field-modal">
+  <div class="edit-field-sheet">
+    <div style="font-size:15px;font-weight:700;margin-bottom:1.25rem" id="edit-field-title">Editar</div>
+    <div class="form-group" style="margin-bottom:1rem">
+      <label id="edit-field-label">Campo</label>
+      <input id="edit-field-input" type="text" style="width:100%" onkeydown="if(event.key==='Enter')saveEditField()">
+    </div>
+    <div id="edit-field-error" style="font-size:12px;color:var(--red);margin-bottom:10px;display:none"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-add" onclick="saveEditField()" style="flex:1">Salvar</button>
+      <button class="btn-add" onclick="closeEditField()" style="flex:1;background:var(--surface2);color:var(--text2);border:1px solid var(--border)">Cancelar</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
