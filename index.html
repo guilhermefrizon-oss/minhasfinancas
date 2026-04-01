@@ -2755,6 +2755,16 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 /* ══════ SISTEMA DE PERFIS — UI ══════ */
 let pinTarget=null,pinBuffer='',editingProfileId=null,selectedAvatar='👤';
 
+function applyGreeting(nomeCompleto){
+  const hour = new Date().getHours();
+  let greeting;
+  if (hour >= 5 && hour < 12) greeting = 'Bom dia';
+  else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
+  else greeting = 'Boa noite';
+  const el = document.getElementById('header-greeting');
+  if (el) el.textContent = greeting + ',';
+}
+
 function applyHeaderName(nomeCompleto){
   const primeiro = nomeCompleto.split(' ')[0];
   const initial = primeiro.charAt(0).toUpperCase();
