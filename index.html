@@ -61,20 +61,8 @@ window._fbFns  = {
   doc, setDoc, getDoc, onSnapshot
 };
 
-// Fallback: se Firebase SDK falhar ou onAuthStateChanged não disparar, esconde splash em 8s
-const _splashFallbackTimer = setTimeout(() => {
-  const splash = document.getElementById('splash-screen');
-  if (splash && splash.style.display !== 'none') {
-    console.warn('[App] Firebase não respondeu em 8s — forçando tela de login');
-    splash.style.display = 'none';
-    const ls = document.getElementById('login-screen');
-    if (ls) ls.classList.add('visible');
-  }
-}, 8000);
-
 // Observer de auth
 onAuthStateChanged(auth, user => {
-  clearTimeout(_splashFallbackTimer);
   window._fbUser = user || null;
   const splash = document.getElementById('splash-screen');
   if(splash) splash.style.display = 'none';
@@ -991,9 +979,13 @@ body.app-ready .page { visibility: visible; }
   <!-- CONTEÚDO REAL -->
   <div id="overview-real-content">
   <!-- SAUDAÇÃO -->
-  <div id="overview-greeting" style="margin-top:.25rem;margin-bottom:1rem">
-    <div style="font-size:13px;color:var(--text2);font-weight:500">Olá,</div>
-    <div id="overview-greeting-name" style="font-size:22px;font-weight:800;color:var(--text);line-height:1.2"></div>
+  <div id="overview-greeting" style="margin-top:.25rem;margin-bottom:1.1rem;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div>
+      <div id="overview-greeting-label" style="font-size:13px;color:var(--text3);font-weight:500;margin-bottom:2px"></div>
+      <div id="overview-greeting-name" style="font-size:22px;font-weight:800;color:var(--text);line-height:1.2"></div>
+      <div id="overview-greeting-msg" style="font-size:12px;color:var(--text3);margin-top:3px;font-style:italic"></div>
+    </div>
+    <div id="overview-greeting-emoji" style="font-size:32px;flex-shrink:0;line-height:1"></div>
   </div>
   <!-- CAMPO RÁPIDO -->
   <div class="quick-bar" style="margin-top:.25rem">
@@ -1676,83 +1668,39 @@ async function doSignup(){
   }
 }
 
-async function loadDataFromCloud(uid){
-  console.log('[App] 🔄 Carregando dados (tentativa 1/3)...');
-  
-  const timeout = new Promise(resolve => {
-    setTimeout(() => { 
-      console.warn('[App] ⏱️ Timeout (5s)'); 
-      resolve(null); 
-    }, 5000);
-  });
-
-  const fetchData = (async () => {
-    try{
-      console.log('[App] 📡 Conectando ao Firestore...');
-      const docRef = fbFns().doc(fbDb(), 'gastos', uid);
-      
-      // Tentar ler do servidor
-      const snap = await fbFns().getDoc(docRef, { source: 'server' });
-      
-      if(snap.exists()){
-        console.log('[App] ✅ Dados do servidor carregados!');
-        const d = snap.data();
-        return { despesas: d.despesas||[], receitas: d.receitas||[] };
-      }
-      
-      console.log('[App] 📝 Primeira vez (sem dados)');
-      return null;
-    } catch(e){
-      console.error('[App] ❌ Erro Firestore:', e.code, '—', e.message);
-      
-      if(e.code === 'permission-denied'){
-        console.error('[App] 🚫 ERRO: Sem permissão! Verifique as Regras Firestore');
-        alert('❌ Erro de permissão no Firebase!\n\nContate o administrador.');
-      }
-      
-      return null;
-    }
-  })();
-
-  return Promise.race([fetchData, timeout]);
+async function doReset(){
+  const email=document.getElementById('reset-email').value.trim();
+  hideLoginError('reset-error');
+  if(!email){ showLoginError('reset-error','Digite seu email.'); return; }
+  setLoginLoading('btn-reset',true);
+  try{
+    await fbFns().sendPasswordResetEmail(fbAuth(), email);
+    const s=document.getElementById('reset-success');
+    s.textContent='Email enviado! Verifique sua caixa de entrada.';
+    s.classList.add('visible');
+    setLoginLoading('btn-reset',false);
+  } catch(e){
+    showLoginError('reset-error', fbErrorMsg(e.code));
+    setLoginLoading('btn-reset',false);
+  }
 }
-      
-      console.log('[App] 📝 Primeira vez (sem dados)');
-      return null;
-    } catch(e){
-      console.error('[App] ❌ Erro Firestore:', e.code, '—', e.message);
-      
-      // Se for erro de permissão, avisar
-      if(e.code === 'permission-denied'){
-        console.error('[App] 🚫 ERRO: Sem permissão! Verifique as Regras Firestore');
-        alert('❌ Erro de permissão no Firebase!\n\nContate o administrador.');
-      }
-      
-      return null;
-    }
-  })();
 
-  return Promise.race([fetchData, timeout]);
+async function doLogout(){
+  if(!confirm('Sair da conta?')) return;
+  await fbFns().signOut(fbAuth());
 }
 
 /* ── Carregar / salvar dados no Firestore ── */
 const DATA_VERSION='v3-2025';
 
 async function loadDataFromCloud(uid){
-  const MAX_ATTEMPTS = 3;
-  for(let attempt = 0; attempt < MAX_ATTEMPTS; attempt++){
-    if(attempt > 0){
-      const delay = Math.pow(2, attempt - 1) * 2000; // 2s, 4s
-      console.log(`[App] Retry em ${delay/1000}s... (tentativa ${attempt + 1}/${MAX_ATTEMPTS})`);
-      await new Promise(r => setTimeout(r, delay));
-    }
-    console.log(`[App] Carregando dados... (tentativa ${attempt + 1}/${MAX_ATTEMPTS})`);
+  console.log('[App] Carregando dados...');
+  const timeout = new Promise(resolve => {
+    setTimeout(() => { console.warn('[App] Timeout (10s) — Firebase demorou, usando cache local'); resolve(null); }, 10000);
+  });
+  const fetchData = (async () => {
     try{
-      const fetchPromise = fbFns().getDoc(fbFns().doc(fbDb(),'gastos',uid));
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 6000)
-      );
-      const snap = await Promise.race([fetchPromise, timeoutPromise]);
+      const snap = await fbFns().getDoc(fbFns().doc(fbDb(),'gastos',uid));
       if(snap.exists()){
         console.log('[App] Dados carregados ✓');
         const d = snap.data();
@@ -1761,18 +1709,11 @@ async function loadDataFromCloud(uid){
       console.log('[App] Conta nova — sem dados ainda');
       return null;
     } catch(e){
-      const code = e.code || e.message;
-      console.warn(`[App] Erro Firestore (tentativa ${attempt + 1}):`, code);
-      if(code === 'permission-denied'){
-        console.warn('[App] Permissão negada — abortando retries');
-        return null;
-      }
-      if(attempt === MAX_ATTEMPTS - 1){
-        console.warn('[App] Todas as tentativas falharam, usando cache local');
-      }
+      console.warn('[App] Erro Firestore:', e.code, e.message);
+      return null;
     }
-  }
-  return null;
+  })();
+  return Promise.race([fetchData, timeout]);
 }
 
 let _saveTimer=null;
@@ -1836,13 +1777,8 @@ async function syncToFirestore(){
   }
 }
 
-// Sincroniza quando voltar a ter conexão e atualiza status
-window.addEventListener('online', ()=>{
-  showSyncStatus('saving');
-  if(_pendingSync) syncToFirestore();
-  if(window._fbUser) startRealtimeSync(window._fbUser.uid);
-});
-window.addEventListener('offline', ()=>{ showSyncStatus('offline'); });
+// Sincroniza quando voltar a ter conexão
+window.addEventListener('online', ()=>{ if(_pendingSync) syncToFirestore(); });
 
 function loadData(){
   // Enquanto não tiver dados do Firebase, usa cache local
@@ -1896,15 +1832,6 @@ function startRealtimeSync(uid) {
     }
   }, (err) => {
     console.warn('[Sync] Erro no listener onSnapshot:', err);
-    showSyncStatus('offline');
-    if(err.code === 'unavailable'){
-      // Tenta reconectar após backoff quando offline
-      const delay = 10000;
-      console.log(`[Sync] Reconectando em ${delay/1000}s...`);
-      setTimeout(() => {
-        if(window._fbUser) startRealtimeSync(window._fbUser.uid);
-      }, delay);
-    }
   });
 }
 
@@ -1917,34 +1844,28 @@ window._onFbLogin = async function(user){
     // 1. Oculta tela de login
     document.getElementById('login-screen').classList.remove('visible');
 
-    // 2. Carrega cache local imediatamente como fallback (evita tela branca)
-    const localD = localStorage.getItem('gastos_cache_desp');
-    const localR = localStorage.getItem('gastos_cache_rec');
-    if(localD || localR){
+    // 2. Tenta carregar dados da nuvem
+    let cloud = null;
+    try{ cloud = await loadDataFromCloud(user.uid); } catch(e){ console.warn(e); }
+
+    if(cloud){
+      DATA.despesas = cloud.despesas;
+      DATA.receitas = cloud.receitas;
+      localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
+      localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
+    } else {
+      const localD = localStorage.getItem('gastos_cache_desp');
+      const localR = localStorage.getItem('gastos_cache_rec');
       DATA.despesas = localD ? JSON.parse(localD) : [];
       DATA.receitas = localR ? JSON.parse(localR) : [];
-      console.log('[App] Cache local carregado como fallback imediato');
-    }
-
-    // 3. Tenta carregar dados da nuvem em background (não bloqueia a UI)
-    loadDataFromCloud(user.uid).then(cloud => {
-      if(cloud){
-        const changed =
-          JSON.stringify(cloud.despesas) !== JSON.stringify(DATA.despesas) ||
-          JSON.stringify(cloud.receitas)  !== JSON.stringify(DATA.receitas);
-        if(changed){
-          DATA.despesas = cloud.despesas;
-          DATA.receitas = cloud.receitas;
-          localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
-          localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
-          renderOverview();
-          renderDespTable && renderDespTable();
-          renderRecTable  && renderRecTable();
-        }
+      if(localD && DATA.despesas.length > 0){
+        console.log('[App] Dados locais encontrados — agendando retry de sync em 5s...');
+        setTimeout(() => loadDataFromCloud(user.uid).then(c => {
+          if(c){ DATA.despesas=c.despesas; DATA.receitas=c.receitas; renderOverview(); }
+        }).catch(e => console.warn('[App] Retry falhou:', e)), 5000);
       }
-    }).catch(e => console.warn('[App] Sync inicial falhou:', e));
-
-    // 4. Inicia sincronização em tempo real
+    }
+    // Inicia sincronização em tempo real
     startRealtimeSync(user.uid);
   } catch(e){
     console.warn('Erro no login:', e);
@@ -2721,23 +2642,41 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 /* ══════ SISTEMA DE PERFIS — UI ══════ */
 let pinTarget=null,pinBuffer='',editingProfileId=null,selectedAvatar='👤';
 
+function getGreeting(){
+  const h = new Date().getHours();
+  if(h >= 5  && h < 12) return { label:'Bom dia',      emoji:'☀️',  msg:'Que seu dia seja ótimo!' };
+  if(h >= 12 && h < 18) return { label:'Boa tarde',    emoji:'🌤️', msg:'Continue firme nos seus objetivos!' };
+  if(h >= 18 && h < 22) return { label:'Boa noite',    emoji:'🌙',  msg:'Hora de revisar o dia!' };
+  return                        { label:'Boa madrugada',emoji:'⭐',  msg:'Cuidando das finanças a qualquer hora!' };
+}
+function applyGreeting(primeiroNome){
+  const g = getGreeting();
+  const label = document.getElementById('overview-greeting-label');
+  const name  = document.getElementById('overview-greeting-name');
+  const msg   = document.getElementById('overview-greeting-msg');
+  const emoji = document.getElementById('overview-greeting-emoji');
+  if(label) label.textContent = g.label + ',';
+  if(name)  name.textContent  = primeiroNome;
+  if(msg)   msg.textContent   = g.msg;
+  if(emoji) emoji.textContent = g.emoji;
+}
 function updateHeaderProfile(user){
   user = user || window._fbUser;
   if(!user) return;
   fbFns().getDoc(fbFns().doc(fbDb(),'users',user.uid)).then(snap=>{
-    const nome = snap.exists() ? snap.data().nome : user.email.split('@')[0];
-    const initial = nome.charAt(0).toUpperCase();
+    const nomeCompleto = snap.exists() ? snap.data().nome : user.email.split('@')[0];
+    const primeiroNome = nomeCompleto.split(' ')[0]; // só o primeiro nome
+    const initial = primeiroNome.charAt(0).toUpperCase();
     document.getElementById('header-profile-avatar').textContent = initial;
-    document.getElementById('header-profile-name').textContent = nome;
-    const greetingEl = document.getElementById('overview-greeting-name');
-    if(greetingEl) greetingEl.textContent = nome;
+    document.getElementById('header-profile-name').textContent = primeiroNome;
+    applyGreeting(primeiroNome);
     const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
-    document.getElementById('header-profile-avatar').style.background=colors[nome.charCodeAt(0)%colors.length]+'33';
+    document.getElementById('header-profile-avatar').style.background=colors[primeiroNome.charCodeAt(0)%colors.length]+'33';
   }).catch(()=>{
-    document.getElementById('header-profile-avatar').textContent = user.email.charAt(0).toUpperCase();
-    document.getElementById('header-profile-name').textContent = user.email.split('@')[0];
-    const greetingEl = document.getElementById('overview-greeting-name');
-    if(greetingEl) greetingEl.textContent = user.email.split('@')[0];
+    const fallback = user.email.split('@')[0];
+    document.getElementById('header-profile-avatar').textContent = fallback.charAt(0).toUpperCase();
+    document.getElementById('header-profile-name').textContent = fallback;
+    applyGreeting(fallback);
   });
 }
 
