@@ -610,6 +610,173 @@ body.light .quick-input { background: #fff; }
 @media(max-width:539px) { .hide-mobile { display: none; } }
 
 
+/* ══════════════ LAYOUT DESKTOP (768px+) ══════════════ */
+@media (min-width: 768px) {
+
+  /* Esconde nav horizontal — substituída pela sidebar */
+  .nav { display: none; }
+
+  /* Layout raiz: sidebar fixa + área de conteúdo */
+  body {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+  }
+
+  /* Header ocupa toda a largura no topo */
+  .header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  /* ── Sidebar ── */
+  .desktop-sidebar {
+    display: flex;
+    flex-direction: column;
+    grid-column: 1;
+    grid-row: 2;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    padding: 1.75rem 1rem;
+    overflow-y: auto;
+    z-index: 90;
+  }
+
+  .sidebar-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    padding: 0 .75rem;
+    margin-bottom: .6rem;
+    margin-top: 1.5rem;
+  }
+  .sidebar-label:first-child { margin-top: 0; }
+
+  .sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: .65rem .75rem;
+    border-radius: 10px;
+    border: none;
+    background: none;
+    color: var(--text2);
+    font-family: var(--font);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: background .15s, color .15s;
+    position: relative;
+    letter-spacing: .01em;
+  }
+  .sidebar-btn:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-btn.active {
+    background: var(--blue-bg);
+    color: var(--blue);
+    font-weight: 700;
+  }
+  .sidebar-btn svg { flex-shrink: 0; opacity: .7; }
+  .sidebar-btn.active svg { opacity: 1; }
+
+  .sidebar-badge {
+    margin-left: auto;
+    background: var(--red);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 7px;
+    min-width: 18px;
+    text-align: center;
+  }
+  .sidebar-badge:empty { display: none; }
+
+  /* Botão "+ Lançamento" na sidebar */
+  .sidebar-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: .7rem .75rem;
+    border-radius: 10px;
+    border: 1px dashed var(--border);
+    background: none;
+    color: var(--text3);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    margin-top: auto;
+  }
+  .sidebar-add-btn:hover {
+    border-color: var(--purple);
+    color: var(--purple);
+    background: var(--blue-bg);
+  }
+
+  /* ── Conteúdo principal ── */
+  #main-content {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem;
+  }
+
+  /* Cards do overview em 4 colunas no desktop */
+  .cards { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* Cards ligeiramente maiores */
+  .card { padding: 1.25rem 1.35rem; }
+  .card-value { font-size: 22px; }
+
+  /* Gráficos lado a lado quando possível */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .charts-grid .chart-box { margin-bottom: 0; }
+
+  /* Tabelas com mais respiro */
+  th, td { padding: 13px 20px; }
+
+  /* Esconde bottom nav no desktop (já está display:none por padrão, reforça) */
+  .bottom-nav { display: none !important; }
+
+  /* Ajustes no header desktop */
+  .header-icon { width: 32px; height: 32px; font-size: 16px; }
+  .header-title { font-size: 15px; }
+}
+
+/* Light mode sidebar */
+body.light .desktop-sidebar { background: #fff; }
+body.light .sidebar-btn:hover { background: var(--surface2); }
+
+
 /* ══════════════ TELA DE LOGIN ══════════════ */
 #login-screen {
   display: none;
@@ -826,12 +993,13 @@ body.light .quick-input { background: #fff; }
 
 
 /* Esconde app até auth resolver */
-.header, .nav, .bottom-nav, .page { visibility: hidden; }
+.header, .nav, .bottom-nav, .page, .desktop-sidebar { visibility: hidden; }
 
 
 body.app-ready .header,
 body.app-ready .nav,
 body.app-ready .bottom-nav,
+body.app-ready .desktop-sidebar,
 body.app-ready .page { visibility: visible; }
 
 /* ── Skeleton screen ── */
@@ -1059,6 +1227,58 @@ body.app-ready .page { visibility: visible; }
   <button class="nav-btn" onclick="showPage('notif')"><span id="notif-badge-nav"></span>Alertas</button>
   <button class="nav-btn" onclick="openAddPopup()">+ Lançamento</button>
 </nav>
+
+<!-- SIDEBAR DESKTOP -->
+<aside class="desktop-sidebar" id="desktop-sidebar">
+  <div class="sidebar-label">Menu</div>
+
+  <button class="sidebar-btn active" id="sb-overview" onclick="showPage('overview')">
+    <svg width="17" height="17" viewBox="0 0 22 22" fill="none">
+      <rect x="2" y="11" width="5" height="9" rx="1.5" fill="currentColor" opacity=".4"/>
+      <rect x="8.5" y="6" width="5" height="14" rx="1.5" fill="currentColor" opacity=".65"/>
+      <rect x="15" y="2" width="5" height="18" rx="1.5" fill="currentColor"/>
+    </svg>
+    Visão Geral
+  </button>
+
+  <button class="sidebar-btn" id="sb-despesas" onclick="showPage('despesas')">
+    <svg width="17" height="17" viewBox="0 0 22 22" fill="none">
+      <rect x="2" y="4" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M2 9h18" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M6 14h4M14 14h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    Despesas
+  </button>
+
+  <button class="sidebar-btn" id="sb-receitas" onclick="showPage('receitas')">
+    <svg width="17" height="17" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M11 7v2.5M11 12.5V15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M8.5 9.5c0-1.1.9-2 2.5-2s2.5.8 2.5 2-.9 1.5-2.5 1.5c-1.5 0-2.5.5-2.5 1.8 0 1 .9 2 2.5 2s2.5-.9 2.5-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    Receitas
+  </button>
+
+  <button class="sidebar-btn" id="sb-notif" onclick="showPage('notif')">
+    <svg width="17" height="17" viewBox="0 0 22 22" fill="none">
+      <path d="M11 3a6 6 0 016 6v3l1.5 2.5H3.5L5 12V9a6 6 0 016-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M9 17.5a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    Alertas
+    <span class="sidebar-badge" id="sidebar-badge"></span>
+  </button>
+
+  <div style="flex:1"></div>
+
+  <button class="sidebar-add-btn" onclick="openAddPopup()">
+    <svg width="16" height="16" viewBox="0 0 22 22" fill="none">
+      <path d="M11 4v14M4 11h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+    Novo lançamento
+  </button>
+</aside>
+
+<div id="main-content">
 
 <!-- OVERVIEW -->
 <div class="page active" id="page-overview">
@@ -2153,8 +2373,15 @@ function showPage(id){
     const el=document.getElementById('bn-'+pg);
     if(el) el.classList.toggle('active', pg===id);
   });
+  // Sincroniza sidebar desktop
+  ['overview','despesas','receitas','notif'].forEach(pg=>{
+    const el=document.getElementById('sb-'+pg);
+    if(el) el.classList.toggle('active', pg===id);
+  });
   // Scroll ao topo na troca de aba (mobile UX)
-  window.scrollTo({top:0, behavior:'smooth'});
+  const mc = document.getElementById('main-content');
+  if(mc && window.innerWidth >= 768) mc.scrollTo({top:0, behavior:'smooth'});
+  else window.scrollTo({top:0, behavior:'smooth'});
   if(id==='overview')renderOverview();
   if(id==='despesas')renderDespesas();
   if(id==='receitas')renderReceitas();
@@ -2509,6 +2736,8 @@ function updateNotifBadge(){
   document.getElementById('notif-badge-nav').textContent=count||'';
   const bb=document.getElementById('bn-badge');
   if(bb) bb.textContent=count||'';
+  const sb=document.getElementById('sidebar-badge');
+  if(sb) sb.textContent=count||'';
 }
 function renderNotif(){
   updateNotifBadge();
@@ -3567,6 +3796,8 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+
+</div><!-- /main-content -->
 
 <!-- ══════════ BOTTOM TAB BAR (mobile only) ══════════ -->
 <nav class="bottom-nav" id="bottom-nav">
