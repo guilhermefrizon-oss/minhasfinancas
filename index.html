@@ -1215,6 +1215,10 @@ body.app-ready .page { visibility: visible; }
     <div class="header-title">Meus Gastos</div>
     <div class="header-sub" id="header-period">carregando...</div>
   </div>
+  <!-- Botão busca -->
+  <button onclick="openGlobalSearch()" title="Buscar" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;margin-right:6px">
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="var(--text2)" stroke-width="1.8"/><path d="M13 13l3.5 3.5" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"/></svg>
+  </button>
   <!-- Botão tema -->
   <button onclick="toggleTheme()" id="theme-btn" title="Alternar tema" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex-shrink:0;transition:all .15s;margin-right:6px"></button>
   <button onclick="toggleUserMenu()" id="profile-header-btn" style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;cursor:pointer;font-family:var(--font);transition:all .15s">
@@ -4068,5 +4072,325 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- BUSCA GLOBAL -->
+<style>
+#global-search-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  background: rgba(8,7,24,0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+}
+#global-search-overlay.open { display: flex; animation: mOverlayIn .18s ease; }
+
+.gs-header {
+  width: 100%;
+  max-width: 640px;
+  padding: 1.25rem 1.25rem .75rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gs-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 0 14px;
+  transition: border-color .15s;
+}
+.gs-input-wrap:focus-within { border-color: rgba(123,140,255,0.5); }
+.gs-input-wrap svg { flex-shrink: 0; }
+#gs-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  padding: 14px 0;
+}
+#gs-input::placeholder { color: var(--text3); }
+.gs-cancel {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 4px;
+  flex-shrink: 0;
+}
+.gs-cancel:hover { color: var(--text); }
+
+.gs-chips {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  gap: 8px;
+  padding: 0 1.25rem .75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.gs-chips::-webkit-scrollbar { display: none; }
+.gs-chip {
+  flex-shrink: 0;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+}
+.gs-chip.active {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: #fff;
+}
+
+.gs-summary {
+  width: 100%;
+  max-width: 640px;
+  padding: 0 1.25rem .5rem;
+  font-size: 12px;
+  color: var(--text3);
+  font-weight: 500;
+}
+
+.gs-results {
+  width: 100%;
+  max-width: 640px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1.25rem 2rem;
+}
+
+.gs-month-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  padding: .9rem 0 .5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.gs-month-total { color: var(--text2); font-weight: 700; font-size: 12px; text-transform: none; letter-spacing: 0; }
+
+.gs-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: .8rem .5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background .12s;
+  margin: 1px 0;
+}
+.gs-item:hover { background: rgba(255,255,255,0.04); }
+.gs-item:last-child { border-bottom: none; }
+
+.gs-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+.gs-icon svg { width: 22px; height: 22px; }
+
+.gs-info { flex: 1; min-width: 0; }
+.gs-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gs-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.gs-right { text-align: right; flex-shrink: 0; }
+.gs-val { font-size: 14px; font-weight: 700; }
+.gs-val.desp { color: var(--red); }
+.gs-val.rec  { color: var(--green); }
+.gs-status { font-size: 10px; margin-top: 2px; font-weight: 600; }
+
+.gs-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text3);
+}
+.gs-empty-icon { font-size: 36px; margin-bottom: 12px; }
+.gs-empty-text { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+</style>
+
+<div id="global-search-overlay">
+  <div class="gs-header">
+    <div class="gs-input-wrap">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="var(--text3)" stroke-width="1.8"/><path d="M13 13l3.5 3.5" stroke="var(--text3)" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input id="gs-input" type="text" placeholder="Buscar despesas e receitas..." oninput="renderGlobalSearch()" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button id="gs-clear" onclick="document.getElementById('gs-input').value='';renderGlobalSearch();document.getElementById('gs-input').focus()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0;display:none">×</button>
+    </div>
+    <button class="gs-cancel" onclick="closeGlobalSearch()">Cancelar</button>
+  </div>
+
+  <div class="gs-chips">
+    <button class="gs-chip active" id="gs-chip-all"  onclick="setGsFilter('all')">Tudo</button>
+    <button class="gs-chip"        id="gs-chip-desp" onclick="setGsFilter('desp')">Despesas</button>
+    <button class="gs-chip"        id="gs-chip-rec"  onclick="setGsFilter('rec')">Receitas</button>
+    <button class="gs-chip"        id="gs-chip-pago"      onclick="setGsFilter('pago')">Pago</button>
+    <button class="gs-chip"        id="gs-chip-falta"     onclick="setGsFilter('falta')">Falta Pagar</button>
+    <button class="gs-chip"        id="gs-chip-auto"      onclick="setGsFilter('auto')">Débito auto</button>
+  </div>
+
+  <div class="gs-summary" id="gs-summary"></div>
+  <div class="gs-results" id="gs-results"></div>
+</div>
+
+<script>
+/* ══════ BUSCA GLOBAL ══════ */
+let _gsFilter = 'all';
+
+function openGlobalSearch(){
+  const el = document.getElementById('global-search-overlay');
+  el.classList.add('open');
+  setTimeout(() => document.getElementById('gs-input').focus(), 80);
+  renderGlobalSearch();
+}
+function closeGlobalSearch(){
+  document.getElementById('global-search-overlay').classList.remove('open');
+  document.getElementById('gs-input').value = '';
+  _gsFilter = 'all';
+  setGsFilter('all');
+}
+function setGsFilter(f){
+  _gsFilter = f;
+  ['all','desp','rec','pago','falta','auto'].forEach(k => {
+    document.getElementById('gs-chip-'+k)?.classList.toggle('active', k===f);
+  });
+  renderGlobalSearch();
+}
+
+function renderGlobalSearch(){
+  const q = document.getElementById('gs-input').value.trim().toLowerCase();
+  const clearBtn = document.getElementById('gs-clear');
+  if(clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+  // Montar pool de itens
+  let items = [];
+
+  // Despesas
+  if(_gsFilter === 'all' || _gsFilter === 'desp' || _gsFilter === 'pago' || _gsFilter === 'falta' || _gsFilter === 'auto'){
+    DATA.despesas.forEach(d => {
+      if(_gsFilter === 'pago'  && d.status !== 'Pago') return;
+      if(_gsFilter === 'falta' && d.status !== 'Falta Pagar') return;
+      if(_gsFilter === 'auto'  && d.status !== 'Débito auto') return;
+      if(q && !d.nome?.toLowerCase().includes(q) && !d.cat?.toLowerCase().includes(q) && !d.pag?.toLowerCase().includes(q)) return;
+      items.push({ ...d, _tipo: 'desp' });
+    });
+  }
+
+  // Receitas
+  if(_gsFilter === 'all' || _gsFilter === 'rec'){
+    DATA.receitas.forEach(r => {
+      if(q && !r.nome?.toLowerCase().includes(q) && !r.cat?.toLowerCase().includes(q)) return;
+      items.push({ ...r, _tipo: 'rec' });
+    });
+  }
+
+  // Ordenar por mês (mais recente primeiro)
+  items.sort((a,b) => (b.mes||'').localeCompare(a.mes||''));
+
+  // Agrupar por mês
+  const byMonth = {};
+  items.forEach(it => {
+    const m = it.mes || '0000-00';
+    if(!byMonth[m]) byMonth[m] = [];
+    byMonth[m].push(it);
+  });
+
+  const summary = document.getElementById('gs-summary');
+  const results = document.getElementById('gs-results');
+  const totalVal = items.reduce((s,i) => s + (i.val||0), 0);
+  const count = items.length;
+
+  if(!q && _gsFilter === 'all'){
+    summary.textContent = '';
+    results.innerHTML = `<div class="gs-empty"><div class="gs-empty-icon">🔍</div><div class="gs-empty-text">Digite para buscar</div><div style="font-size:12px;margin-top:4px">Busque por nome, categoria ou forma de pagamento</div></div>`;
+    return;
+  }
+
+  if(!count){
+    summary.textContent = '';
+    results.innerHTML = `<div class="gs-empty"><div class="gs-empty-icon">😶</div><div class="gs-empty-text">Nenhum resultado</div><div style="font-size:12px;margin-top:4px">Tente outros termos ou filtros</div></div>`;
+    return;
+  }
+
+  const totalDesp = items.filter(i=>i._tipo==='desp').reduce((s,i)=>s+(i.val||0),0);
+  const totalRec  = items.filter(i=>i._tipo==='rec').reduce((s,i)=>s+(i.val||0),0);
+  let sumParts = [];
+  if(totalDesp > 0) sumParts.push(`<span style="color:var(--red)">${fmt(totalDesp)}</span> em despesas`);
+  if(totalRec  > 0) sumParts.push(`<span style="color:var(--green)">${fmt(totalRec)}</span> em receitas`);
+  summary.innerHTML = `${count} resultado${count>1?'s':''} · ${sumParts.join(' · ')}`;
+
+  let html = '';
+  Object.keys(byMonth).sort((a,b)=>b.localeCompare(a)).forEach(m => {
+    const group = byMonth[m];
+    const gTotal = group.reduce((s,i)=>s+(i.val||0),0);
+    const mLabel = mesLabel(m);
+    html += `<div class="gs-month-label">${mLabel}<span class="gs-month-total">${fmt(gTotal)}</span></div>`;
+    group.forEach(it => {
+      const isRec = it._tipo === 'rec';
+      const iconHtml = it.icon ? `<div style="width:22px;height:22px">${it.icon}</div>` : `<span style="font-size:18px">${isRec ? '💰' : '💳'}</span>`;
+      const catLabel2 = it.cat ? catLabel(it.cat) : '';
+      const metaParts = [catLabel2, it.pag].filter(Boolean);
+      const statusColor = it.status==='Pago'||it.status==='Recebido' ? 'var(--green)' : it.status==='Falta Pagar' ? 'var(--red)' : 'var(--amber)';
+      html += `<div class="gs-item" onclick="gsGoTo(${JSON.stringify(it._tipo)}, ${JSON.stringify(it.mes)})">
+        <div class="gs-icon">${iconHtml}</div>
+        <div class="gs-info">
+          <div class="gs-name">${it.nome||'—'}</div>
+          <div class="gs-meta">${metaParts.join(' · ')}</div>
+        </div>
+        <div class="gs-right">
+          <div class="gs-val ${isRec?'rec':'desp'}">${it.val ? fmt(it.val) : '—'}</div>
+          ${it.status ? `<div class="gs-status" style="color:${statusColor}">${it.status}</div>` : ''}
+        </div>
+      </div>`;
+    });
+  });
+  results.innerHTML = html;
+}
+
+function gsGoTo(tipo, mes){
+  closeGlobalSearch();
+  if(tipo === 'rec'){
+    showPage('receitas');
+    if(mes && typeof setRecMonth === 'function') setRecMonth(mes);
+  } else {
+    showPage('despesas');
+    if(mes && typeof setDespMonth === 'function') setDespMonth(mes);
+  }
+}
+
+// Fechar com Escape
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && document.getElementById('global-search-overlay').classList.contains('open')){
+    closeGlobalSearch();
+  }
+});
+</script>
 </body>
 </html>
