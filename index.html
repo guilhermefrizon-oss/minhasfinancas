@@ -2285,21 +2285,29 @@ async function loadDataFromCloud(uid){
   const fns = fbFns();
   const docRef = fns.doc(fbDb(), 'gastos', uid);
 
-  // 1. Tenta buscar do servidor com timeout generoso (15s)
   try {
     const timeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('timeout')), 8000)
     );
+
+    // Garante que o documento existe antes de tentar ler
+    // setDoc com merge:true cria se não existir, não sobrescreve se existir
+    await Promise.race([
+      fns.setDoc(docRef, { _criado: Date.now() }, { merge: true }),
+      timeout
+    ]);
+
+    // Agora lê com segurança
     const snap = await Promise.race([fns.getDoc(docRef), timeout]);
     if (snap.exists()) {
-      console.log('[App] Dados carregados do servidor ✓');
       const d = snap.data();
-      return { despesas: d.despesas||[], receitas: d.receitas||[] };
+      const despesas = d.despesas || [];
+      const receitas = d.receitas || [];
+      console.log(`[App] Dados carregados ✓ (${despesas.length} despesas, ${receitas.length} receitas)`);
+      return { despesas, receitas };
     }
-    console.log('[App] Conta nova — sem dados ainda');
-    return { despesas: [], receitas: [], _novaContа: true }; // conectou, mas vazio
+    return { despesas: [], receitas: [] };
   } catch(e) {
-    // 2. Só cai aqui se realmente offline — tenta cache do Firestore
     console.warn('[App] Servidor indisponível, buscando do cache local...', e.message);
     try {
       const { getDocFromCache } = await import(
