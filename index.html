@@ -65,12 +65,15 @@ window._fbFns  = {
 };
 
 // Observer de auth
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   window._fbUser = user || null;
   const splash = document.getElementById('splash-screen');
   if(splash) splash.style.display = 'none';
   if(user){
     logEvent(analytics, 'login', { method: 'email' });
+    // Aguarda o token JWT estar pronto antes de qualquer chamada ao Firestore
+    // Sem isso, getDoc trava silenciosamente pois o SDK ainda não propagou a sessão
+    try { await user.getIdToken(true); } catch(e) { console.warn('[Auth] getIdToken falhou:', e); }
     window._onFbLogin && window._onFbLogin(user);
   } else {
     window._onFbLogout && window._onFbLogout();
@@ -2279,10 +2282,10 @@ async function loadDataFromCloud(uid){
   const fns = fbFns();
   const docRef = fns.doc(fbDb(), 'gastos', uid);
 
-  // Tenta buscar do servidor com timeout de 5s
+  // 1. Tenta buscar do servidor com timeout generoso (15s)
   try {
     const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 5000)
+      setTimeout(() => reject(new Error('timeout')), 8000)
     );
     const snap = await Promise.race([fns.getDoc(docRef), timeout]);
     if (snap.exists()) {
@@ -2291,9 +2294,9 @@ async function loadDataFromCloud(uid){
       return { despesas: d.despesas||[], receitas: d.receitas||[] };
     }
     console.log('[App] Conta nova — sem dados ainda');
-    return null;
+    return { despesas: [], receitas: [], _novaContа: true }; // conectou, mas vazio
   } catch(e) {
-    // Servidor inacessível — tenta o cache local do Firestore
+    // 2. Só cai aqui se realmente offline — tenta cache do Firestore
     console.warn('[App] Servidor indisponível, buscando do cache local...', e.message);
     try {
       const { getDocFromCache } = await import(
@@ -2491,9 +2494,9 @@ window._onFbLogin = async function(user){
         renderOverview();
         updateNotifBadge();
       }
-      showSyncStatus('saved');
+      showSyncStatus('saved'); // conectou com sucesso
     } else {
-      // Sem rede e sem cache Firestore — já está usando localStorage acima
+      // cloud === null significa offline real (timeout + sem cache)
       showSyncStatus('offline');
     }
 
