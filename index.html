@@ -1609,6 +1609,7 @@ body.app-ready .page { visibility: visible; }
   </div>
 </div>
 
+<style>
 /* ══════════════ SISTEMA DE MODAIS ══════════════ */
 .modal-overlay {
   display: none;
@@ -1705,9 +1706,7 @@ body.app-ready .page { visibility: visible; }
 .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
 
 /* Formulário dentro de modais */
-.modal-overlay .form-group label {
-  color: var(--text3);
-}
+.modal-overlay .form-group label { color: var(--text3); }
 .modal-overlay input,
 .modal-overlay select {
   background: rgba(255,255,255,0.04);
@@ -1720,8 +1719,7 @@ body.app-ready .page { visibility: visible; }
   outline: none;
   background: rgba(255,255,255,0.06);
 }
-
-<!-- POPUP + LANÇAMENTO -->
+</style>
 <style>
 #add-popup { display:none; position:fixed; inset:0; z-index:500; background:rgba(8,7,24,0.72); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); align-items:center; justify-content:center; }
 #add-popup.open { display:flex; animation: apFadeIn .18s ease; }
