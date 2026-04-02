@@ -47,7 +47,13 @@ window._fbLogEvent = logEvent;
 logEvent(analytics, 'page_view', { page_title: 'Meus Gastos', page_location: window.location.href });
 const auth  = getAuth(fbApp);
 
+// Firestore
+const db = getFirestore(fbApp);
 
+// Persistência offline (single-tab) — menos propensa a dar “offline fantasma”
+enableIndexedDbPersistence(db).catch(err => {
+  console.warn('[Firestore] Persistência offline indisponível:', err.code);
+});
 
 // Define persistência local (mantém login após fechar app)
 setPersistence(auth, browserLocalPersistence).catch(()=>{});
