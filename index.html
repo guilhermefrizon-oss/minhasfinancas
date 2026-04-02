@@ -2329,26 +2329,19 @@ function showSyncStatus(status){
   if(!el){
     el = document.createElement('div');
     el.id = 'sync-indicator';
-    el.innerHTML = '<span data-si="icon"></span><span data-si="text"></span>';
     document.body.appendChild(el);
   }
-  if(!el.querySelector('[data-si="text"]')){
-    el.innerHTML = '<span data-si="icon"></span><span data-si="text"></span>';
-  }
   const cfg = {
-    saving: { color:'#7b8cff', bg:'rgba(123,140,255,.13)', border:'rgba(123,140,255,.25)', icon:'spinner', text:'Salvando...' },
-    saved:  { color:'#34d27a', bg:'rgba(52,210,122,.1)',   border:'rgba(52,210,122,.2)',   icon:'dot',     text:'Salvo'       },
-    error:  { color:'#f06060', bg:'rgba(240,96,96,.13)',   border:'rgba(240,96,96,.25)',   icon:'dot',     text:'Erro ao salvar — tentando novamente' },
-    offline:{ color:'#f5c542', bg:'rgba(245,197,66,.1)',   border:'rgba(245,197,66,.2)',   icon:'dot',     text:'Offline — dados salvos localmente' },
+    saving: { color:'#7b8cff', bg:'rgba(123,140,255,.13)', border:'rgba(123,140,255,.25)', text:'⟳ Salvando...' },
+    saved:  { color:'#34d27a', bg:'rgba(52,210,122,.1)',   border:'rgba(52,210,122,.2)',   text:'✓ Salvo'       },
+    error:  { color:'#f06060', bg:'rgba(240,96,96,.13)',   border:'rgba(240,96,96,.25)',   text:'✗ Erro ao salvar' },
+    offline:{ color:'#f5c542', bg:'rgba(245,197,66,.1)',   border:'rgba(245,197,66,.2)',   text:'⚡ Offline — salvo localmente' },
   };
   const s = cfg[status] || cfg.saved;
   el.style.color       = s.color;
   el.style.background  = s.bg;
   el.style.borderColor = s.border;
-  const iconEl = el.querySelector('[data-si="icon"]');
-  iconEl.className = s.icon === 'spinner' ? 'si-spinner' : 'si-dot';
-  iconEl.style.background = s.icon === 'spinner' ? 'none' : s.color;
-  el.querySelector('[data-si="text"]').textContent = s.text;
+  el.textContent       = s.text;
   clearTimeout(_syncHideTimer);
   el.classList.add('si-visible');
   if(status === 'saved' || status === 'offline'){
