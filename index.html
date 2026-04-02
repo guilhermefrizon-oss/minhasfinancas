@@ -25,7 +25,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          sendPasswordResetEmail, signOut, onAuthStateChanged,
          browserLocalPersistence, browserSessionPersistence, setPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+import { getFirestore, enableMultiTabIndexedDbPersistence,
          doc, setDoc, getDoc, onSnapshot }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
@@ -47,9 +47,12 @@ window._fbLogEvent = logEvent;
 logEvent(analytics, 'page_view', { page_title: 'Meus Gastos', page_location: window.location.href });
 const auth  = getAuth(fbApp);
 
-// Firestore com cache offline persistente (nova API — substitui enableIndexedDbPersistence)
-const db = initializeFirestore(fbApp, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+// Firestore com persistência offline — API estável
+const db = getFirestore(fbApp);
+enableMultiTabIndexedDbPersistence(db).catch(err => {
+  // 'failed-precondition' = múltiplas abas sem suporte a multi-tab (fallback ok)
+  // 'unimplemented' = navegador não suporta IndexedDB (fallback ok)
+  console.warn('[Firestore] Persistência offline limitada:', err.code);
 });
 
 // Define persistência local (mantém login após fechar app)
