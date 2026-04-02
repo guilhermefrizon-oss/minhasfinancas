@@ -77,6 +77,8 @@ onAuthStateChanged(auth, async user => {
     // Aguarda o token JWT estar pronto antes de qualquer chamada ao Firestore
     // Sem isso, getDoc trava silenciosamente pois o SDK ainda não propagou a sessão
     try { await user.getIdToken(true); } catch(e) { console.warn('[Auth] getIdToken falhou:', e); }
+    // Aguarda o WebSocket do Firestore estabilizar após o token estar pronto
+    await new Promise(r => setTimeout(r, 1500));
     window._onFbLogin && window._onFbLogin(user);
   } else {
     window._onFbLogout && window._onFbLogout();
