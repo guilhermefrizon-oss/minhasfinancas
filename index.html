@@ -2332,6 +2332,10 @@ function showSyncStatus(status){
     el.innerHTML = '<span class="si-icon"></span><span class="si-text"></span>';
     document.body.appendChild(el);
   }
+  // Garante que o HTML interno existe (segurança extra)
+  if(!el.querySelector('.si-text')){
+    el.innerHTML = '<span class="si-icon"></span><span class="si-text"></span>';
+  }
   const cfg = {
     saving: { color:'#7b8cff', bg:'rgba(123,140,255,.13)', border:'rgba(123,140,255,.25)', icon:'spinner', text:'Salvando...' },
     saved:  { color:'#34d27a', bg:'rgba(52,210,122,.1)',   border:'rgba(52,210,122,.2)',   icon:'dot',     text:'Salvo'       },
