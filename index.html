@@ -133,7 +133,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .nav-btn:hover:not(.active) { color: var(--text2); }
 
 .page { display: none; padding: 1.5rem 1.25rem; max-width: 960px; margin: 0 auto; }
-.page.active { display: block; }
+.page.active { display: block; animation: fadeUp .32s cubic-bezier(.16,1,.3,1) both; }
 .section-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
 
 .cards { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 1.5rem; }
@@ -1110,6 +1110,47 @@ body.app-ready .page { visibility: visible; }
   box-shadow: 0 32px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(123,140,255,.05);
   animation: mBoxIn .22s cubic-bezier(.16,1,.3,1);
 }
+
+/* ══════ ANIMAÇÕES DE ENTRADA ══════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Classes base — aplicadas via JS */
+.anim-fade-up   { animation: fadeUp  .38s cubic-bezier(.16,1,.3,1) both; }
+.anim-fade-in   { animation: fadeIn  .3s ease both; }
+.anim-scale-in  { animation: scaleIn .3s cubic-bezier(.16,1,.3,1) both; }
+.anim-slide-right { animation: slideRight .32s cubic-bezier(.16,1,.3,1) both; }
+
+/* Delays escalonados para entradas em sequência */
+.anim-d1  { animation-delay: .04s; }
+.anim-d2  { animation-delay: .09s; }
+.anim-d3  { animation-delay: .14s; }
+.anim-d4  { animation-delay: .19s; }
+.anim-d5  { animation-delay: .24s; }
+.anim-d6  { animation-delay: .29s; }
+.anim-d7  { animation-delay: .34s; }
+.anim-d8  { animation-delay: .39s; }
+.anim-d9  { animation-delay: .44s; }
+.anim-d10 { animation-delay: .49s; }
+
+/* Transição suave na troca de páginas — definida no início do CSS */
+
+/* Linhas da tabela animadas */
+.tr-anim td { animation: fadeUp .32s cubic-bezier(.16,1,.3,1) both; }
 
 </style>
 </head>
@@ -2535,9 +2576,11 @@ document.getElementById('add-rec-modal').addEventListener('click',function(e){if
 
 /* ══════ SHOWPAGE — sem "mensal" (FIX 4) ══════ */
 function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');});
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  const activePage=document.getElementById('page-'+id);
+  activePage.classList.add('active');
+  void activePage.offsetWidth; // reflow para reiniciar animação
   const idx=['overview','despesas','receitas','notif'].indexOf(id);
   document.querySelectorAll('.nav-btn')[idx].classList.add('active');
   // Sincroniza bottom nav
@@ -2599,6 +2642,14 @@ function filteredMonths(){
 }
 
 function renderOverview(){
+  // Anima saudação e quick bar ao carregar overview
+  ['overview-greeting','quick-bar','cur-month-block'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.classList.remove('anim-fade-up','anim-d1','anim-d2','anim-d3');
+    void el.offsetWidth; // reflow para reiniciar animação
+    el.classList.add('anim-fade-up',`anim-d${i+1}`);
+  });
   renderCurMonth();
   const months=filteredMonths();
   const rec=months.map(m=>DATA.receitas.filter(r=>r.mes===m).reduce((s,r)=>s+(r.val||0),0));
@@ -2653,6 +2704,12 @@ function renderOverview(){
     }
   });
   document.getElementById('chartBar').addEventListener('mouseleave',()=>{tt.style.display='none';});
+  // Anima chart boxes
+  document.querySelectorAll('#page-overview .chart-box').forEach((el,i)=>{
+    el.classList.remove('anim-fade-up','anim-d1','anim-d2','anim-d3','anim-d4');
+    void el.offsetWidth;
+    el.classList.add('anim-fade-up',`anim-d${i+2}`);
+  });
   if(saldoC)saldoC.destroy();
   saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:'#5c5a80',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#5c5a80',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}}});
 }
@@ -2750,10 +2807,10 @@ function renderDespTable(){
   const falta=items.filter(d=>d.status==='Falta Pagar').reduce((s,d)=>s+(d.val||0),0);
   const cats=[...new Set(items.map(d=>d.cat))].length;
   document.getElementById('cards-desp').innerHTML=`
-    <div class="card"><div class="card-stripe" style="background:var(--red)"></div><div class="card-label">Total</div><div class="card-value red">${fmt(total)}</div></div>
-    <div class="card"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Pago</div><div class="card-value green">${fmt(pago)}</div></div>
-    <div class="card"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">Falta pagar</div><div class="card-value ${falta>0?'amber':''}">${fmt(falta)}</div></div>
-    <div class="card"><div class="card-stripe" style="background:var(--purple)"></div><div class="card-label">Categorias</div><div class="card-value purple">${cats}</div></div>`;
+    <div class="card anim-fade-up anim-d1"><div class="card-stripe" style="background:var(--red)"></div><div class="card-label">Total</div><div class="card-value red">${fmt(total)}</div></div>
+    <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Pago</div><div class="card-value green">${fmt(pago)}</div></div>
+    <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">Falta pagar</div><div class="card-value ${falta>0?'amber':''}">${fmt(falta)}</div></div>
+    <div class="card anim-fade-up anim-d4"><div class="card-stripe" style="background:var(--purple)"></div><div class="card-label">Categorias</div><div class="card-value purple">${cats}</div></div>`;
   document.getElementById('desp-title').textContent=`Despesas — ${mesLabel(m)}`;
   document.getElementById('desp-total-badge').textContent=fmt(total);
   const bc={Pago:'pago','Falta Pagar':'falta','Débito auto':'auto'};
@@ -2772,8 +2829,10 @@ function renderDespTable(){
   const CATS_FIXAS = ['Moradia','Gastos Fixos','Transporte','Streaming','Financeiro','Saúde'];
   const fixas = items.filter(d=>CATS_FIXAS.includes((d.cat||'').split(' · ')[0]));
   const variaveis = items.filter(d=>!CATS_FIXAS.includes((d.cat||'').split(' · ')[0]));
+  let _rowIdx=0;
   function rowHtml(d){
-    return `<tr style="${d.status==='Falta Pagar'?'background:rgba(240,96,96,0.03)':d.status==='Débito auto'?'background:rgba(123,140,255,0.03)':''}">
+    const di=_rowIdx++;const dc=`anim-d${Math.min(di+1,10)}`;
+    return `<tr class="tr-anim ${dc}" style="${d.status==='Falta Pagar'?'background:rgba(240,96,96,0.03)':d.status==='Débito auto'?'background:rgba(123,140,255,0.03)':''}">
         <td><div style="display:flex;align-items:center;gap:8px">${itemIcon(d.nome,d.icon)}<div><div class="entry-name">${d.nome}</div><div class="entry-cat">${d.pag||''}</div></div></div></td>
         <td><span class="cat-pill" style="background:${catColor(d.cat)}22;color:${catColor(d.cat)}">${catLabel(d.cat)}</span></td>
         <td>${valCell(d)}</td>
@@ -2787,6 +2846,7 @@ function renderDespTable(){
       <div style="display:flex;justify-content:space-between;align-items:center">${label}<span style="font-weight:700;color:var(--text2);font-size:11px;text-transform:none;letter-spacing:0">${fmt(subtotal)}</span></div>
     </td></tr>`;
   }
+  _rowIdx=0;
   if(!items.length){
     document.getElementById('desp-tbody').innerHTML=`<tr><td colspan="6" class="empty-msg">Nenhuma despesa neste mês.</td></tr>`;
   } else if(fixas.length && variaveis.length){
@@ -2883,11 +2943,12 @@ function renderNotif(){
   updateNotifBadge();
   const iminentes=DATA.despesas.filter(d=>(d.status==='Falta Pagar'||d.status==='Débito auto')&&d.venc&&urgencyOf(d)>=0&&urgencyOf(d)<=3).sort((a,b)=>urgencyOf(a)-urgencyOf(b));
   if(!iminentes.length){document.getElementById('notif-list').innerHTML=`<div style="text-align:center;padding:3rem 1rem"><div style="font-size:36px;margin-bottom:12px">✅</div><div style="font-size:15px;font-weight:600;color:var(--text)">Tudo em dia!</div><div style="font-size:13px;color:var(--text3);margin-top:6px">Nenhuma conta vence nos próximos 3 dias.</div></div>`;return;}
-  document.getElementById('notif-list').innerHTML=iminentes.map(d=>{
+  document.getElementById('notif-list').innerHTML=iminentes.map((d,ni)=>{
     const diff=urgencyOf(d);const isDebito=d.status==='Débito auto';
     let label,color;
     if(diff===0){label='Hoje';color='var(--amber)';}else if(diff===1){label='Amanhã';color='var(--red)';}else{label=`Em ${diff} dias`;color='var(--blue)';}
-    return`<div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid ${color};border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    const nd=`anim-d${Math.min(ni+1,10)}`;
+    return`<div class="anim-fade-up ${nd}" style="background:var(--surface);border:1px solid var(--border);border-left:4px solid ${color};border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
         ${itemIcon(d.nome,d.icon)}
         <div><div style="font-weight:700;font-size:14px">${d.nome}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${mesLabel(d.mes)} · <span class="badge ${isDebito?'auto':'falta'}" style="font-size:10px;padding:1px 7px">${d.status}</span></div></div>
@@ -2955,14 +3016,14 @@ function renderRecTable(){
   const despTotal=DATA.despesas.filter(d=>d.mes===m).reduce((s,d)=>s+(d.val||0),0);
   const saldo=totalRecebido-despTotal;
   document.getElementById('cards-rec').innerHTML=`
-    <div class="card"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Recebido</div><div class="card-value green">${fmt(totalRecebido)}</div></div>
-    <div class="card"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">Aguardando</div><div class="card-value ${totalAguardando>0?'amber':''}">${fmt(totalAguardando)}</div></div>
-    <div class="card"><div class="card-stripe" style="background:var(--red)"></div><div class="card-label">Despesas</div><div class="card-value red">${fmt(despTotal)}</div></div>
-    <div class="card"><div class="card-stripe" style="background:${saldo>=0?'var(--green)':'var(--red)'}"></div><div class="card-label">Saldo</div><div class="card-value ${saldo>=0?'green':'red'}">${fmt(saldo)}</div></div>`;
+    <div class="card anim-fade-up anim-d1"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Recebido</div><div class="card-value green">${fmt(totalRecebido)}</div></div>
+    <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">Aguardando</div><div class="card-value ${totalAguardando>0?'amber':''}">${fmt(totalAguardando)}</div></div>
+    <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--red)"></div><div class="card-label">Despesas</div><div class="card-value red">${fmt(despTotal)}</div></div>
+    <div class="card anim-fade-up anim-d4"><div class="card-stripe" style="background:${saldo>=0?'var(--green)':'var(--red)'}"></div><div class="card-label">Saldo</div><div class="card-value ${saldo>=0?'green':'red'}">${fmt(saldo)}</div></div>`;
   document.getElementById('rec-table-title').textContent=`Receitas — ${mesLabel(m)}`;
   document.getElementById('rec-total-badge').textContent=fmt(totalRecebido)+(totalAguardando>0?` + ${fmt(totalAguardando)} aguardando`:'');
   document.getElementById('rec-tbody').innerHTML=items.length
-    ?items.map(r=>{const aguard=(r.status||'Recebido')==='Aguardando';return`<tr style="${aguard?'background:rgba(245,197,66,0.03)':''}">
+    ?items.map((r,ri)=>{const aguard=(r.status||'Recebido')==='Aguardando';const rd=`anim-d${Math.min(ri+1,10)}`;return`<tr class="tr-anim ${rd}" style="${aguard?'background:rgba(245,197,66,0.03)':''}">
         <td><div class="entry-name">${r.nome}</div>${r.cat?`<div class="entry-cat">${r.cat}</div>`:''}</td>
         <td><span class="cat-pill" style="background:var(--green-bg);color:var(--green)">${r.cat||'—'}</span></td>
         <td><span style="font-weight:700;color:${aguard?'var(--amber)':'var(--green)'}">${r.val>0?fmt(r.val):'—'}</span></td>
@@ -3473,16 +3534,16 @@ function renderCurMonth(){
 
   // Cards: Receita | Gasto | Pago | Falta Pagar | Saldo
   document.getElementById('cur-month-cards').innerHTML = `
-    <div class="cur-month-stat">
+    <div class="cur-month-stat anim-fade-up anim-d1">
       <div class="cur-month-stat-label">Receita</div>
       <div class="cur-month-stat-val" style="color:${totalRec>0?'var(--green)':'var(--text3)'}">${fmt(totalRec)}</div>
     </div>
-    <div class="cur-month-stat">
+    <div class="cur-month-stat anim-fade-up anim-d2">
       <div class="cur-month-stat-label">Gasto</div>
       <div class="cur-month-stat-val" style="color:${totalDesp>0?'var(--red)':'var(--text3)'}">${fmt(totalDesp)}</div>
       ${diffLabel?`<div class="cur-month-stat-sub" style="color:${diffColor}">${diffLabel}</div>`:''}
     </div>
-    <div class="cur-month-stat">
+    <div class="cur-month-stat anim-fade-up anim-d3">
       <div class="cur-month-stat-label">Pago</div>
       <div class="cur-month-stat-val" style="color:${totalPago>0?'var(--blue)':'var(--text3)'}">${fmt(totalPago)}</div>
     </div>
@@ -3491,7 +3552,7 @@ function renderCurMonth(){
       <div class="cur-month-stat-val" style="color:${totalFalta>0?'var(--red)':'var(--text3)'}">${fmt(totalFalta)}</div>
       ${totalFalta>0?`<div class="cur-month-stat-sub" style="color:var(--red);opacity:.7">${desp.filter(d=>d.status==='Falta Pagar').length} conta(s)</div>`:''}
     </div>
-    <div class="cur-month-stat">
+    <div class="cur-month-stat anim-fade-up anim-d5">
       <div class="cur-month-stat-label">Saldo</div>
       <div class="cur-month-stat-val" style="color:${saldo>=0?'var(--green)':'var(--red)'}">${fmt(saldo)}</div>
     </div>`;
