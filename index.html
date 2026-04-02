@@ -2329,12 +2329,11 @@ function showSyncStatus(status){
   if(!el){
     el = document.createElement('div');
     el.id = 'sync-indicator';
-    el.innerHTML = '<span class="si-icon"></span><span class="si-text"></span>';
+    el.innerHTML = '<span data-si="icon"></span><span data-si="text"></span>';
     document.body.appendChild(el);
   }
-  // Garante que o HTML interno existe (segurança extra)
-  if(!el.querySelector('.si-text')){
-    el.innerHTML = '<span class="si-icon"></span><span class="si-text"></span>';
+  if(!el.querySelector('[data-si="text"]')){
+    el.innerHTML = '<span data-si="icon"></span><span data-si="text"></span>';
   }
   const cfg = {
     saving: { color:'#7b8cff', bg:'rgba(123,140,255,.13)', border:'rgba(123,140,255,.25)', icon:'spinner', text:'Salvando...' },
@@ -2343,18 +2342,15 @@ function showSyncStatus(status){
     offline:{ color:'#f5c542', bg:'rgba(245,197,66,.1)',   border:'rgba(245,197,66,.2)',   icon:'dot',     text:'Offline — dados salvos localmente' },
   };
   const s = cfg[status] || cfg.saved;
-  el.style.color      = s.color;
-  el.style.background = s.bg;
-  el.style.borderColor= s.border;
-  // Ícone: spinner animado p/ saving, bolinha p/ o resto
-  const iconEl = el.querySelector('.si-icon');
+  el.style.color       = s.color;
+  el.style.background  = s.bg;
+  el.style.borderColor = s.border;
+  const iconEl = el.querySelector('[data-si="icon"]');
   iconEl.className = s.icon === 'spinner' ? 'si-spinner' : 'si-dot';
   iconEl.style.background = s.icon === 'spinner' ? 'none' : s.color;
-  el.querySelector('.si-text').textContent = s.text;
-  // Mostra
+  el.querySelector('[data-si="text"]').textContent = s.text;
   clearTimeout(_syncHideTimer);
   el.classList.add('si-visible');
-  // Esconde automaticamente após sucesso ou offline
   if(status === 'saved' || status === 'offline'){
     _syncHideTimer = setTimeout(() => el.classList.remove('si-visible'), 3000);
   }
