@@ -2287,45 +2287,39 @@ async function loadDataFromCloud(uid){
   const fns = fbFns();
   const docRef = fns.doc(fbDb(), 'gastos', uid);
 
-  try {
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 8000)
-    );
+  return new Promise((resolve) => {
+    let resolved = false;
+    const timer = setTimeout(() => {
+      if(!resolved){ resolved = true; unsub(); console.warn('[App] Timeout — usando cache local'); resolve(null); }
+    }, 10000);
 
-    // Garante que o documento existe antes de tentar ler
-    // setDoc com merge:true cria se não existir, não sobrescreve se existir
-    await Promise.race([
-      fns.setDoc(docRef, { _criado: Date.now() }, { merge: true }),
-      timeout
-    ]);
-
-    // Agora lê com segurança
-    const snap = await Promise.race([fns.getDoc(docRef), timeout]);
-    if (snap.exists()) {
-      const d = snap.data();
-      const despesas = d.despesas || [];
-      const receitas = d.receitas || [];
-      console.log(`[App] Dados carregados ✓ (${despesas.length} despesas, ${receitas.length} receitas)`);
-      return { despesas, receitas };
-    }
-    return { despesas: [], receitas: [] };
-  } catch(e) {
-    console.warn('[App] Servidor indisponível, buscando do cache local...', e.message);
-    try {
-      const { getDocFromCache } = await import(
-        'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'
-      );
-      const cached = await getDocFromCache(docRef);
-      if (cached.exists()) {
-        console.log('[App] Dados carregados do cache Firestore ✓');
-        const d = cached.data();
-        return { despesas: d.despesas||[], receitas: d.receitas||[] };
+    const unsub = fns.onSnapshot(docRef,
+      { includeMetadataChanges: true },
+      (snap) => {
+        // Ignora snapshots vindos só do cache local — aguarda dado do servidor
+        if(snap.metadata.fromCache && !snap.exists()) return;
+        if(!resolved){
+          resolved = true;
+          clearTimeout(timer);
+          unsub();
+          if(snap.exists()){
+            const d = snap.data();
+            console.log('[App] Dados carregados do servidor ✓');
+            resolve({ despesas: d.despesas||[], receitas: d.receitas||[] });
+          } else {
+            // Documento não existe — cria vazio e retorna limpo
+            fns.setDoc(docRef, { despesas:[], receitas:[], _criado: Date.now() }, { merge: true })
+              .catch(e => console.warn('[App] Erro ao criar documento:', e));
+            console.log('[App] Conta nova criada ✓');
+            resolve({ despesas: [], receitas: [] });
+          }
+        }
+      },
+      (err) => {
+        if(!resolved){ resolved = true; clearTimeout(timer); unsub(); console.warn('[App] Erro onSnapshot:', err.message); resolve(null); }
       }
-    } catch(cacheErr) {
-      console.warn('[App] Cache Firestore também indisponível:', cacheErr.message);
-    }
-    return null;
-  }
+    );
+  });
 }
 
 let _saveTimer=null;
