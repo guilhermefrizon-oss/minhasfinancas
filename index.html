@@ -25,8 +25,8 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          sendPasswordResetEmail, signOut, onAuthStateChanged,
          browserLocalPersistence, browserSessionPersistence, setPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot,
-         enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED }
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+         doc, setDoc, getDoc, onSnapshot }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 
@@ -47,14 +47,9 @@ window._fbLogEvent = logEvent;
 logEvent(analytics, 'page_view', { page_title: 'Meus Gastos', page_location: window.location.href });
 const auth  = getAuth(fbApp);
 
-// Firestore com persistência offline via IndexedDB
-const db = getFirestore(fbApp);
-enableIndexedDbPersistence(db).catch(err => {
-  if (err.code === 'failed-precondition') {
-    console.warn('[Firestore] Persistência offline indisponível: múltiplas abas abertas.');
-  } else if (err.code === 'unimplemented') {
-    console.warn('[Firestore] Este navegador não suporta persistência offline.');
-  }
+// Firestore com cache offline persistente (nova API — substitui enableIndexedDbPersistence)
+const db = initializeFirestore(fbApp, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
 });
 
 // Define persistência local (mantém login após fechar app)
@@ -2229,33 +2224,40 @@ const DATA_VERSION='v3-2025';
 
 async function loadDataFromCloud(uid){
   console.log('[App] Carregando dados...');
-  const MAX_ATTEMPTS = 2;
-  for(let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++){
-    const timeout = new Promise(resolve => {
-      setTimeout(() => { console.warn(`[App] Timeout (3s) — tentativa ${attempt}/${MAX_ATTEMPTS}`); resolve(null); }, 3000);
-    });
-    const fetchData = (async () => {
-      try{
-        const snap = await fbFns().getDoc(fbFns().doc(fbDb(),'gastos',uid));
-        if(snap.exists()){
-          console.log('[App] Dados carregados ✓');
-          const d = snap.data();
-          return { despesas: d.despesas||[], receitas: d.receitas||[] };
-        }
-        console.log('[App] Conta nova — sem dados ainda');
-        return null;
-      } catch(e){
-        console.warn('[App] Erro Firestore:', e.code, e.message);
-        return null;
-      }
-    })();
-    const result = await Promise.race([fetchData, timeout]);
-    if(result !== null) return result;
-    if(attempt < MAX_ATTEMPTS){
-      await new Promise(r => setTimeout(r, Math.pow(2, attempt - 1) * 1000));
+  const fns = fbFns();
+  const docRef = fns.doc(fbDb(), 'gastos', uid);
+
+  // Tenta buscar do servidor com timeout de 5s
+  try {
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 5000)
+    );
+    const snap = await Promise.race([fns.getDoc(docRef), timeout]);
+    if (snap.exists()) {
+      console.log('[App] Dados carregados do servidor ✓');
+      const d = snap.data();
+      return { despesas: d.despesas||[], receitas: d.receitas||[] };
     }
+    console.log('[App] Conta nova — sem dados ainda');
+    return null;
+  } catch(e) {
+    // Servidor inacessível — tenta o cache local do Firestore
+    console.warn('[App] Servidor indisponível, buscando do cache local...', e.message);
+    try {
+      const { getDocFromCache } = await import(
+        'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'
+      );
+      const cached = await getDocFromCache(docRef);
+      if (cached.exists()) {
+        console.log('[App] Dados carregados do cache Firestore ✓');
+        const d = cached.data();
+        return { despesas: d.despesas||[], receitas: d.receitas||[] };
+      }
+    } catch(cacheErr) {
+      console.warn('[App] Cache Firestore também indisponível:', cacheErr.message);
+    }
+    return null;
   }
-  return null;
 }
 
 let _saveTimer=null;
@@ -2394,35 +2396,48 @@ function startRealtimeSync(uid) {
 
 /* ── Callbacks de auth ── */
 window._onFbLogin = async function(user){
-  // Mostra skeleton enquanto carrega dados
   const sk = document.getElementById('overview-skeleton');
   if(sk) sk.style.display = 'block';
   try{
-    // 1. Oculta tela de login
     document.getElementById('login-screen').classList.remove('visible');
 
-    // 2. Tenta carregar dados da nuvem
+    // 1. Mostra dados do cache local (localStorage) imediatamente — sem esperar rede
+    const localD = localStorage.getItem('gastos_cache_desp');
+    const localR = localStorage.getItem('gastos_cache_rec');
+    if(localD || localR){
+      DATA.despesas = localD ? JSON.parse(localD) : [];
+      DATA.receitas = localR ? JSON.parse(localR) : [];
+      if(sk) sk.style.display = 'none';
+      document.body.classList.add('app-ready');
+      updateHeaderProfile(user);
+      renderOverview();
+      updateNotifBadge();
+      showSyncStatus('saving');
+    }
+
+    // 2. Busca da nuvem (ou cache Firestore se offline) em paralelo
     let cloud = null;
     try{ cloud = await loadDataFromCloud(user.uid); } catch(e){ console.warn(e); }
 
     if(cloud){
-      DATA.despesas = cloud.despesas;
-      DATA.receitas = cloud.receitas;
-      localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
-      localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
-    } else {
-      const localD = localStorage.getItem('gastos_cache_desp');
-      const localR = localStorage.getItem('gastos_cache_rec');
-      DATA.despesas = localD ? JSON.parse(localD) : [];
-      DATA.receitas = localR ? JSON.parse(localR) : [];
-      if(localD && DATA.despesas.length > 0){
-        console.log('[App] Dados locais encontrados — agendando retry de sync em 3s...');
-        setTimeout(() => loadDataFromCloud(user.uid).then(c => {
-          if(c){ DATA.despesas=c.despesas; DATA.receitas=c.receitas; renderOverview(); }
-        }).catch(e => console.warn('[App] Retry falhou:', e)), 3000);
+      const changed =
+        JSON.stringify(cloud.despesas) !== JSON.stringify(DATA.despesas) ||
+        JSON.stringify(cloud.receitas)  !== JSON.stringify(DATA.receitas);
+      if(changed){
+        DATA.despesas = cloud.despesas;
+        DATA.receitas = cloud.receitas;
+        localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
+        localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
+        renderOverview();
+        updateNotifBadge();
       }
+      showSyncStatus('saved');
+    } else {
+      // Sem rede e sem cache Firestore — já está usando localStorage acima
+      showSyncStatus('offline');
     }
-    // Inicia sincronização em tempo real
+
+    // 3. Inicia listener em tempo real (funciona offline também com nova API)
     startRealtimeSync(user.uid);
   } catch(e){
     console.warn('Erro no login:', e);
@@ -2432,7 +2447,6 @@ window._onFbLogin = async function(user){
     DATA.receitas = localR ? JSON.parse(localR) : [];
     document.body.classList.add('app-ready');
   } finally {
-    // SEMPRE executa — esconde skeleton, mostra o app
     if(sk) sk.style.display = 'none';
     document.body.classList.add('app-ready');
     updateHeaderProfile(user);
