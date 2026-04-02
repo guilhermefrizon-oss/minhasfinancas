@@ -31,13 +31,13 @@ import { getFirestore, enableMultiTabIndexedDbPersistence,
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDeNulc4_FmV2AZbkU9fXOCm7405Axm9uM",
-  authDomain: "meus-gastos-5dea1.firebaseapp.com",
-  projectId: "meus-gastos-5dea1",
-  storageBucket: "meus-gastos-5dea1.firebasestorage.app",
-  messagingSenderId: "413030129157",
-  appId: "1:413030129157:web:48863c5d3a732071e6466c",
-  measurementId: "G-31F7BRXZVR"
+  apiKey: "AIzaSyD5WvpRa8eOfMbn-wdGK1wWhONsyu9tcMI",
+  authDomain: "meus-gastos-81e64.firebaseapp.com",
+  projectId: "meus-gastos-81e64",
+  storageBucket: "meus-gastos-81e64.firebasestorage.app",
+  messagingSenderId: "948831628912",
+  appId: "1:948831628912:web:e7e1c0671479b86b07ceb5",
+  measurementId: "G-K8VJ1HKS98"
 };
 
 const fbApp = initializeApp(firebaseConfig);
@@ -77,8 +77,6 @@ onAuthStateChanged(auth, async user => {
     // Aguarda o token JWT estar pronto antes de qualquer chamada ao Firestore
     // Sem isso, getDoc trava silenciosamente pois o SDK ainda não propagou a sessão
     try { await user.getIdToken(true); } catch(e) { console.warn('[Auth] getIdToken falhou:', e); }
-    // Aguarda o WebSocket do Firestore estabilizar após o token estar pronto
-    await new Promise(r => setTimeout(r, 1500));
     window._onFbLogin && window._onFbLogin(user);
   } else {
     window._onFbLogout && window._onFbLogout();
