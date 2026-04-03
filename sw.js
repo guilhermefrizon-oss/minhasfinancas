@@ -1,4 +1,4 @@
-const CACHE = 'meus-gastos-v9';
+const CACHE = 'meus-gastos-v10';
 const ASSETS = [
   './',
   './index.html',
