@@ -361,6 +361,17 @@ option { background: var(--surface2); }
   mask-composite: exclude;
   pointer-events: none;
   z-index: 1;
+  transition: opacity .6s ease;
+}
+/* Saldo positivo: roxo → verde */
+.cur-month-block.saldo-pos::after {
+  background: linear-gradient(135deg, #7b8cff, #a78bfa, #34d27a, #7b8cff);
+  background-size: 300% 300%;
+}
+/* Saldo negativo: roxo → vermelho */
+.cur-month-block.saldo-neg::after {
+  background: linear-gradient(135deg, #7b8cff, #a78bfa, #f06060, #7b8cff);
+  background-size: 300% 300%;
 }
 @keyframes border-gradient {
   0%   { background-position: 0% 50%; }
@@ -3742,7 +3753,10 @@ function renderCurMonth(){
   const totalDesp  = desp.reduce((s,d)=>s+(d.val||0),0);
   const totalRec   = rec.reduce((s,r)=>s+(r.val||0),0);
   const totalPago  = desp.filter(d=>d.status==='Pago'||d.status==='Débito auto').reduce((s,d)=>s+(d.val||0),0);
-  const totalFalta = desp.filter(d=>d.status==='Falta Pagar').reduce((s,d)=>s+(d.val||0),0);
+  const totalFaltaSo   = desp.filter(d=>d.status==='Falta Pagar').reduce((s,d)=>s+(d.val||0),0);
+  const totalDebito    = desp.filter(d=>d.status==='Débito auto').reduce((s,d)=>s+(d.val||0),0);
+  const totalFalta     = totalFaltaSo + totalDebito; // Falta Pagar + Débito auto = a sair
+  const countFalta     = desp.filter(d=>d.status==='Falta Pagar'||d.status==='Débito auto').length;
   const saldo      = totalRec - totalDesp;
 
   // Comparação com mês anterior
@@ -3781,14 +3795,26 @@ function renderCurMonth(){
       <div class="cur-month-stat-val" id="cmv-pago"></div>
     </div>
     <div class="cur-month-stat" data-glow="red" style="cursor:${totalFalta>0?'pointer':'default'}" onclick="${totalFalta>0?'goToDespesas()':''}">
-      <div class="cur-month-stat-label" style="color:${totalFalta>0?'var(--red)':'var(--text3)'}">Falta Pagar</div>
+      <div class="cur-month-stat-label" style="color:${totalFalta>0?'var(--red)':'var(--text3)'}">A sair</div>
       <div class="cur-month-stat-val" id="cmv-falta"></div>
-      ${totalFalta>0?`<div class="cur-month-stat-sub" style="color:var(--red);opacity:.7">${desp.filter(d=>d.status==='Falta Pagar').length} conta(s)</div>`:''}
+      ${totalFalta>0?`<div class="cur-month-stat-sub" style="color:var(--red);opacity:.7">${countFalta} conta(s)</div>`:''}
     </div>
     <div class="cur-month-stat anim-fade-up anim-d5" data-glow="${saldo>=0?'green':'red'}">
       <div class="cur-month-stat-label">Saldo</div>
       <div class="cur-month-stat-val" id="cmv-saldo"></div>
     </div>`;
+  // Classe de saldo no bloco para gradiente dinâmico
+  const cmBlock = document.getElementById('cur-month-block');
+  if(cmBlock){
+    cmBlock.classList.remove('saldo-pos','saldo-neg');
+    cmBlock.classList.add(saldo >= 0 ? 'saldo-pos' : 'saldo-neg');
+  }
+  // Classe de saldo no bloco para gradiente dinâmico
+  const cmBlock = document.getElementById('cur-month-block');
+  if(cmBlock){
+    cmBlock.classList.remove('saldo-pos','saldo-neg');
+    cmBlock.classList.add(saldo >= 0 ? 'saldo-pos' : 'saldo-neg');
+  }
   // Count-up animado nos valores
   animateValue(document.getElementById('cmv-rec'),   totalRec,   totalRec>0?'var(--green)':'var(--text3)');
   animateValue(document.getElementById('cmv-desp'),  totalDesp,  totalDesp>0?'var(--red)':'var(--text3)');
