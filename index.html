@@ -560,15 +560,14 @@ option { background: var(--surface2); }
   .cur-month-stat:nth-child(odd) {
     border-right: 1px solid var(--border);
   }
-  /* Saldo ocupa linha inteira — centralizado */
+  /* Saldo ocupa linha inteira — alinhado à direita */
   .cur-month-stat:last-child {
     grid-column: 1 / -1;
     border-bottom: none;
     border-right: none;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    text-align: center;
+    justify-content: space-between;
     padding: 14px 16px 16px;
     gap: 4px;
   }
@@ -1851,17 +1850,13 @@ body.app-ready .page { visibility: visible; }
   </div>
   <div class="chart-box" style="margin-top:1.25rem">
     <div class="chart-header">
-      <div class="chart-title">Receita vs Despesa</div>
+      <div class="chart-title">Histórico de receitas</div>
       <div class="legend">
-        <div class="legend-item"><div class="ldot" style="background:var(--green)"></div>Receita</div>
-        <div class="legend-item"><div class="ldot" style="background:var(--red)"></div>Despesa</div>
+        <div class="legend-item"><div class="ldot" style="background:var(--green)"></div>Recebido</div>
+        <div class="legend-item"><div class="ldot" style="background:var(--amber)"></div>Aguardando</div>
       </div>
     </div>
     <div style="position:relative;width:100%;height:260px"><canvas id="chartRec"></canvas></div>
-  </div>
-  <div class="chart-box">
-    <div class="chart-header"><div class="chart-title">Saldo mensal</div></div>
-    <div style="position:relative;width:100%;height:190px"><canvas id="chartSaldoRec"></canvas></div>
   </div>
 </div>
 
@@ -3260,23 +3255,41 @@ function mobDespCard(d){
 
 function mobRecCard(r, ri){
   const aguard=(r.status||'Recebido')==='Aguardando';
-  const col=aguard?'var(--amber)':'var(--green)';
-  return `<div class="mob-card tr-anim anim-d${Math.min(ri+1,10)}">
-    <div class="mob-card-main">
-      <div class="mob-card-name">${r.nome}</div>
-      <div class="mob-card-sub">
-        ${r.cat?`<span style="background:var(--green-bg);color:var(--green);padding:1px 7px;border-radius:20px;font-weight:600">${r.cat}</span>`:''}
+  const barCol=aguard?'var(--amber)':'var(--green)';
+  const toggleClass=aguard?'':'pago';
+  const toggleIcon=aguard?'○':'✓';
+  const toggleTitle=aguard?'Marcar como recebido':'Recebido — clique para editar';
+  const catCol='var(--green)';
+  return `<div class="swipe-wrapper" data-rec-id="${r.id}">
+    <div class="swipe-delete-bg">🗑</div>
+    <div class="mob-card-inner">
+      <div class="mob-status-bar" style="background:${barCol}"></div>
+      <div class="mob-card-main" style="padding-left:4px">
+        <div class="mob-card-name">${r.nome}</div>
+        <div class="mob-card-sub">
+          ${r.cat?`<span style="background:rgba(52,210,122,.15);color:var(--green);padding:1px 7px;border-radius:20px;font-weight:600;font-size:10px">${r.cat}</span>`:''}
+        </div>
       </div>
-    </div>
-    <div class="mob-card-right">
-      <span class="mob-card-val" style="color:${col}">${r.val>0?fmt(r.val):'—'}</span>
-      <div style="display:flex;align-items:center;gap:4px">
-        <span class="badge ${aguard?'falta':'pago'}" style="font-size:10px;padding:2px 8px;${aguard?'background:var(--amber-bg);color:var(--amber)':''}">${aguard?'Aguardando':'Recebido'}</span>
-        <button class="edit-btn" onclick="openRecModal(${r.id})" style="padding:2px 6px">✏️</button>
-        <button class="btn-del" onclick="deleteRecEntry(${r.id})">×</button>
+      <div class="mob-card-right">
+        <span class="mob-card-val" style="color:${aguard?'var(--amber)':'var(--green)'}">${r.val>0?fmt(r.val):'—'}</span>
+        <div class="mob-card-actions">
+          <button class="mob-edit-btn" onclick="openRecModal(${r.id})" title="Editar">✏️</button>
+          <button class="mob-toggle-btn ${toggleClass}" onclick="toggleRecStatus(${r.id})" title="${toggleTitle}">${toggleIcon}</button>
+        </div>
       </div>
     </div>
   </div>`;
+}
+
+function toggleRecStatus(id){
+  const r=DATA.receitas.find(x=>x.id===id);
+  if(!r)return;
+  if((r.status||'Recebido')==='Recebido'){
+    openRecModal(id);
+    return;
+  }
+  r.status='Recebido';
+  saveData();renderReceitas();showToast('✅ Marcado como Recebido!');
 }
 
 function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRecorrentesList();
@@ -3530,13 +3543,11 @@ function renderRecTable(){
   });
   const totalRecebido=items.filter(r=>(r.status||'Recebido')==='Recebido').reduce((s,r)=>s+(r.val||0),0);
   const totalAguardando=items.filter(r=>r.status==='Aguardando').reduce((s,r)=>s+(r.val||0),0);
-  const despTotal=DATA.despesas.filter(d=>d.mes===m).reduce((s,d)=>s+(d.val||0),0);
-  const saldo=totalRecebido-despTotal;
+  const totalRec=totalRecebido+totalAguardando;
   document.getElementById('cards-rec').innerHTML=`
     <div class="card anim-fade-up anim-d1"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Recebido</div><div class="card-value green">${fmt(totalRecebido)}</div></div>
     <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">Aguardando</div><div class="card-value ${totalAguardando>0?'amber':''}">${fmt(totalAguardando)}</div></div>
-    <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--red)"></div><div class="card-label">Despesas</div><div class="card-value red">${fmt(despTotal)}</div></div>
-    <div class="card anim-fade-up anim-d4"><div class="card-stripe" style="background:${saldo>=0?'var(--green)':'var(--red)'}"></div><div class="card-label">Saldo</div><div class="card-value ${saldo>=0?'green':'red'}">${fmt(saldo)}</div></div>`;
+    <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--purple)"></div><div class="card-label">Total</div><div class="card-value purple">${fmt(totalRec)}</div></div>`;
   document.getElementById('rec-table-title').textContent=`Receitas — ${mesLabel(m)}`;
   document.getElementById('rec-total-badge').textContent=fmt(totalRecebido)+(totalAguardando>0?` + ${fmt(totalAguardando)} aguardando`:'');
   const recRows = items.length
@@ -3558,18 +3569,21 @@ function renderRecTable(){
       ? items.map((r,ri)=>mobRecCard(r,ri)).join('')+
         `<div class="mob-total-row"><span>Total recebido</span><span style="color:var(--green)">${fmt(totalRecebido)}</span></div>`
       : `<div class="empty-msg">Nenhuma receita neste mês.</div>`;
+    initSwipeDeleteRec();
   }
 }
 function renderRecCharts(){
   const months=allMonths();
   const rec=months.map(m=>DATA.receitas.filter(r=>r.mes===m).reduce((s,r)=>s+(r.val||0),0));
-  const desp=months.map(m=>DATA.despesas.filter(d=>d.mes===m).reduce((s,d)=>s+(d.val||0),0));
-  const saldo=rec.map((r,i)=>Math.round((r-desp[i])*100)/100);
+  const recebido=months.map(m=>DATA.receitas.filter(r=>r.mes===m&&(r.status||'Recebido')==='Recebido').reduce((s,r)=>s+(r.val||0),0));
+  const aguard=months.map(m=>DATA.receitas.filter(r=>r.mes===m&&r.status==='Aguardando').reduce((s,r)=>s+(r.val||0),0));
   const ttB={backgroundColor:'#1a1830',borderColor:'#2e2c50',borderWidth:1};
   if(recC)recC.destroy();
-  recC=new Chart(document.getElementById('chartRec'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Receita',data:rec.map(v=>Math.round(v*100)/100),backgroundColor:'rgba(52,210,122,0.7)',borderRadius:4},{label:'Despesa',data:desp.map(v=>Math.round(v*100)/100),backgroundColor:'rgba(240,96,96,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttB,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:'#5c5a80',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#5c5a80',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}}});
-  if(saldoRecC)saldoRecC.destroy();
-  saldoRecC=new Chart(document.getElementById('chartSaldoRec'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttB,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:'#5c5a80',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#5c5a80',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}}});
+  recC=new Chart(document.getElementById('chartRec'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[
+    {label:'Recebido',data:recebido.map(v=>Math.round(v*100)/100),backgroundColor:'rgba(52,210,122,0.7)',borderRadius:4},
+    {label:'Aguardando',data:aguard.map(v=>Math.round(v*100)/100),backgroundColor:'rgba(245,197,66,0.5)',borderRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttB,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:'#5c5a80',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#5c5a80',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}}});
+  if(saldoRecC)saldoRecC.destroy();saldoRecC=null;
 }
 function openRecModal(id){
   const r=DATA.receitas.find(x=>x.id===id);if(!r)return;
@@ -3606,6 +3620,32 @@ function deleteRecEntry(id){
   showConfirm(`Excluir "${r.nome}"?`, ()=>{
     DATA.receitas=DATA.receitas.filter(x=>x.id!==id);
     saveData();renderReceitas();showToast('Removido!');
+  });
+}
+function initSwipeDeleteRec(){
+  document.querySelectorAll('[data-rec-id]').forEach(wrapper=>{
+    const inner=wrapper.querySelector('.mob-card-inner');
+    const bg=wrapper.querySelector('.swipe-delete-bg');
+    if(!inner||!bg)return;
+    let startX=0,startY=0,curX=0,swiping=false,locked=false;
+    const THRESHOLD=80;
+    inner.addEventListener('touchstart',e=>{
+      startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+      curX=0;swiping=false;locked=false;inner.style.transition='none';
+    },{passive:true});
+    inner.addEventListener('touchmove',e=>{
+      const dx=e.touches[0].clientX-startX;const dy=e.touches[0].clientY-startY;
+      if(!swiping&&!locked){if(Math.abs(dy)>Math.abs(dx)){locked=true;return;}if(Math.abs(dx)>5)swiping=true;}
+      if(!swiping||locked)return;
+      e.preventDefault();curX=Math.min(0,dx);inner.style.transform=`translateX(${curX}px)`;
+      bg.style.opacity=Math.min(1,Math.abs(curX)/THRESHOLD);
+    },{passive:false});
+    inner.addEventListener('touchend',()=>{
+      inner.style.transition='transform .25s cubic-bezier(.4,0,.2,1)';
+      if(Math.abs(curX)>=THRESHOLD){inner.style.transform='translateX(-100%)';bg.style.opacity='1';
+        const id=Number(wrapper.dataset.recId);setTimeout(()=>deleteRecEntry(id),220);
+      }else{inner.style.transform='';bg.style.opacity='0';}
+    });
   });
 }
 
