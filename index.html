@@ -310,10 +310,7 @@ option { background: var(--surface2); }
   .chart-box { padding: 1rem .9rem; }
   .table-box { border-radius: var(--radius-sm); }
   th, td { padding: 9px 10px; font-size: 12px; }
-  .quick-input { font-size: 13px; padding: 11px 44px 11px 13px; }
-  .quick-examples { gap: 5px; }
-  .quick-ex { font-size: 10px; padding: 3px 9px; }
-  .quick-hint { font-size: 10px; }
+
   .month-picker-btn { font-size: 13px; padding: 7px 12px; }
   .section-label { margin-bottom: 8px; }
   /* Cards overview compactos */
@@ -361,6 +358,17 @@ option { background: var(--surface2); }
   mask-composite: exclude;
   pointer-events: none;
   z-index: 1;
+  transition: opacity .6s ease;
+}
+/* Saldo positivo: roxo → verde */
+.cur-month-block.saldo-pos::after {
+  background: linear-gradient(135deg, #7b8cff, #a78bfa, #34d27a, #7b8cff);
+  background-size: 300% 300%;
+}
+/* Saldo negativo: roxo → vermelho */
+.cur-month-block.saldo-neg::after {
+  background: linear-gradient(135deg, #7b8cff, #a78bfa, #f06060, #7b8cff);
+  background-size: 300% 300%;
 }
 @keyframes border-gradient {
   0%   { background-position: 0% 50%; }
@@ -571,7 +579,7 @@ body.light .header { background: #fff; }
 body.light input, body.light select { background: var(--surface2); color: var(--text); }
 body.light .pin-key { background: var(--surface2); color: var(--text); }
 body.light #chartTooltip { background: #fff; }
-body.light .quick-input { background: #fff; }
+
 
 
 /* ══════════════ BOTTOM TAB BAR (mobile) ══════════════ */
@@ -1454,29 +1462,14 @@ body.app-ready .page { visibility: visible; }
   <!-- CONTEÚDO REAL -->
   <div id="overview-real-content">
   <!-- SAUDAÇÃO -->
-  <div id="overview-greeting" style="margin-top:.25rem;margin-bottom:1rem">
-    <div style="font-size:13px;color:var(--text2);font-weight:500">Olá,</div>
-    <div id="overview-greeting-name" style="font-size:22px;font-weight:800;color:var(--text);line-height:1.2"></div>
-  </div>
-  <!-- CAMPO RÁPIDO -->
-  <div class="quick-bar" style="margin-top:.25rem">
-    <input class="quick-input" id="quick-input" type="text" placeholder='Digite: "mercado 120" ou "salário 3500 receita"' oninput="quickPreview()" onkeydown="if(event.key==='Enter')quickSubmit()">
-    <button class="quick-send" onclick="quickSubmit()" title="Adicionar">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
-    </button>
-    <div class="quick-preview" id="quick-preview"></div>
-    <div style="margin-top:7px">
-      <div class="quick-hint">💡 Exemplos rápidos — clique para testar:</div>
-      <div class="quick-examples">
-        <span class="quick-ex" onclick="quickFill('mercado 120')">mercado 120</span>
-        <span class="quick-ex" onclick="quickFill('uber 35')">uber 35</span>
-        <span class="quick-ex" onclick="quickFill('spotify 23.90')">spotify 23.90</span>
-        <span class="quick-ex" onclick="quickFill('salário 3500 receita')">salário 3500 receita</span>
-        <span class="quick-ex" onclick="quickFill('gasolina 200 falta pagar')">gasolina 200 falta pagar</span>
-        <span class="quick-ex" onclick="quickFill('aluguel 1070 cartão')">aluguel 1070 cartão</span>
-      </div>
+  <div id="overview-greeting" style="margin-top:.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div>
+      <div id="overview-greeting-label" style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Bom dia</div>
+      <div id="overview-greeting-name" style="font-size:24px;font-weight:800;color:var(--text);line-height:1.1"></div>
     </div>
+    <div id="overview-greeting-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0;background:rgba(123,140,255,.15);color:var(--purple)"></div>
   </div>
+
   <!-- DESTAQUE MÊS ATUAL -->
   <div class="cur-month-block" id="cur-month-block">
     <div class="cur-month-header">
@@ -2790,7 +2783,7 @@ function filteredMonths(){
 
 function renderOverview(){
   // Anima saudação e quick bar ao carregar overview
-  ['overview-greeting','quick-bar','cur-month-block'].forEach((id,i)=>{
+  ['overview-greeting','cur-month-block'].forEach((id,i)=>{
     const el=document.getElementById(id);
     if(!el)return;
     el.classList.remove('anim-fade-up','anim-d1','anim-d2','anim-d3');
@@ -3426,12 +3419,33 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 /* ══════ SISTEMA DE PERFIS — UI ══════ */
 let pinTarget=null,pinBuffer='',editingProfileId=null,selectedAvatar='👤';
 
-function applyGreeting(nomeCompleto){
+function applyGreeting(primeiro){
   const hour = new Date().getHours();
-  let greeting;
-  if (hour >= 5 && hour < 12) greeting = 'Bom dia';
-  else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
-  else greeting = 'Boa noite';
+  let greeting, emoji;
+  if (hour >= 5  && hour < 12) { greeting = 'Bom dia';    emoji = '☀️'; }
+  else if (hour >= 12 && hour < 18) { greeting = 'Boa tarde';  emoji = '🌤️'; }
+  else                          { greeting = 'Boa noite';  emoji = '🌙'; }
+
+  // Label de saudação com horário
+  const labelEl = document.getElementById('overview-greeting-label');
+  if(labelEl) labelEl.textContent = greeting;
+
+  // Nome
+  const nameEl = document.getElementById('overview-greeting-name');
+  if(nameEl) nameEl.textContent = primeiro || '';
+
+  // Avatar com inicial
+  const avatarEl = document.getElementById('overview-greeting-avatar');
+  if(avatarEl){
+    const initial = (primeiro||'?').charAt(0).toUpperCase();
+    avatarEl.textContent = initial;
+    const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
+    const bg = colors[(primeiro||'A').charCodeAt(0) % colors.length];
+    avatarEl.style.background = bg + '25';
+    avatarEl.style.color = bg;
+  }
+
+  // Header greeting legado (caso exista)
   const el = document.getElementById('header-greeting');
   if (el) el.textContent = greeting + ',';
 }
@@ -3446,7 +3460,7 @@ function applyHeaderName(nomeCompleto){
   const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
   if(avatarEl) avatarEl.style.background=colors[primeiro.charCodeAt(0)%colors.length]+'33';
   // Saudação — só primeiro nome
-  if(typeof applyGreeting === 'function') applyGreeting(primeiro);
+  applyGreeting(primeiro);
 }
 
 function updateHeaderProfile(user){
@@ -3742,7 +3756,10 @@ function renderCurMonth(){
   const totalDesp  = desp.reduce((s,d)=>s+(d.val||0),0);
   const totalRec   = rec.reduce((s,r)=>s+(r.val||0),0);
   const totalPago  = desp.filter(d=>d.status==='Pago'||d.status==='Débito auto').reduce((s,d)=>s+(d.val||0),0);
-  const totalFalta = desp.filter(d=>d.status==='Falta Pagar').reduce((s,d)=>s+(d.val||0),0);
+  const totalFaltaSo   = desp.filter(d=>d.status==='Falta Pagar').reduce((s,d)=>s+(d.val||0),0);
+  const totalDebito    = desp.filter(d=>d.status==='Débito auto').reduce((s,d)=>s+(d.val||0),0);
+  const totalFalta     = totalFaltaSo + totalDebito; // Falta Pagar + Débito auto = a sair
+  const countFalta     = desp.filter(d=>d.status==='Falta Pagar'||d.status==='Débito auto').length;
   const saldo      = totalRec - totalDesp;
 
   // Comparação com mês anterior
@@ -3781,14 +3798,20 @@ function renderCurMonth(){
       <div class="cur-month-stat-val" id="cmv-pago"></div>
     </div>
     <div class="cur-month-stat" data-glow="red" style="cursor:${totalFalta>0?'pointer':'default'}" onclick="${totalFalta>0?'goToDespesas()':''}">
-      <div class="cur-month-stat-label" style="color:${totalFalta>0?'var(--red)':'var(--text3)'}">Falta Pagar</div>
+      <div class="cur-month-stat-label" style="color:${totalFalta>0?'var(--red)':'var(--text3)'}">A sair</div>
       <div class="cur-month-stat-val" id="cmv-falta"></div>
-      ${totalFalta>0?`<div class="cur-month-stat-sub" style="color:var(--red);opacity:.7">${desp.filter(d=>d.status==='Falta Pagar').length} conta(s)</div>`:''}
+      ${totalFalta>0?`<div class="cur-month-stat-sub" style="color:var(--red);opacity:.7">${countFalta} conta(s)</div>`:''}
     </div>
     <div class="cur-month-stat anim-fade-up anim-d5" data-glow="${saldo>=0?'green':'red'}">
       <div class="cur-month-stat-label">Saldo</div>
       <div class="cur-month-stat-val" id="cmv-saldo"></div>
     </div>`;
+  // Classe de saldo no bloco para gradiente dinâmico
+  const cmBlock = document.getElementById('cur-month-block');
+  if(cmBlock){
+    cmBlock.classList.remove('saldo-pos','saldo-neg');
+    cmBlock.classList.add(saldo >= 0 ? 'saldo-pos' : 'saldo-neg');
+  }
   // Count-up animado nos valores
   animateValue(document.getElementById('cmv-rec'),   totalRec,   totalRec>0?'var(--green)':'var(--text3)');
   animateValue(document.getElementById('cmv-desp'),  totalDesp,  totalDesp>0?'var(--red)':'var(--text3)');
@@ -3971,153 +3994,6 @@ const PAG_WORDS = {
   'débito':'Débito auto','debito':'Débito auto',
 };
 
-function quickParse(raw){
-  if(!raw.trim()) return null;
-  let text = raw.trim().toLowerCase();
-  const now = new Date();
-  const mes = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  let isReceita = false;
-  let status = 'Falta Pagar';
-  let pag = 'Cartão';
-  let cat = 'Outros';
-  let catIsReceita = false;
-  let detectedCat = null;
-  let detectedPag = null;
-
-  // Detectar se é receita por palavra-chave "receita"
-  if(/(receita|renda|entrada)/.test(text)){
-    isReceita = true;
-    text = text.replace(/(receita|renda|entrada)/g, '').trim();
-  }
-
-  // Detectar status (multi-word primeiro)
-  for(const [kw, val] of Object.entries(STATUS_WORDS)){
-    if(text.includes(kw)){
-      status = val;
-      text = text.replace(kw, '').trim();
-      break;
-    }
-  }
-
-  // Detectar forma de pagamento
-  for(const [kw, val] of Object.entries(PAG_WORDS)){
-    const re = new RegExp('\b'+kw+'\b');
-    if(re.test(text)){
-      detectedPag = val;
-      text = text.replace(re, '').trim();
-      break;
-    }
-  }
-
-  // Extrair valor (número, incluindo decimal com . ou ,)
-  const valMatch = text.match(/\b(\d{1,6}[.,]\d{1,2}|\d{1,6})\b/);
-  const val = valMatch ? parseFloat(valMatch[0].replace(',','.')) : null;
-  if(valMatch) text = text.replace(valMatch[0], '').trim();
-
-  // Limpar pontuação/espaços extras
-  const nome = text.replace(/[,;:]+/g,'').replace(/\s+/g,' ').trim();
-  const nomeLower = nome.toLowerCase();
-
-  // Classificar por palavras-chave
-  for(const entry of QUICK_MAP){
-    for(const word of entry.words){
-      if(nomeLower.includes(word)){
-        detectedCat = entry.cat;
-        catIsReceita = !!entry.isReceita;
-        if(entry.pag && !detectedPag) detectedPag = entry.pag;
-        break;
-      }
-    }
-    if(detectedCat) break;
-  }
-
-  if(catIsReceita) isReceita = true;
-  if(detectedCat) cat = detectedCat;
-  if(detectedPag) pag = detectedPag;
-
-  // Se receita, status padrão = Recebido
-  if(isReceita && status === 'Falta Pagar') status = 'Recebido';
-
-  return { nome: nome || raw.trim(), val, cat, pag, status, mes, isReceita };
-}
-
-function quickPreview(){
-  const raw = document.getElementById('quick-input').value;
-  const preview = document.getElementById('quick-preview');
-  if(!raw.trim()){ preview.className='quick-preview'; return; }
-  const p = quickParse(raw);
-  if(!p){ preview.className='quick-preview'; return; }
-
-  const catColor_ = p.isReceita ? '#34d27a' : (CAT_COLORS[p.cat.split(' · ')[0]] || '#9896c0');
-  const tipo = p.isReceita ? 'Receita' : 'Despesa';
-  const tipoColor = p.isReceita ? '#34d27a' : '#f06060';
-
-  preview.className = 'quick-preview visible';
-  preview.innerHTML = `
-    <span class="qp-tag" style="background:${tipoColor}22;color:${tipoColor}">${tipo}</span>
-    <span style="font-weight:700;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nome||'—'}</span>
-    ${p.val!=null?`<span style="font-weight:700;color:${tipoColor}">${fmt(p.val)}</span>`:'<span style="color:var(--text3)">sem valor</span>'}
-    <span class="qp-tag" style="background:${catColor_}22;color:${catColor_}">${p.cat}</span>
-    ${!p.isReceita?`<span class="qp-tag" style="background:var(--surface3);color:var(--text2)">${p.pag}</span>`:''}
-    <span class="qp-tag" style="background:var(--surface3);color:var(--text3)">${p.status}</span>
-    <span style="color:var(--text3);font-size:10px">${mesLabel(p.mes)}</span>
-  `;
-}
-
-function quickFill(text){
-  document.getElementById('quick-input').value = text;
-  document.getElementById('quick-input').focus();
-  quickPreview();
-}
-
-function quickSubmit(){
-  const raw = document.getElementById('quick-input').value.trim();
-  if(!raw){ showToast('Digite algo primeiro!'); return; }
-  const p = quickParse(raw);
-  if(!p.nome){ showToast('Não entendi o nome. Tente: "mercado 120"'); return; }
-
-  if(p.isReceita){
-    DATA.receitas.push({
-      id: Date.now()+Math.random(),
-      nome: capitalizeFirst(p.nome),
-      cat: p.cat,
-      mes: p.mes,
-      val: p.val,
-      status: p.status
-    });
-    saveData();
-    document.getElementById('quick-input').value='';
-    document.getElementById('quick-preview').className='quick-preview';
-    showToast('✅ Receita adicionada!');
-    recSelectedMonth = p.mes;
-    showPage('receitas');
-  } else {
-    DATA.despesas.push({
-      id: Date.now()+Math.random(),
-      nome: capitalizeFirst(p.nome),
-      cat: p.cat,
-      pag: p.pag,
-      mes: p.mes,
-      val: p.val,
-      status: p.status,
-      venc: null,
-      diaVenc: null,
-      icon: null
-    });
-    saveData();
-    document.getElementById('quick-input').value='';
-    document.getElementById('quick-preview').className='quick-preview';
-    showToast('✅ Despesa adicionada!');
-    despSelectedMonth = p.mes;
-    showPage('despesas');
-  }
-  updateNotifBadge();
-}
-
-function capitalizeFirst(str){
-  if(!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 
 /* ── Modal de confirmação ── */
