@@ -1622,26 +1622,6 @@ body.app-ready .page { visibility: visible; }
     </div>
   </div>
 
-  <!-- DONUT MÊS ATUAL -->
-  <div class="chart-box anim-fade-up anim-d3" id="donut-box">
-    <div class="chart-header">
-      <div>
-        <div class="chart-title">Gastos de <span id="donut-month-label" style="color:var(--purple)">—</span></div>
-        <div class="chart-hint">Por categoria</div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-      <div style="position:relative;width:180px;height:180px;flex-shrink:0;margin:0 auto">
-        <canvas id="chartDonut"></canvas>
-        <div id="donut-center" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center">
-          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Total</div>
-          <div id="donut-center-val" style="font-size:17px;font-weight:800;color:var(--red);line-height:1.2;margin-top:2px"></div>
-        </div>
-      </div>
-      <div id="donut-legend-list" style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:8px"></div>
-    </div>
-  </div>
-
   <div class="chart-box">
     <div class="chart-header">
       <div>
