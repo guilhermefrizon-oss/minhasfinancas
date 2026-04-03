@@ -239,6 +239,78 @@ option { background: var(--surface2); }
 @media(min-width:600px){ .btn-add { grid-column: auto; } }
 
 .empty-msg { text-align: center; padding: 2.5rem; color: var(--text3); font-size: 14px; }
+
+/* ── Layout cards mobile para tabelas ── */
+.mobile-card-list { display: none; }
+@media(max-width: 767px) {
+  .table-scroll { display: none; }
+  .mobile-card-list { display: flex; flex-direction: column; gap: 0; }
+  .mob-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .mob-card:last-child { border-bottom: none; }
+  .mob-card:active { background: var(--surface2); }
+  .mob-card-icon { flex-shrink: 0; }
+  .mob-card-main { flex: 1; min-width: 0; }
+  .mob-card-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mob-card-sub  { font-size: 11px; color: var(--text3); margin-top: 2px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .mob-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .mob-card-val  { font-size: 15px; font-weight: 700; }
+  .mob-section-header {
+    padding: 7px 14px 5px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-size: 9px; font-weight: 700; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .1em;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .mob-total-row {
+    padding: 10px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--surface2);
+    font-size: 13px; font-weight: 700; color: var(--text);
+  }
+}
+
+/* ── Layout cards mobile para tabelas ── */
+.mobile-card-list { display: none; }
+@media(max-width: 767px) {
+  .table-scroll { display: none; }
+  .mobile-card-list { display: flex; flex-direction: column; gap: 0; }
+  .mob-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    transition: background .15s;
+  }
+  .mob-card:last-child { border-bottom: none; }
+  .mob-card:active { background: var(--surface2); }
+  .mob-card-icon { flex-shrink: 0; }
+  .mob-card-main { flex: 1; min-width: 0; }
+  .mob-card-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mob-card-sub  { font-size: 11px; color: var(--text3); margin-top: 1px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .mob-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .mob-card-val  { font-size: 15px; font-weight: 700; }
+  .mob-card-actions { display: flex; gap: 4px; }
+  .mob-section-header {
+    padding: 7px 14px 5px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-size: 9px; font-weight: 700; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .1em;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .mob-total-row {
+    padding: 10px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--surface2);
+    font-size: 13px; font-weight: 700;
+  }
+}
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 22px; border-radius: 20px; font-size: 13px; font-weight: 600; opacity: 0; transition: transform .3s,opacity .3s; z-index: 999; white-space: nowrap; }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -1636,6 +1708,7 @@ body.app-ready .page { visibility: visible; }
         <tbody id="desp-tbody"></tbody>
       </table>
     </div>
+    <div class="mobile-card-list" id="desp-mobile-list"></div>
   </div>
 </div>
 
@@ -3062,6 +3135,70 @@ function togglePago(id){
   showToast('✅ Marcado como Pago!');
 }
 
+function mobSectionHeader(label, subtotal){
+  return `<div class="mob-section-header"><span>${label}</span><span style="color:var(--text2);font-size:11px;text-transform:none;letter-spacing:0;font-weight:700">${fmt(subtotal)}</span></div>`;
+}
+
+function mobDespCard(d){
+  const bc={Pago:'pago','Falta Pagar':'falta','Débito auto':'auto'};
+  const today=new Date();today.setHours(0,0,0,0);
+  const col=d.status==='Pago'?'var(--green)':d.status==='Débito auto'?'var(--blue)':'var(--amber)';
+  const valColor=d.val>0?'var(--text)':'var(--text3)';
+
+  // Vencimento compacto
+  let vencStr='';
+  if(d.status!=='Pago' && d.venc){
+    const dv=new Date(d.venc+'T00:00:00');
+    const diff=Math.round((dv-today)/(1000*60*60*24));
+    if(diff<0) vencStr=`<span style="color:var(--red);font-weight:600">Venceu</span>`;
+    else if(diff===0) vencStr=`<span style="color:var(--amber);font-weight:600">Hoje</span>`;
+    else if(diff<=3) vencStr=`<span style="color:var(--red);font-weight:600">Em ${diff}d</span>`;
+    else vencStr=`<span style="color:var(--text3)">${dv.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</span>`;
+  }
+
+  const catCol=catColor(d.cat);
+  return `<div class="mob-card tr-anim">
+    <div class="mob-card-icon">${itemIcon(d.nome,d.icon)}</div>
+    <div class="mob-card-main">
+      <div class="mob-card-name">${d.nome}</div>
+      <div class="mob-card-sub">
+        <span style="background:${catCol}22;color:${catCol};padding:1px 7px;border-radius:20px;font-weight:600">${catLabel(d.cat)}</span>
+        ${d.pag?`<span>${d.pag}</span>`:''}
+        ${vencStr}
+      </div>
+    </div>
+    <div class="mob-card-right">
+      <span class="mob-card-val" style="color:${d.val>0?'var(--text)':'var(--text3)'}">${d.val>0?fmt(d.val):'—'}</span>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span class="badge ${bc[d.status]||'nd'}" style="cursor:pointer;font-size:10px;padding:2px 8px" onclick="togglePago(${d.id})">${d.status}</span>
+        <button class="edit-btn" onclick="openModal(${d.id})" style="padding:2px 6px">✏️</button>
+        <button class="btn-del" onclick="deleteDespEntry(${d.id})">×</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function mobRecCard(r, ri){
+  const aguard=(r.status||'Recebido')==='Aguardando';
+  const col=aguard?'var(--amber)':'var(--green)';
+  return `<div class="mob-card tr-anim anim-d${Math.min(ri+1,10)}">
+    <div class="mob-card-main">
+      <div class="mob-card-name">${r.nome}</div>
+      <div class="mob-card-sub">
+        ${r.cat?`<span style="background:var(--green-bg);color:var(--green);padding:1px 7px;border-radius:20px;font-weight:600">${r.cat}</span>`:''}
+      </div>
+    </div>
+    <div class="mob-card-right">
+      <span class="mob-card-val" style="color:${col}">${r.val>0?fmt(r.val):'—'}</span>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span class="badge ${aguard?'falta':'pago'}" style="font-size:10px;padding:2px 8px;${aguard?'background:var(--amber-bg);color:var(--amber)':''}">${aguard?'Aguardando':'Recebido'}</span>
+        <button class="edit-btn" onclick="openRecModal(${r.id})" style="padding:2px 6px">✏️</button>
+        <button class="btn-del" onclick="deleteRecEntry(${r.id})">×</button>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderDespTable(){
   const m=despSelectedMonth;
   const searchEl=document.getElementById('desp-search');
@@ -3129,6 +3266,8 @@ function renderDespTable(){
   _rowIdx=0;
   if(!items.length){
     document.getElementById('desp-tbody').innerHTML=`<tr><td colspan="6" class="empty-msg">Nenhuma despesa neste mês.</td></tr>`;
+    const ml=document.getElementById('desp-mobile-list');
+    if(ml) ml.innerHTML=`<div class="empty-msg">Nenhuma despesa neste mês.</div>`;
   } else if(fixas.length && variaveis.length){
     const totalFixas=fixas.reduce((s,d)=>s+(d.val||0),0);
     const totalVariaveis=variaveis.reduce((s,d)=>s+(d.val||0),0);
@@ -3136,10 +3275,19 @@ function renderDespTable(){
       sectionHeader('Contas Fixas',totalFixas)+fixas.map(rowHtml).join('')+
       sectionHeader('Variáveis & Outros',totalVariaveis)+variaveis.map(rowHtml).join('')+
       `<tr class="total-row"><td colspan="2">Total</td><td>${fmt(total)}</td><td></td><td></td><td></td></tr>`;
+    const ml=document.getElementById('desp-mobile-list');
+    if(ml) ml.innerHTML=
+      mobSectionHeader('Contas Fixas',totalFixas)+fixas.map(mobDespCard).join('')+
+      mobSectionHeader('Variáveis & Outros',totalVariaveis)+variaveis.map(mobDespCard).join('')+
+      `<div class="mob-total-row"><span>Total</span><span style="color:var(--red)">${fmt(total)}</span></div>`;
   } else {
     document.getElementById('desp-tbody').innerHTML=
       items.map(rowHtml).join('')+
       `<tr class="total-row"><td colspan="2">Total</td><td>${fmt(total)}</td><td></td><td></td><td></td></tr>`;
+    const ml=document.getElementById('desp-mobile-list');
+    if(ml) ml.innerHTML=
+      items.map(mobDespCard).join('')+
+      `<div class="mob-total-row"><span>Total</span><span style="color:var(--red)">${fmt(total)}</span></div>`;
   }
   updateNotifBadge();
 }
@@ -3308,7 +3456,7 @@ function renderRecTable(){
     <div class="card anim-fade-up anim-d4"><div class="card-stripe" style="background:${saldo>=0?'var(--green)':'var(--red)'}"></div><div class="card-label">Saldo</div><div class="card-value ${saldo>=0?'green':'red'}">${fmt(saldo)}</div></div>`;
   document.getElementById('rec-table-title').textContent=`Receitas — ${mesLabel(m)}`;
   document.getElementById('rec-total-badge').textContent=fmt(totalRecebido)+(totalAguardando>0?` + ${fmt(totalAguardando)} aguardando`:'');
-  document.getElementById('rec-tbody').innerHTML=items.length
+  const recRows = items.length
     ?items.map((r,ri)=>{const aguard=(r.status||'Recebido')==='Aguardando';const rd=`anim-d${Math.min(ri+1,10)}`;return`<tr class="tr-anim ${rd}" style="${aguard?'background:rgba(245,197,66,0.03)':''}">
         <td><div class="entry-name">${r.nome}</div>${r.cat?`<div class="entry-cat">${r.cat}</div>`:''}</td>
         <td><span class="cat-pill" style="background:var(--green-bg);color:var(--green)">${r.cat||'—'}</span></td>
@@ -3318,6 +3466,16 @@ function renderRecTable(){
       </tr>`;}).join('')
     +`<tr class="total-row"><td colspan="2">Total recebido</td><td style="color:var(--green)">${fmt(totalRecebido)}</td><td></td><td></td></tr>`
     :`<tr><td colspan="5" class="empty-msg">Nenhuma receita neste mês.</td></tr>`;
+  document.getElementById('rec-tbody').innerHTML = recRows;
+
+  // Mobile cards
+  const rml = document.getElementById('rec-mobile-list');
+  if(rml){
+    rml.innerHTML = items.length
+      ? items.map((r,ri)=>mobRecCard(r,ri)).join('')+
+        `<div class="mob-total-row"><span>Total recebido</span><span style="color:var(--green)">${fmt(totalRecebido)}</span></div>`
+      : `<div class="empty-msg">Nenhuma receita neste mês.</div>`;
+  }
 }
 function renderRecCharts(){
   const months=allMonths();
