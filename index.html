@@ -288,19 +288,29 @@ option { background: var(--surface2); }
 
   /* Toggle pago button */
   .mob-toggle-btn {
-    width: 28px; height: 28px; border-radius: 50%;
+    width: 30px; height: 30px; border-radius: 50%;
     border: 2px solid var(--border);
     background: transparent;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all .18s; flex-shrink: 0;
-    font-size: 13px; color: var(--text3);
+    cursor: pointer; transition: all .2s cubic-bezier(.16,1,.3,1); flex-shrink: 0;
+    font-size: 14px; color: var(--text3);
   }
+  .mob-toggle-btn:active { transform: scale(.88); }
+  /* Débito auto — borda roxa, vazio (ainda não debitado) */
+  .mob-toggle-btn.debito {
+    border-color: var(--blue); color: var(--blue);
+  }
+  /* Pago — verde preenchido */
   .mob-toggle-btn.pago {
     background: var(--green); border-color: var(--green); color: #fff;
+    box-shadow: 0 0 0 3px rgba(52,210,122,.2);
   }
-  .mob-toggle-btn.debito {
-    background: var(--blue); border-color: var(--blue); color: #fff;
+  /* Card pago: leve fade */
+  .mob-card-pago {
+    opacity: .55;
+    transition: opacity .25s ease;
   }
+  .mob-card-pago:active { opacity: .8; }
 
   /* Edit button bigger */
   .mob-edit-btn {
@@ -3206,8 +3216,8 @@ function mobDespCard(d){
   const isDebito=d.status==='Débito auto';
   const isFalta=d.status==='Falta Pagar';
 
-  // Status bar color
-  const barCol=isPago?'var(--green)':isDebito?'var(--blue)':'var(--red)';
+  // Borda esquerda: verde=pago, roxo=débito auto, vermelho=falta pagar
+  const barCol=isPago?'var(--green)':isDebito?'var(--purple)':'var(--red)';
 
   // Urgency label
   let vencStr='';
@@ -3224,12 +3234,12 @@ function mobDespCard(d){
 
   const catCol=catColor(d.cat);
 
-  // Toggle button state
+  // Toggle button: ✓ verde = pago, ○ = não pago (igual pra débito e falta pagar)
   const toggleClass=isPago?'pago':isDebito?'debito':'';
-  const toggleIcon=isPago?'✓':isDebito?'↻':'○';
-  const toggleTitle=isPago?'Pago — clique para editar':isDebito?'Débito automático':'Marcar como pago';
+  const toggleIcon=isPago?'✓':'○';
+  const toggleTitle=isPago?'Pago':'Marcar como pago';
 
-  return `<div class="swipe-wrapper" data-id="${d.id}">
+  return `<div class="swipe-wrapper${isPago?' mob-card-pago':''}" data-id="${d.id}">
     <div class="swipe-delete-bg">🗑</div>
     <div class="mob-card-inner">
       <div class="mob-status-bar" style="background:${barCol}"></div>
@@ -3243,7 +3253,7 @@ function mobDespCard(d){
         </div>
       </div>
       <div class="mob-card-right">
-        <span class="mob-card-val" style="color:${isPago?'var(--green)':d.val>0?'var(--text)':'var(--text3)'}">${d.val>0?fmt(d.val):'—'}</span>
+        <span class="mob-card-val" style="color:${isPago?'var(--text3)':d.val>0?'var(--text)':'var(--text3)'}">${d.val>0?fmt(d.val):'—'}</span>
         <div class="mob-card-actions">
           <button class="mob-edit-btn" onclick="openModal(${d.id})" title="Editar">✏️</button>
           <button class="mob-toggle-btn ${toggleClass}" onclick="togglePago(${d.id})" title="${toggleTitle}">${toggleIcon}</button>
