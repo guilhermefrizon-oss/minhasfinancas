@@ -339,12 +339,33 @@ option { background: var(--surface2); }
 /* ── MÊS ATUAL DESTAQUE ── */
 .cur-month-block {
   background: var(--surface);
-  border: 1.5px solid var(--purple);
   border-radius: var(--radius);
   padding: 1.1rem 1.25rem 1rem;
   margin-bottom: 1.25rem;
   position: relative;
   overflow: hidden;
+  /* Borda gradiente animada via pseudo-elemento */
+  isolation: isolate;
+}
+.cur-month-block::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  padding: 1.5px;
+  background: linear-gradient(135deg, #7b8cff, #a78bfa, #34d27a, #7b8cff);
+  background-size: 300% 300%;
+  animation: border-gradient 6s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes border-gradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 @media(max-width:539px) {
   .cur-month-block {
@@ -478,6 +499,33 @@ option { background: var(--surface2); }
   color: var(--text3);
   margin-top: 1px;
 }
+/* Hover glow nos cards do mês */
+.cur-month-stat {
+  transition: background .2s, box-shadow .2s, transform .15s;
+  border-radius: 10px;
+  padding: 4px 6px;
+  margin: -4px -6px;
+}
+.cur-month-stat:hover {
+  background: rgba(255,255,255,.03);
+  transform: translateY(-1px);
+}
+.cur-month-stat[data-glow="green"]:hover { box-shadow: 0 4px 20px rgba(52,210,122,.15); }
+.cur-month-stat[data-glow="red"]:hover   { box-shadow: 0 4px 20px rgba(240,96,96,.15); }
+.cur-month-stat[data-glow="blue"]:hover  { box-shadow: 0 4px 20px rgba(123,140,255,.15); }
+
+/* Skeleton para tabelas */
+.table-skeleton { padding: 0; }
+.table-sk-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.table-sk-row:last-child { border-bottom: none; }
+.table-sk-circle { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+.table-sk-line   { height: 11px; border-radius: 6px; }
 .cur-month-pending {
   margin-top: .85rem;
   padding-top: .75rem;
@@ -2621,6 +2669,27 @@ document.getElementById('edit-icon-preview').innerHTML=DEFAULT_ICON;
 
 /* ══════ FUNÇÕES UTILITÁRIAS ══════ */
 function fmt(v){if(v==null||v===''||isNaN(v))return'—';return'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+/* Count-up animado para valores monetários */
+function animateValue(el, targetVal, color) {
+  if(!el) return;
+  const prev = parseFloat(el.dataset.rawVal || '0');
+  if(prev === targetVal){ el.textContent = fmt(targetVal); return; }
+  el.dataset.rawVal = targetVal;
+  const duration = 500;
+  const start = performance.now();
+  const diff = targetVal - prev;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // easeInOut
+    const current = prev + diff * ease;
+    el.textContent = fmt(current);
+    if(t < 1) requestAnimationFrame(step);
+    else el.textContent = fmt(targetVal);
+  }
+  requestAnimationFrame(step);
+  if(color) el.style.color = color;
+}
 function mesLabel(m){const[y,mo]=m.split('-');return new Date(+y,+mo-1,1).toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});}
 function allMonths(){const s=new Set([...DATA.despesas.map(d=>d.mes),...DATA.receitas.map(r=>r.mes)]);return[...s].sort();}
 
@@ -2804,7 +2873,26 @@ function sortDesp(key){
 }
 
 let despPickerYear=null;
+function tableSkeleton(rows=5, cols=6){
+  return '<tbody class="table-skeleton">' +
+    Array.from({length:rows}, () =>
+      `<tr class="table-sk-row" style="display:table-row">` +
+      `<td style="padding:10px 16px"><div style="display:flex;align-items:center;gap:10px">` +
+      `<div class="table-sk-circle skeleton sk-block"></div>` +
+      `<div><div class="table-sk-line skeleton sk-block" style="width:100px;margin-bottom:5px"></div>` +
+      `<div class="table-sk-line skeleton sk-block" style="width:60px"></div></div></div></td>` +
+      Array.from({length:cols-1}, (_,i) =>
+        `<td style="padding:10px 16px"><div class="table-sk-line skeleton sk-block" style="width:${[80,55,70,65,30][i]||50}px"></div></td>`
+      ).join('') +
+      `</tr>`
+    ).join('') +
+  '</tbody>';
+}
+
 function renderDespesas(){
+  // Mostra skeleton imediatamente
+  const tbody = document.getElementById('desp-tbody');
+  if(tbody && !tbody.children.length) tbody.innerHTML = tableSkeleton(5,6).replace('<tbody','<tbody id="desp-tbody"').replace('</tbody>','');
   const months=allMonths();
   if(!despSelectedMonth||!months.includes(despSelectedMonth)){
     const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
@@ -3056,6 +3144,9 @@ function sortRec(key){
 
 let recPickerYear=null,editingRecId=null;
 function renderReceitas(){
+  // Mostra skeleton imediatamente
+  const rtbody = document.getElementById('rec-tbody');
+  if(rtbody && !rtbody.children.length) rtbody.innerHTML = tableSkeleton(4,5).replace('<tbody','<tbody id="rec-tbody"').replace('</tbody>','');
   const months=allMonths();
   if(!recSelectedMonth||!months.includes(recSelectedMonth)){const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;recSelectedMonth=months.includes(cm)?cm:months[months.length-1];}
   updateRecMonthBtn();renderRecTable();renderRecCharts();
@@ -3676,28 +3767,34 @@ function renderCurMonth(){
 
   // Cards: Receita | Gasto | Pago | Falta Pagar | Saldo
   document.getElementById('cur-month-cards').innerHTML = `
-    <div class="cur-month-stat anim-fade-up anim-d1">
+    <div class="cur-month-stat anim-fade-up anim-d1" data-glow="green">
       <div class="cur-month-stat-label">Receita</div>
-      <div class="cur-month-stat-val" style="color:${totalRec>0?'var(--green)':'var(--text3)'}">${fmt(totalRec)}</div>
+      <div class="cur-month-stat-val" id="cmv-rec"></div>
     </div>
-    <div class="cur-month-stat anim-fade-up anim-d2">
+    <div class="cur-month-stat anim-fade-up anim-d2" data-glow="red">
       <div class="cur-month-stat-label">Gasto</div>
-      <div class="cur-month-stat-val" style="color:${totalDesp>0?'var(--red)':'var(--text3)'}">${fmt(totalDesp)}</div>
+      <div class="cur-month-stat-val" id="cmv-desp"></div>
       ${diffLabel?`<div class="cur-month-stat-sub" style="color:${diffColor}">${diffLabel}</div>`:''}
     </div>
-    <div class="cur-month-stat anim-fade-up anim-d3">
+    <div class="cur-month-stat anim-fade-up anim-d3" data-glow="blue">
       <div class="cur-month-stat-label">Pago</div>
-      <div class="cur-month-stat-val" style="color:${totalPago>0?'var(--blue)':'var(--text3)'}">${fmt(totalPago)}</div>
+      <div class="cur-month-stat-val" id="cmv-pago"></div>
     </div>
-    <div class="cur-month-stat" style="cursor:${totalFalta>0?'pointer':'default'}" onclick="${totalFalta>0?'goToDespesas()':''}">
+    <div class="cur-month-stat" data-glow="red" style="cursor:${totalFalta>0?'pointer':'default'}" onclick="${totalFalta>0?'goToDespesas()':''}">
       <div class="cur-month-stat-label" style="color:${totalFalta>0?'var(--red)':'var(--text3)'}">Falta Pagar</div>
-      <div class="cur-month-stat-val" style="color:${totalFalta>0?'var(--red)':'var(--text3)'}">${fmt(totalFalta)}</div>
+      <div class="cur-month-stat-val" id="cmv-falta"></div>
       ${totalFalta>0?`<div class="cur-month-stat-sub" style="color:var(--red);opacity:.7">${desp.filter(d=>d.status==='Falta Pagar').length} conta(s)</div>`:''}
     </div>
-    <div class="cur-month-stat anim-fade-up anim-d5">
+    <div class="cur-month-stat anim-fade-up anim-d5" data-glow="${saldo>=0?'green':'red'}">
       <div class="cur-month-stat-label">Saldo</div>
-      <div class="cur-month-stat-val" style="color:${saldo>=0?'var(--green)':'var(--red)'}">${fmt(saldo)}</div>
+      <div class="cur-month-stat-val" id="cmv-saldo"></div>
     </div>`;
+  // Count-up animado nos valores
+  animateValue(document.getElementById('cmv-rec'),   totalRec,   totalRec>0?'var(--green)':'var(--text3)');
+  animateValue(document.getElementById('cmv-desp'),  totalDesp,  totalDesp>0?'var(--red)':'var(--text3)');
+  animateValue(document.getElementById('cmv-pago'),  totalPago,  totalPago>0?'var(--blue)':'var(--text3)');
+  animateValue(document.getElementById('cmv-falta'), totalFalta, totalFalta>0?'var(--red)':'var(--text3)');
+  animateValue(document.getElementById('cmv-saldo'), saldo,      saldo>=0?'var(--green)':'var(--red)');
 
   // Barra de progresso — sempre visível
   const progWrap = document.getElementById('cur-month-progress-wrap');
