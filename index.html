@@ -126,10 +126,37 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .header-icon { width: 36px; height: 36px; background: linear-gradient(135deg,#7b8cff,#a78bfa); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink:0; }
 .header-title { font-size: 16px; font-weight: 700; }
 .header-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.header-icon-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  transition: all .15s;
+  color: var(--text2);
+  font-size: 16px;
+  margin-left: 6px;
+}
+.header-icon-btn:hover { border-color: var(--purple); color: var(--purple); }
+.header-notif-btn { position: relative; }
+.header-notif-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--red); color: #fff;
+  border-radius: 10px; font-size: 9px; font-weight: 700;
+  padding: 1px 4px; min-width: 15px; text-align: center;
+  line-height: 13px; border: 2px solid var(--bg);
+  pointer-events: none;
+}
+.header-notif-badge:empty { display: none; }
 @media (max-width: 767px) {
   #profile-header-btn { display: none !important; }
   #header-period { display: none; }
   .header-title { font-size: 17px; font-weight: 800; letter-spacing: -.3px; }
+}
+@media (min-width: 768px) {
+  /* No desktop, notif fica na sidebar — esconde do header */
+  .header-notif-btn { display: none; }
 }
 /* Header mobile: esconde o botão de perfil */
 @media (max-width: 767px) {
@@ -1502,12 +1529,21 @@ body.app-ready .page { visibility: visible; }
     <div class="header-title">Meus Gastos</div>
     <div class="header-sub" id="header-period">carregando...</div>
   </div>
-  <!-- Botão busca -->
-  <button onclick="openGlobalSearch()" title="Buscar" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;margin-right:6px">
-    <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="var(--text2)" stroke-width="1.8"/><path d="M13 13l3.5 3.5" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"/></svg>
-  </button>
   <!-- Botão tema -->
-  <button onclick="toggleTheme()" id="theme-btn" title="Alternar tema" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex-shrink:0;transition:all .15s;margin-right:6px"></button>
+  <button onclick="toggleTheme()" id="theme-btn" title="Alternar tema" class="header-icon-btn"></button>
+  <!-- Botão busca -->
+  <button onclick="openGlobalSearch()" title="Buscar" class="header-icon-btn">
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.8"/><path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+  </button>
+  <!-- Botão notificações (mobile) -->
+  <button onclick="showPage('notif')" title="Alertas" class="header-icon-btn header-notif-btn" id="header-notif-btn">
+    <span class="header-notif-badge" id="header-notif-badge"></span>
+    <svg width="17" height="17" viewBox="0 0 22 22" fill="none">
+      <path d="M11 3a6 6 0 016 6v3l1.5 2.5H3.5L5 12V9a6 6 0 016-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M9 17.5a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <!-- Perfil (desktop) -->
   <button onclick="toggleUserMenu()" id="profile-header-btn" style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;cursor:pointer;font-family:var(--font);transition:all .15s">
     <div id="header-profile-avatar" style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0"></div>
     <span id="header-profile-name" style="font-size:12px;font-weight:700;color:var(--text);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
@@ -2898,10 +2934,13 @@ function showPage(id){
   const idx=['overview','despesas','receitas','notif'].indexOf(id);
   document.querySelectorAll('.nav-btn')[idx].classList.add('active');
   // Sincroniza bottom nav
-  ['overview','despesas','receitas','notif'].forEach(pg=>{
+  ['overview','despesas','receitas'].forEach(pg=>{
     const el=document.getElementById('bn-'+pg);
     if(el) el.classList.toggle('active', pg===id);
   });
+  // Destaca botão de notif no header quando na página de alertas
+  const hNotif = document.getElementById('header-notif-btn');
+  if(hNotif) hNotif.style.color = id==='notif' ? 'var(--purple)' : '';
   // Sincroniza sidebar desktop
   ['overview','despesas','receitas','notif'].forEach(pg=>{
     const el=document.getElementById('sb-'+pg);
@@ -3505,6 +3544,9 @@ function updateNotifBadge(){
   if(bb) bb.textContent=count||'';
   const sb=document.getElementById('sidebar-badge');
   if(sb) sb.textContent=count||'';
+  // Badge no botão de notif do header (mobile)
+  const hb=document.getElementById('header-notif-badge');
+  if(hb) hb.textContent=count||'';
 }
 function renderNotif(){
   updateNotifBadge();
@@ -4694,16 +4736,6 @@ if('serviceWorker' in navigator){
       <path d="M8.5 9.5c0-1.1.9-2 2.5-2s2.5.8 2.5 2-.9 1.5-2.5 1.5c-1.5 0-2.5.5-2.5 1.8 0 1 .9 2 2.5 2s2.5-.9 2.5-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
     </svg>
     <span class="bn-label">Receitas</span>
-  </button>
-
-  <!-- Alertas -->
-  <button class="bn-item" id="bn-notif" onclick="showPage('notif')">
-    <span class="bn-badge" id="bn-badge"></span>
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <path d="M11 3a6 6 0 016 6v3l1.5 2.5H3.5L5 12V9a6 6 0 016-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M9 17.5a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    </svg>
-    <span class="bn-label">Alertas</span>
   </button>
 
   <!-- Perfil -->
