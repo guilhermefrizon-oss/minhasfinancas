@@ -542,35 +542,41 @@ option { background: var(--surface2); }
 }
 .cur-month-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 @media(min-width:540px) { .cur-month-cards { grid-template-columns: repeat(5, 1fr); } }
 
-/* No mobile: 2 cols para os itens principais, menores para os secundários */
+/* No mobile: 2 cols para os itens principais, Saldo ocupa linha inteira */
 @media(max-width:539px) {
   .cur-month-cards {
     grid-template-columns: 1fr 1fr;
     gap: 0;
   }
   .cur-month-stat {
-    padding: 12px 14px;
+    padding: 14px 16px;
     border-bottom: 1px solid var(--border);
   }
   .cur-month-stat:nth-child(odd) {
     border-right: 1px solid var(--border);
   }
-  /* Saldo ocupa linha inteira */
+  /* Saldo ocupa linha inteira — centralizado */
   .cur-month-stat:last-child {
     grid-column: 1 / -1;
     border-bottom: none;
-    flex-direction: row;
+    border-right: none;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
+    justify-content: center;
+    text-align: center;
+    padding: 14px 16px 16px;
+    gap: 4px;
   }
   .cur-month-stat:last-child .cur-month-stat-val {
-    font-size: 20px;
+    font-size: 24px;
+  }
+  .cur-month-stat:last-child .cur-month-stat-label {
+    font-size: 11px;
   }
 }
 
@@ -1591,7 +1597,6 @@ body.app-ready .page { visibility: visible; }
       </div>
       <div class="cur-month-bar"><div class="cur-month-bar-fill" id="cur-month-bar-fill"></div></div>
     </div>
-    <div class="cur-month-pending" id="cur-month-pending" style="display:none"></div>
   </div>
 
   <div style="margin-bottom:.75rem;margin-top:.5rem;display:flex;align-items:center;justify-content:space-between;gap:10px">
@@ -4159,7 +4164,7 @@ function renderCurMonth(){
 
   const totalDesp  = desp.reduce((s,d)=>s+(d.val||0),0);
   const totalRec   = rec.reduce((s,r)=>s+(r.val||0),0);
-  const totalPago  = desp.filter(d=>d.status==='Pago'||d.status==='Débito auto').reduce((s,d)=>s+(d.val||0),0);
+  const totalPago  = desp.filter(d=>d.status==='Pago').reduce((s,d)=>s+(d.val||0),0);
   const totalFaltaSo   = desp.filter(d=>d.status==='Falta Pagar').reduce((s,d)=>s+(d.val||0),0);
   const totalDebito    = desp.filter(d=>d.status==='Débito auto').reduce((s,d)=>s+(d.val||0),0);
   const totalFalta     = totalFaltaSo + totalDebito; // Falta Pagar + Débito auto = a sair
@@ -4260,37 +4265,6 @@ function renderCurMonth(){
   fill.style.background = barColor;
   requestAnimationFrame(()=>{ fill.style.width = pct+'%'; });
 
-  // Chips de contas pendentes — ordem de vencimento (mais urgente primeiro)
-  const today=new Date();today.setHours(0,0,0,0);
-  const pending = desp.filter(d=>d.status==='Falta Pagar'||d.status==='Débito auto').sort((a,b)=>{
-    const va=a.venc?new Date(a.venc+'T00:00:00').getTime():Infinity;
-    const vb=b.venc?new Date(b.venc+'T00:00:00').getTime():Infinity;
-    return va-vb;
-  });
-  const pendEl = document.getElementById('cur-month-pending');
-  if(pending.length){
-    pendEl.style.display='flex';
-    const shown = pending.slice(0,4);
-    const extra = pending.length - shown.length;
-    pendEl.innerHTML =
-      `<span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0">Pendentes:</span>` +
-      shown.map(d=>{
-        let urgentStyle='';
-        if(d.venc){
-          const dv=new Date(d.venc+'T00:00:00');
-          const diff=Math.round((dv-today)/(1000*60*60*24));
-          if(diff<=3) urgentStyle='border-color:var(--amber);color:var(--amber)';
-        }
-        const vencLabel=d.venc?(()=>{const dv=new Date(d.venc+'T00:00:00');const diff=Math.round((dv-today)/(1000*60*60*24));if(diff<0)return'Venceu';if(diff===0)return'Hoje';if(diff<=3)return`${diff}d`;return dv.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});})():'';
-        return `<div class="cur-pending-item" onclick="goToDespesasEntry(${d.id})" title="${d.nome}" style="${urgentStyle}">
-          ${d.val>0?fmt(d.val):d.nome}
-          <span style="opacity:.7;font-size:10px">${d.nome}${vencLabel?` · ${vencLabel}`:''}</span>
-        </div>`;
-      }).join('') +
-      (extra>0?`<span style="font-size:11px;color:var(--text3);font-weight:600">+${extra} mais</span>`:'');
-  } else {
-    pendEl.style.display='none';
-  }
 }
 
 /* ── Picker de mês no bloco de destaque ── */
