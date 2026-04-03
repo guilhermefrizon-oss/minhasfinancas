@@ -3070,7 +3070,7 @@ function renderOverview(){
 
 /* ══════ DESPESAS ══════ */
 /* FIX 2: Ordenação */
-let despSortKey='val', despSortDir=1;
+let despSortKey='venc', despSortDir=1;
 function sortDesp(key){
   if(despSortKey===key)despSortDir*=-1; else{despSortKey=key;despSortDir=key==='val'?-1:1;}
   document.querySelectorAll('[id^="sort-desp-"]').forEach(el=>{el.textContent='↕';el.parentElement.classList.remove('sorted');});
@@ -4235,7 +4235,7 @@ function renderCurMonth(){
   // Count-up animado nos valores
   animateValue(document.getElementById('cmv-rec'),   totalRec,   totalRec>0?'var(--green)':'var(--text3)');
   animateValue(document.getElementById('cmv-desp'),  totalDesp,  totalDesp>0?'var(--red)':'var(--text3)');
-  animateValue(document.getElementById('cmv-pago'),  totalPago,  totalPago>0?'var(--blue)':'var(--text3)');
+  animateValue(document.getElementById('cmv-pago'),  totalPago,  totalPago>0?'var(--green)':'var(--text3)');
   animateValue(document.getElementById('cmv-falta'), totalFalta, totalFalta>0?'var(--red)':'var(--text3)');
   animateValue(document.getElementById('cmv-saldo'), saldo,      saldo>=0?'var(--green)':'var(--red)');
 
@@ -4260,8 +4260,13 @@ function renderCurMonth(){
   fill.style.background = barColor;
   requestAnimationFrame(()=>{ fill.style.width = pct+'%'; });
 
-  // Chips de contas pendentes
-  const pending = desp.filter(d=>d.status==='Falta Pagar').sort((a,b)=>(b.val||0)-(a.val||0));
+  // Chips de contas pendentes — ordem de vencimento (mais urgente primeiro)
+  const today=new Date();today.setHours(0,0,0,0);
+  const pending = desp.filter(d=>d.status==='Falta Pagar'||d.status==='Débito auto').sort((a,b)=>{
+    const va=a.venc?new Date(a.venc+'T00:00:00').getTime():Infinity;
+    const vb=b.venc?new Date(b.venc+'T00:00:00').getTime():Infinity;
+    return va-vb;
+  });
   const pendEl = document.getElementById('cur-month-pending');
   if(pending.length){
     pendEl.style.display='flex';
@@ -4269,10 +4274,19 @@ function renderCurMonth(){
     const extra = pending.length - shown.length;
     pendEl.innerHTML =
       `<span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0">Pendentes:</span>` +
-      shown.map(d=>`<div class="cur-pending-item" onclick="goToDespesasEntry(${d.id})" title="${d.nome}">
-        ${d.val>0?fmt(d.val):d.nome}
-        <span style="opacity:.7;font-size:10px">${d.nome}</span>
-      </div>`).join('') +
+      shown.map(d=>{
+        let urgentStyle='';
+        if(d.venc){
+          const dv=new Date(d.venc+'T00:00:00');
+          const diff=Math.round((dv-today)/(1000*60*60*24));
+          if(diff<=3) urgentStyle='border-color:var(--amber);color:var(--amber)';
+        }
+        const vencLabel=d.venc?(()=>{const dv=new Date(d.venc+'T00:00:00');const diff=Math.round((dv-today)/(1000*60*60*24));if(diff<0)return'Venceu';if(diff===0)return'Hoje';if(diff<=3)return`${diff}d`;return dv.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});})():'';
+        return `<div class="cur-pending-item" onclick="goToDespesasEntry(${d.id})" title="${d.nome}" style="${urgentStyle}">
+          ${d.val>0?fmt(d.val):d.nome}
+          <span style="opacity:.7;font-size:10px">${d.nome}${vencLabel?` · ${vencLabel}`:''}</span>
+        </div>`;
+      }).join('') +
       (extra>0?`<span style="font-size:11px;color:var(--text3);font-weight:600">+${extra} mais</span>`:'');
   } else {
     pendEl.style.display='none';
