@@ -1690,6 +1690,28 @@ body.app-ready .page { visibility: visible; }
     </div>
     <div class="mobile-card-list" id="desp-mobile-list"></div>
   </div>
+
+  <!-- SEÇÃO CONTAS RECORRENTES -->
+  <div class="table-box" style="margin-top:1.25rem">
+    <div class="table-header" style="cursor:pointer;user-select:none" onclick="toggleRecorrentesPanel()">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">🔁</span>
+        <div class="table-title" style="margin:0">Contas Recorrentes</div>
+        <span id="recorrentes-count-badge" style="font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:2px 8px;color:var(--text3);font-weight:600"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg id="recorrentes-chevron" width="14" height="14" viewBox="0 0 12 12" fill="none" style="transition:transform .25s;color:var(--text3)"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div id="recorrentes-panel" style="display:none;padding:0 0 4px 0">
+      <div style="padding:10px 0 8px;display:flex;gap:6px;flex-wrap:wrap" id="recorrentes-filter">
+        <button class="pfchip active" onclick="filterRecorrentes('all',this)" style="font-size:10px;padding:3px 10px">Todas</button>
+        <button class="pfchip" onclick="filterRecorrentes('Falta Pagar',this)" style="font-size:10px;padding:3px 10px">Falta Pagar</button>
+        <button class="pfchip" onclick="filterRecorrentes('Débito auto',this)" style="font-size:10px;padding:3px 10px">Débito auto</button>
+      </div>
+      <div id="recorrentes-list"></div>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL EDIÇÃO DESPESA -->
@@ -1803,6 +1825,7 @@ body.app-ready .page { visibility: visible; }
         <tbody id="rec-tbody"></tbody>
       </table>
     </div>
+    <div class="mobile-card-list" id="rec-mobile-list"></div>
   </div>
   <div class="chart-box" style="margin-top:1.25rem">
     <div class="chart-header">
@@ -3179,7 +3202,7 @@ function mobRecCard(r, ri){
   </div>`;
 }
 
-function renderDespTable(){
+function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRecorrentesList();
   const m=despSelectedMonth;
   const searchEl=document.getElementById('desp-search');
   const q=(searchEl?searchEl.value:'').toLowerCase().trim();
@@ -3509,6 +3532,52 @@ function deleteRecEntry(id){
 /* ══════ LANÇAMENTOS ══════ */
 let manageFilter='all';
 function filterManage(f,el){manageFilter=f;document.querySelectorAll('#manage-filter .pfchip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderManageList();}
+
+/* ══ PAINEL RECORRENTES (página Despesas) ══ */
+let recorrentesFilter="all";
+let recorrentesOpen=false;
+function toggleRecorrentesPanel(){
+  recorrentesOpen=!recorrentesOpen;
+  const panel=document.getElementById("recorrentes-panel");
+  const chevron=document.getElementById("recorrentes-chevron");
+  if(recorrentesOpen){panel.style.display="block";chevron.style.transform="rotate(180deg)";renderRecorrentesList();
+  }else{panel.style.display="none";chevron.style.transform="rotate(0deg)";}
+}
+function filterRecorrentes(f,el){
+  recorrentesFilter=f;
+  document.querySelectorAll("#recorrentes-filter .pfchip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
+  renderRecorrentesList();
+}
+function renderRecorrentesList(){
+  const grouped={};
+  DATA.despesas.forEach(d=>{
+    if(!grouped[d.nome])grouped[d.nome]={nome:d.nome,cat:d.cat,icon:d.icon,count:0,statuses:new Set()};
+    grouped[d.nome].count++;grouped[d.nome].statuses.add(d.status);
+    if(d.icon)grouped[d.nome].icon=d.icon;
+  });
+  let entries=Object.values(grouped).filter(e=>e.count>1).sort((a,b)=>a.nome.localeCompare(b.nome));
+  const badge=document.getElementById("recorrentes-count-badge");
+  const total=Object.values(grouped).filter(e=>e.count>1).length;
+  if(badge)badge.textContent=total?(total+" conta"+(total>1?"s":"")):" ";
+  if(recorrentesFilter!=="all")entries=entries.filter(e=>e.statuses.has(recorrentesFilter));
+  const el=document.getElementById("recorrentes-list");
+  if(!el)return;
+  if(!entries.length){el.innerHTML='<div class="empty-msg" style="padding:1rem 0">Nenhuma conta recorrente encontrada.</div>';return;}
+  el.innerHTML=entries.map(e=>{
+    const hasFalta=[...e.statuses].includes("Falta Pagar");
+    const hasDebito=[...e.statuses].includes("Débito auto");
+    const statusLabel=hasFalta?'<span class="badge falta" style="font-size:10px;padding:2px 7px">Falta Pagar</span>':hasDebito?'<span class="badge pago" style="font-size:10px;padding:2px 7px">Débito auto</span>':'<span class="badge pago" style="font-size:10px;padding:2px 7px">Pago</span>';
+    return "<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--border);flex-wrap:wrap"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">"+itemIcon(e.nome,e.icon)+"<div style="min-width:0"><div style="font-weight:600;font-size:13px">"+e.nome+"</div><div style="font-size:11px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px">"+catLabel(e.cat)+" · "+e.count+" meses "+statusLabel+"</div></div></div><div style="display:flex;gap:6px;flex-shrink:0"><button class="edit-btn" onclick="editAllByName('"+e.nome.replace(/'/g,"\'")+"')">✏️ Editar</button><button class="edit-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteAllByName('"+e.nome.replace(/'/g,"\'")+"')">🗑</button></div></div>";
+  }).join("");
+}
+function updateRecorrentesBadge(){
+  const grouped={};
+  (DATA.despesas||[]).forEach(d=>{if(!grouped[d.nome])grouped[d.nome]=0;grouped[d.nome]++;});
+  const count=Object.values(grouped).filter(c=>c>1).length;
+  const badge=document.getElementById("recorrentes-count-badge");
+  if(badge)badge.textContent=count?(count+" conta"+(count>1?"s":"")):" ";
+}
 function renderManageList(){
   const grouped={};
   DATA.despesas.forEach(d=>{
