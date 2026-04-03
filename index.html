@@ -126,6 +126,16 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .header-icon { width: 36px; height: 36px; background: linear-gradient(135deg,#7b8cff,#a78bfa); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink:0; }
 .header-title { font-size: 16px; font-weight: 700; }
 .header-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+@media (max-width: 767px) {
+  #profile-header-btn { display: none !important; }
+  #header-period { display: none; }
+  .header-title { font-size: 17px; font-weight: 800; letter-spacing: -.3px; }
+}
+/* Header mobile: esconde o botão de perfil */
+@media (max-width: 767px) {
+  #profile-header-btn { display: none !important; }
+  .header { padding-left: calc(.85rem + env(safe-area-inset-left, 0px)); padding-right: calc(.85rem + env(safe-area-inset-right, 0px)); }
+}
 
 .nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; position: sticky; top: 65px; z-index: 99; }
 .nav::-webkit-scrollbar { display: none; }
@@ -762,6 +772,26 @@ body.light #chartTooltip { background: #fff; }
     pointer-events: none;
   }
   .bn-badge:empty { display: none; }
+  /* Avatar de perfil na bottom nav */
+  .bn-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
+    border: 1.5px solid transparent;
+    transition: border-color .15s;
+    flex-shrink: 0;
+  }
+  .bn-item.active .bn-avatar { border-color: var(--purple); }
+  /* Avatar de perfil na bottom nav */
+  .bn-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
+    border: 1.5px solid transparent;
+    transition: border-color .15s;
+    flex-shrink: 0;
+  }
+  .bn-item.active .bn-avatar { border-color: var(--purple); }
 
   /* Botão central — flutua acima da barra */
   .bn-add {
@@ -3941,13 +3971,23 @@ function applyGreeting(primeiro){
 function applyHeaderName(nomeCompleto){
   const primeiro = nomeCompleto.split(' ')[0];
   const initial = primeiro.charAt(0).toUpperCase();
+  const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
+  const bg = colors[primeiro.charCodeAt(0)%colors.length];
+
+  // Header avatar (desktop)
   const avatarEl = document.getElementById('header-profile-avatar');
   const nameEl = document.getElementById('header-profile-name');
-  if(avatarEl) avatarEl.textContent = initial;
+  if(avatarEl){ avatarEl.textContent = initial; avatarEl.style.background = bg+'33'; }
   if(nameEl) nameEl.textContent = primeiro;
-  const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
-  if(avatarEl) avatarEl.style.background=colors[primeiro.charCodeAt(0)%colors.length]+'33';
-  // Saudação — só primeiro nome
+
+  // Bottom nav avatar (mobile)
+  const bnAvatar = document.getElementById('bn-avatar');
+  if(bnAvatar){
+    bnAvatar.textContent = initial;
+    bnAvatar.style.background = bg+'30';
+    bnAvatar.style.color = bg;
+  }
+
   applyGreeting(primeiro);
 }
 
@@ -4664,6 +4704,12 @@ if('serviceWorker' in navigator){
       <path d="M9 17.5a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
     </svg>
     <span class="bn-label">Alertas</span>
+  </button>
+
+  <!-- Perfil -->
+  <button class="bn-item" id="bn-perfil" onclick="toggleUserMenu()">
+    <div class="bn-avatar" id="bn-avatar"></div>
+    <span class="bn-label">Perfil</span>
   </button>
 
 </nav>
