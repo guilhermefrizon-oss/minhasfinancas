@@ -88,7 +88,7 @@ function editAllByName(nome){
   document.getElementById('edit-icon-preview').innerHTML=ICONS[selectedIconEdit]||DEFAULT_ICON;
   document.getElementById('edit-status').value=d.status||'Falta Pagar';
   document.getElementById('edit-venc').value='';
-  document.getElementById('edit-valor').value=d.val>0?d.val:'';
+  setMoneyField('edit-valor', d.val>0?d.val:null);
   document.getElementById('edit-venc-scope-wrap').style.display='none';
   // Garante que o modal de edição aparece por cima do modal de despesa
   document.getElementById('add-desp-modal').classList.remove('open');
@@ -134,8 +134,8 @@ function addEntry(){
   const desc=document.getElementById('in-desc').value.trim();
   const cat=document.getElementById('in-cat').value;
   const pag=document.getElementById('in-pag').value;
-  const valRaw=document.getElementById('in-valor').value;
-  const val=valRaw===''?null:parseFloat(valRaw);
+  const val=readMoneyField('in-valor');
+  const valRaw=val===null?'':String(val); // para compatibilidade com validação abaixo
   const diaVencRaw=document.getElementById('in-dia-venc').value;
   const diaVenc=diaVencRaw?parseInt(diaVencRaw):null;
   const status=document.getElementById('in-status').value;
@@ -143,7 +143,7 @@ function addEntry(){
   clearFieldErrors(['in-desc','in-valor','in-mes','in-mes-ini','in-mes-fim']);
   let hasError = false;
   if(!desc){ fieldError('in-desc','Nome obrigatório'); hasError=true; }
-  if(valRaw !== '' && (isNaN(val) || val < 0)){ fieldError('in-valor','Digite um valor válido (ex: 150,00)'); hasError=true; }
+  if(val !== null && val < 0){ fieldError('in-valor','Digite um valor válido'); hasError=true; }
   let meses=[];
   if(recorr==='unico'){
     const mes=document.getElementById('in-mes').value;
@@ -165,6 +165,7 @@ function addEntry(){
   });
   saveData();
   document.getElementById('in-desc').value='';document.getElementById('in-valor').value='';document.getElementById('in-dia-venc').value='';
+  setMoneyField('in-valor','');
   selectedIcon=null;document.getElementById('icon-picker-preview').innerHTML=DEFAULT_ICON;
   closeAddDesp();
   const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
@@ -175,13 +176,13 @@ function addEntry(){
 
 function addReceita(){
   const desc=document.getElementById('in-rec-desc').value.trim();
-  const valRaw=document.getElementById('in-rec-valor').value;
-  const val=valRaw===''?null:parseFloat(valRaw);
+  const val=readMoneyField('in-rec-valor');
+  const valRaw=val===null?'':String(val);
   const recorr=document.getElementById('in-rec-recorr').value;
   clearFieldErrors(['in-rec-desc','in-rec-valor','in-rec-mes','in-rec-mes-ini','in-rec-mes-fim']);
   let hasErrorR = false;
   if(!desc){ fieldError('in-rec-desc','Nome obrigatório'); hasErrorR=true; }
-  if(valRaw !== '' && (isNaN(val) || val < 0)){ fieldError('in-rec-valor','Digite um valor válido (ex: 3500,00)'); hasErrorR=true; }
+  if(val !== null && val < 0){ fieldError('in-rec-valor','Digite um valor válido'); hasErrorR=true; }
   let meses=[];
   if(recorr==='unico'){
     const mes=document.getElementById('in-rec-mes').value;

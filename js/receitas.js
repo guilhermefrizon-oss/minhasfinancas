@@ -100,7 +100,7 @@ function openRecModal(id){
   document.getElementById('edit-rec-modal-title').textContent=`Editar — ${r.nome}`;
   document.getElementById('edit-rec-nome').value=r.nome;
   document.getElementById('edit-rec-cat').value=r.cat||'Salário';
-  document.getElementById('edit-rec-valor').value=r.val>0?r.val:'';
+  setMoneyField('edit-rec-valor', r.val>0?r.val:null);
   document.getElementById('edit-rec-status').value=r.status||'Recebido';
   document.getElementById('edit-rec-mes').value=r.mes;
   document.getElementById('edit-rec-modal').classList.add('open');
@@ -111,13 +111,12 @@ function saveRecEdit(){
   const r=DATA.receitas.find(x=>x.id===editingRecId);if(!r)return;
   const nome=document.getElementById('edit-rec-nome').value.trim();
   const cat=document.getElementById('edit-rec-cat').value;
-  const recValRaw=document.getElementById('edit-rec-valor').value;
-  const val=parseFloat(recValRaw);
+  const val=readMoneyField('edit-rec-valor');
   const mes=document.getElementById('edit-rec-mes').value;
   const status=document.getElementById('edit-rec-status').value;
   if(!nome){ fieldError('edit-rec-nome','Nome obrigatório'); return; }
-  if(recValRaw!==''&&(isNaN(val)||val<0)){ fieldError('edit-rec-valor','Valor inválido'); return; }
-  r.nome=nome;r.cat=cat;if(!isNaN(val)&&val>0)r.val=val;if(mes)r.mes=mes;r.status=status;
+  if(val!==null&&val<0){ fieldError('edit-rec-valor','Valor inválido'); return; }
+  r.nome=nome;r.cat=cat;if(val!==null&&val>0)r.val=val;if(mes)r.mes=mes;r.status=status;
   saveData();closeRecModal();renderReceitas();showToast('Receita atualizada!');
 }
 function closeRecModal(){document.getElementById('edit-rec-modal').classList.remove('open');editingRecId=null;}

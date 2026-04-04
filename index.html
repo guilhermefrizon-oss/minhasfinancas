@@ -434,7 +434,7 @@
         </select>
       </div>
       <div class="form-group"><label>Valor (R$) — opcional</label>
-        <input type="number" id="edit-valor" min="0" step="0.01" placeholder="Deixe em branco se não souber">
+        <input type="text" id="edit-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off">
       </div>
       <div class="form-group">
         <label>Data de vencimento</label>
@@ -550,7 +550,7 @@
           <optgroup label="🏠 Extras"><option value="Aluguel Recebido">Aluguel Recebido</option><option value="Reembolso">Reembolso</option><option value="Presente">Presente / Doação</option><option value="Venda">Venda</option><option value="Outros">Outros</option></optgroup>
         </select>
       </div>
-      <div class="form-group"><label>Valor (R$)</label><input type="number" id="edit-rec-valor" min="0" step="0.01" placeholder="0,00"></div>
+      <div class="form-group"><label>Valor (R$)</label><input type="text" id="edit-rec-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off"></div>
       <div class="form-group"><label>Status</label><select id="edit-rec-status"><option value="Recebido">Recebido</option><option value="Aguardando">Aguardando Pagamento</option></select></div>
       <div class="form-group"><label>Mês</label><input type="month" id="edit-rec-mes"></div>
       <div class="modal-actions">
@@ -625,7 +625,7 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="form-group"><label>Pagamento</label><select id="in-pag"><option>Cartão</option><option>Vale Alimentação</option><option>PIX</option><option>Boleto</option><option>Débito automático</option><option>Dinheiro</option></select></div>
         <div class="form-group"><label>Status</label><select id="in-status"><option value="Pago">Pago</option><option value="Falta Pagar">Falta Pagar</option><option value="Débito auto">Débito auto</option></select></div>
-        <div class="form-group"><label>Valor (opcional)</label><input type="number" id="in-valor" placeholder="Deixe em branco" min="0" step="0.01"></div>
+        <div class="form-group"><label>Valor (opcional)</label><input type="text" id="in-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off"></div>
         <div class="form-group"><label>Dia vencimento</label><input type="number" id="in-dia-venc" placeholder="Ex: 10" min="1" max="31"></div>
       </div>
       <div class="form-group"><label>Recorrência</label>
@@ -676,7 +676,7 @@
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="form-group"><label>Valor (opcional)</label><input type="number" id="in-rec-valor" placeholder="Deixe em branco" min="0" step="0.01"></div>
+        <div class="form-group"><label>Valor (opcional)</label><input type="text" id="in-rec-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off"></div>
         <div class="form-group"><label>Status</label><select id="in-rec-status"><option value="Recebido">Recebido</option><option value="Aguardando">Aguardando</option></select></div>
       </div>
       <div class="form-group"><label>Recorrência</label>

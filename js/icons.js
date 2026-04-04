@@ -214,9 +214,16 @@ function _autoIconListener(inputId, previewId, isEdit) {
   });
 }
 
-document.getElementById('icon-modal').addEventListener('click', function(e){ if(e.target===this)closeIconModal(); });
-document.getElementById('icon-picker-preview').innerHTML = DEFAULT_ICON;
-document.getElementById('edit-icon-preview').innerHTML = DEFAULT_ICON;
+function initIcons() {
+  const iconModal = document.getElementById('icon-modal');
+  if (iconModal) iconModal.addEventListener('click', function(e){ if(e.target===this) closeIconModal(); });
 
-_autoIconListener('in-desc',    'icon-picker-preview', false);
-_autoIconListener('edit-nome',  'edit-icon-preview',   true);
+  const preview = document.getElementById('icon-picker-preview');
+  if (preview) preview.innerHTML = DEFAULT_ICON;
+
+  const editPreview = document.getElementById('edit-icon-preview');
+  if (editPreview) editPreview.innerHTML = DEFAULT_ICON;
+
+  _autoIconListener('in-desc',   'icon-picker-preview', false);
+  _autoIconListener('edit-nome', 'edit-icon-preview',   true);
+}
