@@ -24,28 +24,15 @@ function fbErrorMsg(code){
 
 /* ── Tela de login ── */
 function switchLoginTab(tab){
-  // Mostra a sub-tela correta
-  const screens = {login:'auth-login', signup:'auth-signup', reset:'auth-reset'};
-  Object.entries(screens).forEach(([key, id]) => {
-    const el = document.getElementById(id);
-    if(el) el.style.display = key===tab ? 'flex' : 'none';
+  ['login','signup','reset'].forEach(t=>{
+    document.getElementById('form-'+t).style.display = t===tab?'block':'none';
+    const btn=document.getElementById('tab-'+t);
+    if(btn) btn.classList.toggle('active', t===tab);
   });
-  // Sincroniza estado dos tabs
-  ['tab-login','tab-login-2'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.classList.toggle('active', tab==='login');
-  });
-  ['tab-signup','tab-signup-2'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.classList.toggle('active', tab==='signup');
-  });
-  // Limpa erros
   ['login-error','signup-error','reset-error','reset-success'].forEach(id=>{
     const el=document.getElementById(id); if(el){el.classList.remove('visible');el.textContent='';}
   });
 }
-function doGoogleLogin(){ showLoginError('login-error','Login com Google em breve!'); }
-function doAppleLogin(){ showLoginError('signup-error','Login com Apple em breve!'); }
 function setLoginLoading(btnId, loading){
   const btn=document.getElementById(btnId);
   if(!btn) return;
@@ -84,18 +71,18 @@ async function doLogin(){
 }
 
 async function doSignup(){
-  const firstName=(document.getElementById('signup-name')?.value||'').trim();
-  const lastName=(document.getElementById('signup-lastname')?.value||'').trim();
-  const name = lastName ? `${firstName} ${lastName}` : firstName;
+  const name=document.getElementById('signup-name').value.trim();
   const email=document.getElementById('signup-email').value.trim();
   const pass=document.getElementById('signup-pass').value;
+  const pass2=document.getElementById('signup-pass2').value;
   hideLoginError('signup-error');
-  if(!firstName){ showLoginError('signup-error','Digite seu nome.'); return; }
+  if(!name){ showLoginError('signup-error','Digite seu nome.'); return; }
   if(!email){ showLoginError('signup-error','Digite seu email.'); return; }
-  if(!pass || pass.length < 6){ showLoginError('signup-error','A senha precisa ter pelo menos 6 caracteres.'); return; }
+  if(pass!==pass2){ showLoginError('signup-error','As senhas não coincidem.'); return; }
   setLoginLoading('btn-signup',true);
   try{
     const cred=await fbFns().createUserWithEmailAndPassword(fbAuth(), email, pass);
+    // Salva nome do usuário no Firestore
     await fbFns().setDoc(fbFns().doc(fbDb(),'users',cred.user.uid),{
       nome: name, email, criadoEm: Date.now()
     });

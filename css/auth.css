@@ -1,247 +1,165 @@
-/* ══ AUTH — tela de login/cadastro, splash, perfil ══ */
+/* ══ AUTH — login, splash, perfil de usuário ══ */
 
-/* ══════ TELA DE LOGIN ══════ */
+/* ══════════════ TELA DE LOGIN ══════════════ */
 #login-screen {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 1000;
   background: var(--bg);
-  overflow: hidden;
-}
-#login-screen.visible { display: block; }
-
-/* Cada sub-tela ocupa a tela inteira */
-.auth-screen {
-  display: flex;
   flex-direction: column;
-  min-height: 100dvh;
-  min-height: 100vh;
-  padding: env(safe-area-inset-top, 16px) 0 env(safe-area-inset-bottom, 16px);
-}
-
-/* ── Barra de tabs / nav no topo ── */
-.auth-top-nav {
-  display: flex;
-  align-items: center;
-  padding: 20px 24px 0;
-  gap: 4px;
-  min-height: 60px;
-}
-.auth-tab {
-  background: none;
-  border: none;
-  font-family: var(--font);
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--text3);
-  cursor: pointer;
-  padding: 4px 0;
-  margin-right: 20px;
-  position: relative;
-  transition: color .18s;
-  letter-spacing: -.2px;
-}
-.auth-tab.active {
-  color: var(--text);
-  font-weight: 700;
-}
-.auth-tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -3px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--text);
-  border-radius: 2px;
-}
-.auth-back-btn {
-  background: none;
-  border: none;
-  color: var(--text2);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  border-radius: 8px;
-  transition: background .15s;
-}
-.auth-back-btn:hover { background: var(--surface2); }
-
-/* ── Corpo central (heading + campos) ── */
-.auth-body {
-  flex: 1;
-  padding: 40px 28px 20px;
-  display: flex;
-  flex-direction: column;
-}
-.auth-heading {
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--text);
-  line-height: 1.1;
-  letter-spacing: -.5px;
-  margin-bottom: 36px;
-}
-.auth-subheading {
-  font-size: 15px;
-  color: var(--text2);
-  line-height: 1.5;
-  margin-top: -24px;
-  margin-bottom: 32px;
-}
-
-/* ── Campos — estilo linha sutil, sem caixa ── */
-.auth-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-.auth-field {
-  border-bottom: 1px solid var(--border);
-  padding: 14px 0;
-  position: relative;
-  transition: border-color .18s;
-}
-.auth-field:focus-within {
-  border-bottom-color: var(--text);
-}
-.auth-field input {
-  width: 100%;
-  background: none;
-  border: none;
-  outline: none;
-  font-family: var(--font);
-  font-size: 17px;
-  color: var(--text);
-  padding: 0;
-  caret-color: var(--purple);
-}
-.auth-field input::placeholder {
-  color: var(--text3);
-  font-weight: 400;
-}
-.auth-hint {
-  font-size: 12px;
-  color: var(--text3);
-  line-height: 1.4;
-  margin-top: 6px;
-}
-.auth-forgot-row {
-  padding: 12px 0 4px;
-  text-align: right;
-}
-.auth-link {
-  background: none;
-  border: none;
-  font-family: var(--font);
-  font-size: 13px;
-  color: var(--text3);
-  cursor: pointer;
-  padding: 0;
-  transition: color .15s;
-}
-.auth-link:hover { color: var(--text2); }
-
-/* ── Rodapé (botão + social) ── */
-.auth-footer {
-  padding: 8px 28px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.auth-btn {
-  width: 100%;
-  padding: 16px;
-  background: var(--text);
-  border: none;
-  border-radius: 50px;
-  color: var(--bg);
-  font-family: var(--font);
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity .15s, transform .1s;
-  letter-spacing: .1px;
-}
-.auth-btn:hover { opacity: .9; }
-.auth-btn:active { transform: scale(.98); }
-.auth-btn:disabled { opacity: .45; cursor: not-allowed; }
-
-/* Divisor "ou" */
-.auth-or {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--text3);
-  font-size: 13px;
-}
-.auth-or::before, .auth-or::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-/* Botões sociais */
-.auth-social {
-  display: flex;
-  gap: 10px;
-}
-.auth-social-btn {
-  flex: 1;
-  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 13px 16px;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 50px;
-  font-family: var(--font);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  cursor: pointer;
-  transition: background .15s, border-color .15s;
+  padding: 2rem 1.5rem;
+  overflow-y: auto;
 }
-.auth-social-btn:hover {
-  background: var(--surface2);
-  border-color: var(--text3);
-}
+#login-screen.visible { display: flex; }
 
-/* Mensagens de erro/sucesso */
-.login-error {
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+.login-logo-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg,#7b8cff,#a78bfa);
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(167,139,250,.35);
+}
+.login-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.login-sub {
   font-size: 13px;
+  color: var(--text3);
+}
+.login-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 1.5rem;
+}
+.login-tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all .15s;
+}
+.login-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.login-field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.login-field input {
+  padding: 11px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  outline: none;
+  transition: border-color .15s;
+}
+.login-field input:focus { border-color: var(--purple); }
+.login-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg,#7b8cff,#a78bfa);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: opacity .15s;
+  letter-spacing: .3px;
+}
+.login-btn:hover { opacity: .88; }
+.login-btn:disabled { opacity: .5; cursor: not-allowed; }
+.login-error {
+  font-size: 12px;
   color: var(--red);
   background: var(--red-bg);
   border: 1px solid rgba(240,96,96,.2);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  margin-top: 8px;
+  padding: 9px 12px;
+  margin-top: 10px;
   display: none;
-  line-height: 1.4;
 }
 .login-error.visible { display: block; }
 .login-success {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--green);
   background: var(--green-bg);
   border: 1px solid rgba(52,210,122,.2);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  margin-top: 8px;
+  padding: 9px 12px;
+  margin-top: 10px;
   display: none;
 }
 .login-success.visible { display: block; }
-
-/* Spinner */
+.login-forgot {
+  text-align: right;
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
+.login-forgot button {
+  background: none;
+  border: none;
+  color: var(--purple);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
 .login-spinner {
   display: inline-block;
-  width: 16px; height: 16px;
-  border: 2px solid rgba(15,14,26,.25);
-  border-top-color: var(--bg);
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: spin .7s linear infinite;
   vertical-align: middle;
@@ -249,15 +167,6 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Light mode */
-body.light .auth-btn {
-  background: #1a1830;
-  color: #fff;
-}
-body.light .login-spinner {
-  border-color: rgba(255,255,255,.25);
-  border-top-color: #fff;
-}
 
 /* ══════ SPLASH SCREEN ══════ */
 #splash-screen {
@@ -272,7 +181,8 @@ body.light .login-spinner {
   gap: 16px;
 }
 .splash-icon {
-  width: 80px; height: 80px;
+  width: 80px;
+  height: 80px;
   background: linear-gradient(135deg,#7b8cff,#a78bfa);
   border-radius: 22px;
   display: flex;
@@ -304,23 +214,30 @@ body.light .login-spinner {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+
 /* Esconde app até auth resolver */
 .header, .nav, .bottom-nav, .page, .desktop-sidebar { visibility: hidden; }
+
+
 body.app-ready .header,
 body.app-ready .nav,
 body.app-ready .bottom-nav,
 body.app-ready .desktop-sidebar,
 body.app-ready .page { visibility: visible; }
 
-/* Skeleton */
+/* ── Skeleton screen ── */
 @keyframes skeleton-pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.5; }
 }
 .skeleton { animation: skeleton-pulse 1.4s ease-in-out infinite; }
-.sk-block { background: var(--surface2); border-radius: var(--radius-sm); }
+.sk-block {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+}
 
-/* ══════ PERFIL DO USUÁRIO ══════ */
+
+/* ══════ TELA DE PERFIL DO USUÁRIO ══════ */
 #user-profile-screen {
   display: none;
   position: fixed;
@@ -356,7 +273,8 @@ body.app-ready .page { visibility: visible; }
 }
 .profile-back:hover { background: var(--surface2); }
 .profile-avatar-big {
-  width: 72px; height: 72px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -392,6 +310,7 @@ body.app-ready .page { visibility: visible; }
 .profile-field-value { font-size: 15px; color: var(--text); font-weight: 500; }
 .profile-field-arrow { color: var(--text3); font-size: 14px; flex-shrink: 0; }
 
+/* Modal de edição de campo */
 #edit-field-modal {
   display: none;
   position: fixed;
@@ -415,21 +334,43 @@ body.app-ready .page { visibility: visible; }
   animation: mBoxIn .22s cubic-bezier(.16,1,.3,1);
 }
 
-/* Animações */
-@keyframes fadeUp   { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
-@keyframes scaleIn  { from { opacity:0; transform:scale(.94); } to { opacity:1; transform:scale(1); } }
-@keyframes slideRight { from { opacity:0; transform:translateX(-14px); } to { opacity:1; transform:translateX(0); } }
+/* ══════ ANIMAÇÕES DE ENTRADA ══════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 
-.anim-fade-up    { animation: fadeUp   .38s cubic-bezier(.16,1,.3,1) both; }
-.anim-fade-in    { animation: fadeIn   .3s ease both; }
-.anim-scale-in   { animation: scaleIn  .3s cubic-bezier(.16,1,.3,1) both; }
-.anim-slide-right{ animation: slideRight .32s cubic-bezier(.16,1,.3,1) both; }
+/* Classes base — aplicadas via JS */
+.anim-fade-up   { animation: fadeUp  .38s cubic-bezier(.16,1,.3,1) both; }
+.anim-fade-in   { animation: fadeIn  .3s ease both; }
+.anim-scale-in  { animation: scaleIn .3s cubic-bezier(.16,1,.3,1) both; }
+.anim-slide-right { animation: slideRight .32s cubic-bezier(.16,1,.3,1) both; }
 
-.anim-d1  { animation-delay: .04s; } .anim-d2  { animation-delay: .09s; }
-.anim-d3  { animation-delay: .14s; } .anim-d4  { animation-delay: .19s; }
-.anim-d5  { animation-delay: .24s; } .anim-d6  { animation-delay: .29s; }
-.anim-d7  { animation-delay: .34s; } .anim-d8  { animation-delay: .39s; }
-.anim-d9  { animation-delay: .44s; } .anim-d10 { animation-delay: .49s; }
+/* Delays escalonados para entradas em sequência */
+.anim-d1  { animation-delay: .04s; }
+.anim-d2  { animation-delay: .09s; }
+.anim-d3  { animation-delay: .14s; }
+.anim-d4  { animation-delay: .19s; }
+.anim-d5  { animation-delay: .24s; }
+.anim-d6  { animation-delay: .29s; }
+.anim-d7  { animation-delay: .34s; }
+.anim-d8  { animation-delay: .39s; }
+.anim-d9  { animation-delay: .44s; }
+.anim-d10 { animation-delay: .49s; }
 
+/* Transição suave na troca de páginas — definida no início do CSS */
+
+/* Linhas da tabela animadas */
 .tr-anim td { animation: fadeUp .32s cubic-bezier(.16,1,.3,1) both; }
