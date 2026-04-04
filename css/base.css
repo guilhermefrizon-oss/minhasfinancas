@@ -636,3 +636,23 @@ body.light .header { background: #fff; }
 body.light input, body.light select { background: var(--surface2); color: var(--text); }
 body.light .pin-key { background: var(--surface2); color: var(--text); }
 body.light #chartTooltip { background: #fff; }
+/* ══════ ONBOARDING ══════ */
+#onboarding-overlay { display: none; }
+#onboarding-overlay.visible { display: flex; animation: fadeIn .35s ease; }
+
+.ob-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border); cursor: pointer;
+  transition: all .2s;
+}
+.ob-dot.active {
+  background: var(--purple);
+  width: 22px; border-radius: 4px;
+}
+
+/* Tooltip "Comece aqui" */
+#add-tooltip { display: none; }
+#add-tooltip.visible {
+  display: flex;
+  animation: fadeUp .3s ease both;
+}

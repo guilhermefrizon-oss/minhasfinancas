@@ -274,6 +274,19 @@
     </div>
   </div>
 
+  <!-- EMPTY STATE — aparece quando não há lançamentos -->
+  <div id="overview-empty-state" style="display:none;flex-direction:column;align-items:center;text-align:center;padding:2.5rem 1rem 1rem;gap:1rem">
+    <div style="font-size:56px">💸</div>
+    <div style="font-size:18px;font-weight:800;color:var(--text)">Nenhum lançamento ainda</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.6;max-width:260px">Que tal registrar sua primeira despesa ou receita? É rapidinho!</div>
+    <button onclick="openAddPopup()" style="margin-top:.5rem;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#7b8cff,#a78bfa);border:none;border-radius:var(--radius);padding:12px 24px;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;box-shadow:0 4px 16px rgba(123,140,255,.35)" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+      Adicionar primeiro lançamento
+    </button>
+  </div>
+
+  <!-- ÁREA DE RESUMO + GRÁFICOS -->
+  <div id="overview-charts-area">
   <div style="margin-bottom:.75rem;margin-top:.5rem;display:flex;align-items:center;justify-content:space-between;gap:10px">
     <div class="section-label" style="margin-bottom:0">Resumo — <span id="overview-month-label" style="color:var(--purple)">todos os meses</span></div>
     <button onclick="openAddPopup()" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#7b8cff,#a78bfa);border:none;border-radius:var(--radius-sm);padding:7px 14px;color:#fff;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.3px;white-space:nowrap;transition:opacity .15s;flex-shrink:0" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
@@ -333,6 +346,7 @@
     <div class="chart-header"><div class="chart-title">Saldo mensal (Receita − Despesa)</div></div>
     <div style="position:relative;width:100%;height:190px"><canvas id="chartSaldo"></canvas></div>
   </div>
+  </div><!-- #overview-charts-area -->
   </div><!-- #overview-real-content -->
 </div>
 
@@ -946,6 +960,31 @@
 <script src="js/profiles.js"></script>
 <script src="js/init.js"></script>
 <script src="js/search.js"></script>
+<script src="js/onboarding.js"></script>
+
+<!-- ══════ ONBOARDING OVERLAY ══════ -->
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(8,7,24,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:1.5rem;transition:opacity .35s">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;width:min(380px,92vw);padding:2.5rem 2rem 2rem;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.6);text-align:center">
+    <!-- Skip -->
+    <button onclick="obSkip()" style="position:absolute;top:16px;right:18px;background:none;border:none;color:var(--text3);font-family:var(--font);font-size:12px;cursor:pointer;padding:4px 8px">Pular</button>
+    <!-- Conteúdo do slide -->
+    <div id="ob-emoji" style="font-size:56px;margin-bottom:1.25rem;line-height:1"></div>
+    <div id="ob-title" style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:.75rem;line-height:1.2"></div>
+    <div id="ob-text" style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:2rem"></div>
+    <!-- Dots -->
+    <div id="ob-dots" style="display:flex;justify-content:center;gap:7px;margin-bottom:1.5rem"></div>
+    <!-- Botão -->
+    <button id="ob-btn" onclick="obNext()" style="width:100%;padding:14px;background:linear-gradient(135deg,#7b8cff,#a78bfa);border:none;border-radius:var(--radius);color:#fff;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Próximo →</button>
+  </div>
+</div>
+
+<!-- ══════ TOOLTIP "COMECE AQUI" ══════ -->
+<div id="add-tooltip" style="display:none;position:fixed;bottom:calc(72px + env(safe-area-inset-bottom,0px) + 12px);left:50%;transform:translateX(-50%);z-index:300;pointer-events:none;flex-direction:column;align-items:center;gap:6px;transition:opacity .3s">
+  <div style="background:var(--purple);color:#fff;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;box-shadow:0 4px 16px rgba(123,140,255,.4)">
+    👆 Comece aqui!
+  </div>
+  <div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:7px solid var(--purple)"></div>
+</div>
 
 </body>
 </html>

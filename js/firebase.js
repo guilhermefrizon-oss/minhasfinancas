@@ -350,6 +350,8 @@ window._onFbLogin = async function(user){
     updateHeaderProfile(user);
     renderOverview();
     updateNotifBadge();
+    // Onboarding — mostra só para usuários novos
+    if (typeof initOnboarding === 'function') initOnboarding();
   }
 };
 

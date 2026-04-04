@@ -1,5 +1,5 @@
 /* FIX 5: Popup + Lançamento */
-function openAddPopup(){const p=document.getElementById('add-popup');p.style.display='flex';p.classList.add('open');}
+function openAddPopup(){const p=document.getElementById('add-popup');p.style.display='flex';p.classList.add('open');if(typeof dismissTooltip==='function')dismissTooltip();}
 function closeAddPopup(){const p=document.getElementById('add-popup');p.classList.remove('open');p.style.display='none';}
 function openAddForm(tipo){
   closeAddPopup();

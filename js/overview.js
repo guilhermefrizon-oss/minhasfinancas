@@ -117,6 +117,8 @@ function renderDonutChart(cm, desp){
 }
 
 function renderOverview(){
+  // Empty state — esconde gráficos se não há dados
+  if (typeof renderEmptyState === 'function') renderEmptyState();
   // Anima saudação e quick bar ao carregar overview
   ['overview-greeting','cur-month-block'].forEach((id,i)=>{
     const el=document.getElementById(id);

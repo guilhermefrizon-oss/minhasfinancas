@@ -171,7 +171,7 @@ function addEntry(){
   const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   despSelectedMonth=allMonths().includes(cm)?cm:meses[meses.length-1];
   showPage('despesas');
-  showToast(meses.length>1?`${meses.length} lançamentos adicionados!`:'Despesa adicionada!');
+  showToast(meses.length>1?`${meses.length} lançamentos adicionados!`:'Despesa adicionada!');if(typeof renderEmptyState==='function')renderEmptyState();
 }
 
 function addReceita(){
@@ -201,7 +201,7 @@ function addReceita(){
   saveData();
   document.getElementById('in-rec-desc').value='';document.getElementById('in-rec-valor').value='';
   closeAddRec();showPage('receitas');
-  showToast(meses.length>1?`${meses.length} receitas adicionadas!`:'Receita adicionada!');
+  showToast(meses.length>1?`${meses.length} receitas adicionadas!`:'Receita adicionada!');if(typeof renderEmptyState==='function')renderEmptyState();
 }
 
 function deleteDespEntry(id){
