@@ -1,0 +1,327 @@
+/* ══ MOBILE — bottom nav, desktop sidebar, responsivo ══ */
+
+/* ══════════════ BOTTOM TAB BAR (mobile) ══════════════ */
+.bottom-nav { display: none; }
+
+@media (max-width: 767px) {
+  .nav { display: none; }
+
+  /* Espaço extra para a bottom bar + safe area (barra Safari no iPhone) */
+  .page {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px));
+  }
+
+  /* Bottom bar — altura fixa + safe area do iPhone embaixo */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    /* safe-area-inset-bottom garante espaço para a barra home do iPhone */
+    padding: 8px calc(4px + env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) calc(4px + env(safe-area-inset-left, 0px));
+    /* altura total: ícone + label + padding + safe area */
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    align-items: flex-start;
+    justify-content: space-around;
+    gap: 0;
+  }
+
+  .bn-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    flex: 1;
+    height: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    color: var(--text3);
+    transition: color .15s;
+    padding: 0;
+    position: relative;
+  }
+  .bn-item.active { color: var(--purple); }
+  .bn-item svg { flex-shrink: 0; transition: transform .15s; }
+  .bn-item.active svg { transform: scale(1.12); }
+  .bn-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .2px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* Badge de notificações */
+  .bn-badge {
+    position: absolute;
+    top: -4px;
+    right: calc(50% - 18px);
+    background: var(--red);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    min-width: 16px;
+    text-align: center;
+    line-height: 14px;
+    border: 2px solid var(--surface);
+    pointer-events: none;
+  }
+  .bn-badge:empty { display: none; }
+  /* Avatar de perfil na bottom nav */
+  .bn-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
+    border: 1.5px solid transparent;
+    transition: border-color .15s;
+    flex-shrink: 0;
+  }
+  .bn-item.active .bn-avatar { border-color: var(--purple); }
+  /* Avatar de perfil na bottom nav */
+  .bn-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
+    border: 1.5px solid transparent;
+    transition: border-color .15s;
+    flex-shrink: 0;
+  }
+  .bn-item.active .bn-avatar { border-color: var(--purple); }
+
+  /* Botão central — flutua acima da barra */
+  .bn-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    flex: 1;
+    height: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    padding: 0;
+    margin-top: -20px;
+  }
+  .bn-add-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7b8cff, #a78bfa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(167,139,250,.45);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .bn-add:active .bn-add-circle {
+    transform: scale(.93);
+    box-shadow: 0 2px 8px rgba(167,139,250,.3);
+  }
+  .bn-add-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--purple);
+    letter-spacing: .2px;
+    margin-top: 2px;
+  }
+
+  /* Toast sobe acima da bottom bar */
+  .toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Dropdowns sobem acima da bottom bar */
+  .month-picker-dropdown {
+    position: fixed !important;
+    top: auto !important;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 12px !important;
+    right: 12px !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+}
+
+
+@media(max-width:539px) { .hide-mobile { display: none; } }
+
+
+/* Sidebar oculta por padrão — só aparece no desktop */
+.desktop-sidebar { display: none; }
+
+/* ══════════════ LAYOUT DESKTOP (768px+) ══════════════ */
+@media (min-width: 768px) {
+
+  /* Esconde nav horizontal — substituída pela sidebar */
+  .nav { display: none; }
+
+  /* Layout raiz: sidebar fixa + área de conteúdo */
+  body {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+  }
+
+  /* Header ocupa toda a largura no topo */
+  .header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  /* ── Sidebar ── */
+  .desktop-sidebar {
+    display: flex;
+    flex-direction: column;
+    grid-column: 1;
+    grid-row: 2;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    padding: 1.75rem 1rem;
+    overflow-y: auto;
+    z-index: 90;
+  }
+
+  .sidebar-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    padding: 0 .75rem;
+    margin-bottom: .6rem;
+    margin-top: 1.5rem;
+  }
+  .sidebar-label:first-child { margin-top: 0; }
+
+  .sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: .65rem .75rem;
+    border-radius: 10px;
+    border: none;
+    background: none;
+    color: var(--text2);
+    font-family: var(--font);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: background .15s, color .15s;
+    position: relative;
+    letter-spacing: .01em;
+  }
+  .sidebar-btn:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-btn.active {
+    background: var(--blue-bg);
+    color: var(--blue);
+    font-weight: 700;
+  }
+  .sidebar-btn svg { flex-shrink: 0; opacity: .7; }
+  .sidebar-btn.active svg { opacity: 1; }
+
+  .sidebar-badge {
+    margin-left: auto;
+    background: var(--red);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 7px;
+    min-width: 18px;
+    text-align: center;
+  }
+  .sidebar-badge:empty { display: none; }
+
+  /* Botão "+ Lançamento" na sidebar */
+  .sidebar-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: .7rem .75rem;
+    border-radius: 10px;
+    border: 1px dashed var(--border);
+    background: none;
+    color: var(--text3);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    margin-top: auto;
+  }
+  .sidebar-add-btn:hover {
+    border-color: var(--purple);
+    color: var(--purple);
+    background: var(--blue-bg);
+  }
+
+  /* ── Conteúdo principal ── */
+  #main-content {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem;
+  }
+
+  /* Cards do overview em 4 colunas no desktop */
+  .cards { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* Cards ligeiramente maiores */
+  .card { padding: 1.25rem 1.35rem; }
+  .card-value { font-size: 22px; }
+
+  /* Gráficos lado a lado quando possível */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .charts-grid .chart-box { margin-bottom: 0; }
+
+  /* Tabelas com mais respiro */
+  th, td { padding: 13px 20px; }
+
+  /* Esconde bottom nav no desktop (já está display:none por padrão, reforça) */
+  .bottom-nav { display: none !important; }
+
+  /* Ajustes no header desktop */
+  .header-icon { width: 32px; height: 32px; font-size: 16px; }
+  .header-title { font-size: 15px; }
+}
+
+/* Light mode sidebar */
+body.light .desktop-sidebar { background: #fff; }
+body.light .sidebar-btn:hover { background: var(--surface2); }

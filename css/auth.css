@@ -1,0 +1,376 @@
+/* ══ AUTH — login, splash, perfil de usuário ══ */
+
+/* ══════════════ TELA DE LOGIN ══════════════ */
+#login-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  overflow-y: auto;
+}
+#login-screen.visible { display: flex; }
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+.login-logo-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg,#7b8cff,#a78bfa);
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(167,139,250,.35);
+}
+.login-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-size: 13px;
+  color: var(--text3);
+}
+.login-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 1.5rem;
+}
+.login-tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all .15s;
+}
+.login-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.login-field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.login-field input {
+  padding: 11px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  outline: none;
+  transition: border-color .15s;
+}
+.login-field input:focus { border-color: var(--purple); }
+.login-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg,#7b8cff,#a78bfa);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: opacity .15s;
+  letter-spacing: .3px;
+}
+.login-btn:hover { opacity: .88; }
+.login-btn:disabled { opacity: .5; cursor: not-allowed; }
+.login-error {
+  font-size: 12px;
+  color: var(--red);
+  background: var(--red-bg);
+  border: 1px solid rgba(240,96,96,.2);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  margin-top: 10px;
+  display: none;
+}
+.login-error.visible { display: block; }
+.login-success {
+  font-size: 12px;
+  color: var(--green);
+  background: var(--green-bg);
+  border: 1px solid rgba(52,210,122,.2);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  margin-top: 10px;
+  display: none;
+}
+.login-success.visible { display: block; }
+.login-forgot {
+  text-align: right;
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
+.login-forgot button {
+  background: none;
+  border: none;
+  color: var(--purple);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+.login-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+/* ══════ SPLASH SCREEN ══════ */
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--bg, #0f0e1a);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.splash-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg,#7b8cff,#a78bfa);
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  box-shadow: 0 12px 32px rgba(167,139,250,.4);
+  animation: splash-pop .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes splash-pop {
+  from { transform: scale(.6); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+.splash-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #eeedf8;
+  animation: splash-fade .4s .15s both;
+}
+.splash-spinner {
+  width: 24px; height: 24px;
+  border: 3px solid rgba(167,139,250,.25);
+  border-top-color: #a78bfa;
+  border-radius: 50%;
+  animation: spin .7s linear infinite, splash-fade .4s .3s both;
+}
+@keyframes splash-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Esconde app até auth resolver */
+.header, .nav, .bottom-nav, .page, .desktop-sidebar { visibility: hidden; }
+
+
+body.app-ready .header,
+body.app-ready .nav,
+body.app-ready .bottom-nav,
+body.app-ready .desktop-sidebar,
+body.app-ready .page { visibility: visible; }
+
+/* ── Skeleton screen ── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.skeleton { animation: skeleton-pulse 1.4s ease-in-out infinite; }
+.sk-block {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+}
+
+
+/* ══════ TELA DE PERFIL DO USUÁRIO ══════ */
+#user-profile-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: var(--bg);
+  flex-direction: column;
+  overflow-y: auto;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+#user-profile-screen.visible { display: flex; }
+.profile-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.profile-back {
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  line-height: 1;
+  transition: background .15s;
+}
+.profile-back:hover { background: var(--surface2); }
+.profile-avatar-big {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 auto 6px;
+  flex-shrink: 0;
+}
+.profile-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin: 1.25rem 1.25rem .5rem;
+}
+.profile-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .9rem 1.25rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.profile-field-row:hover { background: var(--surface2); }
+.profile-field-row:first-child { border-top: 1px solid var(--border); }
+.profile-field-label { font-size: 12px; color: var(--text3); margin-bottom: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.profile-field-value { font-size: 15px; color: var(--text); font-weight: 500; }
+.profile-field-arrow { color: var(--text3); font-size: 14px; flex-shrink: 0; }
+
+/* Modal de edição de campo */
+#edit-field-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  background: rgba(8,7,24,0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+#edit-field-modal.visible { display: flex; animation: mOverlayIn .18s ease; }
+.edit-field-sheet {
+  background: rgba(22,20,44,0.95);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  width: min(420px, 92vw);
+  padding: 1.75rem;
+  box-shadow: 0 32px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(123,140,255,.05);
+  animation: mBoxIn .22s cubic-bezier(.16,1,.3,1);
+}
+
+/* ══════ ANIMAÇÕES DE ENTRADA ══════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Classes base — aplicadas via JS */
+.anim-fade-up   { animation: fadeUp  .38s cubic-bezier(.16,1,.3,1) both; }
+.anim-fade-in   { animation: fadeIn  .3s ease both; }
+.anim-scale-in  { animation: scaleIn .3s cubic-bezier(.16,1,.3,1) both; }
+.anim-slide-right { animation: slideRight .32s cubic-bezier(.16,1,.3,1) both; }
+
+/* Delays escalonados para entradas em sequência */
+.anim-d1  { animation-delay: .04s; }
+.anim-d2  { animation-delay: .09s; }
+.anim-d3  { animation-delay: .14s; }
+.anim-d4  { animation-delay: .19s; }
+.anim-d5  { animation-delay: .24s; }
+.anim-d6  { animation-delay: .29s; }
+.anim-d7  { animation-delay: .34s; }
+.anim-d8  { animation-delay: .39s; }
+.anim-d9  { animation-delay: .44s; }
+.anim-d10 { animation-delay: .49s; }
+
+/* Transição suave na troca de páginas — definida no início do CSS */
+
+/* Linhas da tabela animadas */
+.tr-anim td { animation: fadeUp .32s cubic-bezier(.16,1,.3,1) both; }
