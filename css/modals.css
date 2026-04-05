@@ -29,7 +29,7 @@
 }
 @keyframes mBoxIn { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
 
-.modal-title {
+.modal-title { letter-spacing: -.2px;
   font-size: 16px;
   font-weight: 700;
   color: var(--text);

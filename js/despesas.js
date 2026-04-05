@@ -167,7 +167,7 @@ function mobDespCard(d){
       <div class="mob-card-main">
         <div class="mob-card-name">${d.nome}</div>
         <div class="mob-card-sub">
-          <span style="background:${catCol}22;color:${catCol};padding:1px 7px;border-radius:20px;font-weight:600;font-size:10px">${catLabel(d.cat)}</span>
+          <span style="background:${catCol}1a;color:${catCol};padding:1px 8px;border-radius:6px;font-weight:600;font-size:10px;opacity:.8">${catLabel(d.cat)}</span>
           ${d.pag?`<span>·</span><span>${d.pag}</span>`:''}
           ${vencStr?`<span>·</span>${vencStr}`:''}
         </div>
@@ -197,7 +197,7 @@ function mobRecCard(r, ri){
       <div class="mob-card-main" style="padding-left:4px">
         <div class="mob-card-name">${r.nome}</div>
         <div class="mob-card-sub">
-          ${r.cat?`<span style="background:rgba(52,210,122,.15);color:var(--green);padding:1px 7px;border-radius:20px;font-weight:600;font-size:10px">${r.cat}</span>`:''}
+          ${r.cat?`<span style="background:rgba(52,210,122,.1);color:var(--green);padding:1px 8px;border-radius:6px;font-weight:600;font-size:10px;opacity:.8">${r.cat}</span>`:''}
         </div>
       </div>
       <div class="mob-card-right">
@@ -276,7 +276,7 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
     const di=_rowIdx++;const dc=`anim-d${Math.min(di+1,10)}`;
     return `<tr class="tr-anim ${dc}" style="${d.status==='Falta Pagar'?'background:rgba(240,96,96,0.03)':d.status==='Débito auto'?'background:rgba(123,140,255,0.03)':''}">
         <td><div style="display:flex;align-items:center;gap:8px">${itemIcon(d.nome,d.icon)}<div><div class="entry-name">${d.nome}</div><div class="entry-cat">${d.pag||''}</div></div></div></td>
-        <td><span class="cat-pill" style="background:${catColor(d.cat)}22;color:${catColor(d.cat)}">${catLabel(d.cat)}</span></td>
+        <td><span class="cat-pill" style="background:${catColor(d.cat)}18;color:${catColor(d.cat)};opacity:.75">${catLabel(d.cat)}</span></td>
         <td>${valCell(d)}</td>
         <td>${vencBadge(d)}</td>
         <td><span class="badge ${bc[d.status]||'nd'}" style="cursor:pointer" onclick="togglePago(${d.id})">${d.status}</span></td>
