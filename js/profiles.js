@@ -184,41 +184,23 @@ async function saveUserProfile(){
   btn.textContent = 'Salvando...';
   btn.disabled = true;
 
-  // Salva em cache local imediatamente (garante que não se perde)
+  // 1. Salva localmente SEMPRE — garante que não perde mesmo sem rede
   try{ localStorage.setItem('gastos_user_profile_' + user.uid, JSON.stringify(_userProfileData)); } catch(_){}
 
-  // Atualiza header imediatamente sem esperar a rede
-  if(_userProfileData.nome) updateHeaderProfile(user);
+  // 2. Atualiza header imediatamente
+  if(_userProfileData.nome) applyHeaderName(_userProfileData.nome);
 
-  try{
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 8000)
-    );
-    await Promise.race([
-      fbFns().setDoc(fbFns().doc(fbDb(),'users',user.uid), {
-        ..._userProfileData,
-        atualizadoEm: Date.now()
-      }),
-      timeout
-    ]);
-    showToast('Perfil atualizado! ✅');
-  } catch(e){
-    if(e.message === 'timeout'){
-      // Salvou localmente, vai sincronizar quando a conexão voltar
-      showToast('Salvo localmente. Sincronizará quando conectar. ⚡');
-      // Agenda retry em background
-      setTimeout(() => saveUserProfileToCloud(user), 5000);
-    } else {
-      showToast('Erro ao salvar. Tente novamente.');
-    }
-  } finally {
-    btn.textContent = 'Salvar';
-    btn.disabled = false;
-    closeUserProfile();
-  }
+  // 3. Fecha a tela e mostra feedback — não bloqueia esperando a rede
+  showToast('Perfil atualizado! ✅');
+  btn.textContent = 'Salvar';
+  btn.disabled = false;
+  closeUserProfile();
+
+  // 4. Sincroniza com Firestore em background (sem travar a UI)
+  saveUserProfileToCloud(user);
 }
 
-async function saveUserProfileToCloud(user){
+async function saveUserProfileToCloud(user, attempt=1){
   try{
     await fbFns().setDoc(fbFns().doc(fbDb(),'users',user.uid), {
       ..._userProfileData,
@@ -226,7 +208,12 @@ async function saveUserProfileToCloud(user){
     });
     console.log('[Perfil] Sincronizado com a nuvem ✓');
   } catch(e){
-    console.warn('[Perfil] Falha no retry de sync:', e);
+    console.warn(`[Perfil] Falha no sync (tentativa ${attempt}):`, e.message);
+    // Tenta novamente com backoff: 5s, 15s, 30s
+    if(attempt < 4){
+      const delay = [5000, 15000, 30000][attempt - 1];
+      setTimeout(() => saveUserProfileToCloud(user, attempt + 1), delay);
+    }
   }
 }
 
