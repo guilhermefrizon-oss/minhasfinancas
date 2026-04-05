@@ -4,4 +4,5 @@
 document.addEventListener('DOMContentLoaded', () => {
   initIcons();
   initMoneyFields();
+  initSettings();
 });

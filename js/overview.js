@@ -119,6 +119,8 @@ function renderDonutChart(cm, desp){
 function renderOverview(){
   // Empty state — esconde gráficos se não há dados
   if (typeof renderEmptyState === 'function') renderEmptyState();
+  // Alertas de meta por categoria
+  if (typeof renderBudgetAlerts === 'function') renderBudgetAlerts();
   // Anima saudação e quick bar ao carregar overview
   ['overview-greeting','cur-month-block'].forEach((id,i)=>{
     const el=document.getElementById(id);

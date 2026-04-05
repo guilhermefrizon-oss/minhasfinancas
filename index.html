@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="css/modals.css">
   <link rel="stylesheet" href="css/search.css">
   <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/settings.css">
 
   <!-- Chart.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -143,6 +144,12 @@
       <path d="M9 17.5a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
     </svg>
   </button>
+  <!-- Botão configurações (☰) -->
+  <button onclick="openSettings()" title="Configurações" class="header-menu-btn">
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+      <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  </button>
   <!-- Perfil (desktop) -->
   <button onclick="toggleUserMenu()" id="profile-header-btn" style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;cursor:pointer;font-family:var(--font);transition:all .15s">
     <div id="header-profile-avatar" style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0"></div>
@@ -239,6 +246,9 @@
     </div>
     <div id="overview-greeting-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0;background:rgba(123,140,255,.15);color:var(--purple)"></div>
   </div>
+
+  <!-- ALERTAS DE META -->
+  <div id="budget-alerts"></div>
 
   <!-- DESTAQUE MÊS ATUAL -->
   <div class="cur-month-block" id="cur-month-block">
@@ -961,6 +971,153 @@
 <script src="js/init.js"></script>
 <script src="js/search.js"></script>
 <script src="js/onboarding.js"></script>
+<script src="js/settings.js"></script>
+
+<!-- ══════ SETTINGS OVERLAY ══════ -->
+<div id="settings-overlay"></div>
+
+<!-- ══════ SETTINGS DRAWER ══════ -->
+<div id="settings-drawer">
+  <div class="sd-header">
+    <span class="sd-title">Configurações</span>
+    <button class="sd-close" onclick="closeSettings()">✕</button>
+  </div>
+  <div class="sd-body">
+
+    <div class="sd-section-label">Conta</div>
+    <button class="sd-item" onclick="openProfileSettings()">
+      <div class="sd-item-icon" style="background:rgba(123,140,255,.12)">👤</div>
+      <div class="sd-item-text">
+        <div class="sd-item-label">Perfil</div>
+        <div class="sd-item-desc">Nome, email e senha</div>
+      </div>
+      <span class="sd-item-arrow">›</span>
+    </button>
+
+    <div class="sd-divider"></div>
+    <div class="sd-section-label">Finanças</div>
+    <button class="sd-item" onclick="openBudgetSettings()">
+      <div class="sd-item-icon" style="background:rgba(52,210,122,.12)">🎯</div>
+      <div class="sd-item-text">
+        <div class="sd-item-label">Metas por categoria</div>
+        <div class="sd-item-desc">Limite de gastos mensais</div>
+      </div>
+      <span class="sd-item-arrow">›</span>
+    </button>
+
+    <div class="sd-divider"></div>
+    <div class="sd-section-label">Dados</div>
+    <button class="sd-item" onclick="openDataSettings()">
+      <div class="sd-item-icon" style="background:rgba(56,189,248,.12)">📦</div>
+      <div class="sd-item-text">
+        <div class="sd-item-label">Exportar & Backup</div>
+        <div class="sd-item-desc">CSV, backup e limpar dados</div>
+      </div>
+      <span class="sd-item-arrow">›</span>
+    </button>
+
+    <div class="sd-divider"></div>
+    <button class="sd-item danger" onclick="closeSettings();setTimeout(deleteAccount,200)">
+      <div class="sd-item-icon" style="background:var(--red-bg)">🗑️</div>
+      <div class="sd-item-text">
+        <div class="sd-item-label">Excluir conta</div>
+        <div class="sd-item-desc">Remove todos os dados permanentemente</div>
+      </div>
+    </button>
+
+  </div>
+</div>
+
+<!-- ══════ TELA: PERFIL ══════ -->
+<div id="screen-profile" class="settings-screen">
+  <div class="ss-topbar">
+    <button class="ss-back" onclick="closeSettingsScreen('screen-profile')">←</button>
+    <div class="ss-screen-title">Perfil</div>
+    <button id="ps-save-btn" onclick="saveProfileSettings()" style="background:none;border:none;color:var(--purple);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:4px 8px">Salvar</button>
+  </div>
+  <div class="ss-body">
+    <div class="ss-field">
+      <div class="ss-field-row" style="cursor:default">
+        <span class="ss-field-label">Nome</span>
+      </div>
+      <div style="padding:.75rem 1.1rem;border-bottom:1px solid var(--border)">
+        <input type="text" id="ps-name" placeholder="Seu nome completo"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none">
+      </div>
+      <div class="ss-field-row" style="cursor:default">
+        <span class="ss-field-label">Email</span>
+      </div>
+      <div style="padding:.75rem 1.1rem">
+        <input type="email" id="ps-email" disabled
+          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text3);font-family:var(--font);font-size:14px;outline:none;cursor:not-allowed">
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">O email não pode ser alterado.</div>
+      </div>
+    </div>
+
+    <button class="ss-btn ss-btn-secondary" onclick="openChangePassword()" style="margin-top:4px">
+      🔒 Alterar senha
+    </button>
+
+    <div id="ps-pass-wrap" style="display:none;margin-bottom:12px">
+      <div class="ss-field">
+        <div style="padding:.75rem 1.1rem;border-bottom:1px solid var(--border)">
+          <input type="password" id="ps-new-pass" placeholder="Nova senha (mín. 6 caracteres)"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none">
+        </div>
+        <div style="padding:.75rem 1.1rem">
+          <input type="password" id="ps-new-pass2" placeholder="Confirmar nova senha"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none">
+        </div>
+      </div>
+      <button class="ss-btn ss-btn-primary" onclick="saveNewPassword()">Confirmar nova senha</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TELA: METAS ══════ -->
+<div id="screen-budget" class="settings-screen">
+  <div class="ss-topbar">
+    <button class="ss-back" onclick="closeSettingsScreen('screen-budget')">←</button>
+    <div class="ss-screen-title">Metas por categoria</div>
+    <button onclick="saveBudgetSettings()" style="background:none;border:none;color:var(--purple);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:4px 8px">Salvar</button>
+  </div>
+  <div class="ss-body">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.5">
+      Defina um limite mensal por categoria. Você será avisado ao atingir 80% e 100% da meta.
+    </div>
+    <div class="ss-field" id="budget-list"></div>
+  </div>
+</div>
+
+<!-- ══════ TELA: DADOS ══════ -->
+<div id="screen-data" class="settings-screen">
+  <div class="ss-topbar">
+    <button class="ss-back" onclick="closeSettingsScreen('screen-data')">←</button>
+    <div class="ss-screen-title">Exportar & Backup</div>
+  </div>
+  <div class="ss-body">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5">
+      Exporte ou faça backup dos seus dados a qualquer momento.
+    </div>
+
+    <button class="ss-btn ss-btn-primary" onclick="exportCSV()">
+      📊 Exportar como CSV (Excel)
+    </button>
+    <button class="ss-btn ss-btn-secondary" onclick="backupJSON()">
+      💾 Fazer backup completo (JSON)
+    </button>
+
+    <div style="height:1px;background:var(--border);margin:1.25rem 0"></div>
+
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">Zona de perigo</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem;line-height:1.5">
+      Apagar todos os lançamentos remove permanentemente todas as despesas e receitas.
+    </div>
+    <button class="ss-btn ss-btn-danger" onclick="clearAllData()">
+      🗑️ Apagar todos os lançamentos
+    </button>
+  </div>
+</div>
 
 <!-- ══════ ONBOARDING OVERLAY ══════ -->
 <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(8,7,24,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:1.5rem;transition:opacity .35s">
