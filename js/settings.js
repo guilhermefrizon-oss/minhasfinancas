@@ -3,8 +3,6 @@
    Drawer + telas: Perfil, Metas, Dados
    ══════════════════════════════════════════════ */
 
-const BUDGET_KEY = 'mg_budgets';
-
 /* ── Drawer ── */
 function openSettings() {
   document.getElementById('settings-overlay').classList.add('open');
@@ -113,95 +111,6 @@ async function deleteAccount() {
       }
     }
   });
-}
-
-/* ══════ METAS POR CATEGORIA ══════ */
-function loadBudgets() {
-  try { return JSON.parse(localStorage.getItem(BUDGET_KEY) || '{}'); }
-  catch(_) { return {}; }
-}
-function saveBudgets(b) {
-  localStorage.setItem(BUDGET_KEY, JSON.stringify(b));
-}
-
-function openBudgetSettings() {
-  const budgets = loadBudgets();
-  const cats = Object.keys(CAT_COLORS);
-  document.getElementById('budget-list').innerHTML = cats.map(cat => {
-    const col = CAT_COLORS[cat] || '#9896c0';
-    const val = budgets[cat] ? (budgets[cat]/100).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '';
-    return `
-    <div class="budget-cat-row">
-      <div class="budget-cat-dot" style="background:${col}"></div>
-      <div class="budget-cat-name">${cat}</div>
-      <input class="budget-cat-input" type="text" inputmode="numeric"
-        data-cat="${cat}" placeholder="Sem meta"
-        value="${val ? 'R$ '+val : ''}"
-        onfocus="this.select()"
-      >
-    </div>`;
-  }).join('');
-
-  // Aplica máscara nos inputs
-  document.querySelectorAll('.budget-cat-input').forEach(inp => applyMoneyMask(inp));
-  openSettingsScreen('screen-budget');
-}
-
-function saveBudgetSettings() {
-  const budgets = {};
-  document.querySelectorAll('.budget-cat-input').forEach(inp => {
-    const cat = inp.dataset.cat;
-    const raw = inp.value.replace(/\D/g, '');
-    if (raw && parseInt(raw) > 0) budgets[cat] = parseInt(raw); // armazena em centavos
-  });
-  saveBudgets(budgets);
-  // Sincroniza com Firestore
-  const user = window._fbUser;
-  if (user) {
-    fbFns().setDoc(fbFns().doc(fbDb(), 'users', user.uid), { budgets }, { merge: true }).catch(()=>{});
-  }
-  showToast('✅ Metas salvas!');
-  closeSettingsScreen('screen-budget');
-  renderOverview(); // re-renderiza para mostrar alertas
-}
-
-/* Verifica metas e retorna avisos para a overview */
-function checkBudgetAlerts() {
-  const budgets = loadBudgets();
-  if (!Object.keys(budgets).length) return [];
-
-  const now = new Date();
-  const cm = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const alerts = [];
-
-  Object.entries(budgets).forEach(([cat, limitCents]) => {
-    const spent = DATA.despesas
-      .filter(d => d.mes === cm && (d.cat||'Outros').split(' · ')[0] === cat)
-      .reduce((s, d) => s + (d.val||0), 0);
-    const limitVal = limitCents / 100;
-    const pct = limitVal > 0 ? (spent / limitVal) * 100 : 0;
-    if (pct >= 80) {
-      alerts.push({ cat, spent, limit: limitVal, pct: Math.round(pct), exceeded: pct >= 100 });
-    }
-  });
-  return alerts.sort((a,b) => b.pct - a.pct);
-}
-
-function renderBudgetAlerts() {
-  const container = document.getElementById('budget-alerts');
-  if (!container) return;
-  const alerts = checkBudgetAlerts();
-  if (!alerts.length) { container.innerHTML = ''; return; }
-  container.innerHTML = alerts.map(a => `
-    <div class="budget-warning${a.exceeded?' budget-exceeded':''}">
-      <span>${a.exceeded ? '🚨' : '⚠️'}</span>
-      <span>
-        <strong>${a.cat}:</strong>
-        ${a.exceeded
-          ? `Meta ultrapassada! Gasto: ${fmt(a.spent)} / Meta: ${fmt(a.limit)}`
-          : `${a.pct}% da meta — Gasto: ${fmt(a.spent)} / Meta: ${fmt(a.limit)}`}
-      </span>
-    </div>`).join('');
 }
 
 /* ══════ DADOS ══════ */

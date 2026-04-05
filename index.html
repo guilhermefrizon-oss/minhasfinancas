@@ -247,9 +247,6 @@
     <div id="overview-greeting-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0;background:rgba(123,140,255,.15);color:var(--purple)"></div>
   </div>
 
-  <!-- ALERTAS DE META -->
-  <div id="budget-alerts"></div>
-
   <!-- DESTAQUE MÊS ATUAL -->
   <div class="cur-month-block" id="cur-month-block">
     <div class="cur-month-header">
@@ -904,10 +901,13 @@
     </div>
   </div>
 
-  <!-- Sair -->
-  <div style="padding:1.5rem 1.25rem">
+  <!-- Sair / Excluir conta -->
+  <div style="padding:1.5rem 1.25rem;display:flex;flex-direction:column;gap:10px">
     <button onclick="doLogout()" style="width:100%;padding:13px;background:var(--red-bg);border:1px solid rgba(240,96,96,.25);border-radius:var(--radius-sm);color:var(--red);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s">
       Sair da conta
+    </button>
+    <button onclick="deleteAccount()" style="width:100%;padding:13px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
+      Excluir conta permanentemente
     </button>
   </div>
 </div>
@@ -985,22 +985,11 @@
   <div class="sd-body">
 
     <div class="sd-section-label">Conta</div>
-    <button class="sd-item" onclick="openProfileSettings()">
+    <button class="sd-item" onclick="closeSettings();openUserProfile()">
       <div class="sd-item-icon" style="background:rgba(123,140,255,.12)">👤</div>
       <div class="sd-item-text">
         <div class="sd-item-label">Perfil</div>
         <div class="sd-item-desc">Nome, email e senha</div>
-      </div>
-      <span class="sd-item-arrow">›</span>
-    </button>
-
-    <div class="sd-divider"></div>
-    <div class="sd-section-label">Finanças</div>
-    <button class="sd-item" onclick="openBudgetSettings()">
-      <div class="sd-item-icon" style="background:rgba(52,210,122,.12)">🎯</div>
-      <div class="sd-item-text">
-        <div class="sd-item-label">Metas por categoria</div>
-        <div class="sd-item-desc">Limite de gastos mensais</div>
       </div>
       <span class="sd-item-arrow">›</span>
     </button>
@@ -1025,67 +1014,6 @@
       </div>
     </button>
 
-  </div>
-</div>
-
-<!-- ══════ TELA: PERFIL ══════ -->
-<div id="screen-profile" class="settings-screen">
-  <div class="ss-topbar">
-    <button class="ss-back" onclick="closeSettingsScreen('screen-profile')">←</button>
-    <div class="ss-screen-title">Perfil</div>
-    <button id="ps-save-btn" onclick="saveProfileSettings()" style="background:none;border:none;color:var(--purple);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:4px 8px">Salvar</button>
-  </div>
-  <div class="ss-body">
-    <div class="ss-field">
-      <div class="ss-field-row" style="cursor:default">
-        <span class="ss-field-label">Nome</span>
-      </div>
-      <div style="padding:.75rem 1.1rem;border-bottom:1px solid var(--border)">
-        <input type="text" id="ps-name" placeholder="Seu nome completo"
-          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none">
-      </div>
-      <div class="ss-field-row" style="cursor:default">
-        <span class="ss-field-label">Email</span>
-      </div>
-      <div style="padding:.75rem 1.1rem">
-        <input type="email" id="ps-email" disabled
-          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text3);font-family:var(--font);font-size:14px;outline:none;cursor:not-allowed">
-        <div style="font-size:11px;color:var(--text3);margin-top:6px">O email não pode ser alterado.</div>
-      </div>
-    </div>
-
-    <button class="ss-btn ss-btn-secondary" onclick="openChangePassword()" style="margin-top:4px">
-      🔒 Alterar senha
-    </button>
-
-    <div id="ps-pass-wrap" style="display:none;margin-bottom:12px">
-      <div class="ss-field">
-        <div style="padding:.75rem 1.1rem;border-bottom:1px solid var(--border)">
-          <input type="password" id="ps-new-pass" placeholder="Nova senha (mín. 6 caracteres)"
-            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none">
-        </div>
-        <div style="padding:.75rem 1.1rem">
-          <input type="password" id="ps-new-pass2" placeholder="Confirmar nova senha"
-            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none">
-        </div>
-      </div>
-      <button class="ss-btn ss-btn-primary" onclick="saveNewPassword()">Confirmar nova senha</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════ TELA: METAS ══════ -->
-<div id="screen-budget" class="settings-screen">
-  <div class="ss-topbar">
-    <button class="ss-back" onclick="closeSettingsScreen('screen-budget')">←</button>
-    <div class="ss-screen-title">Metas por categoria</div>
-    <button onclick="saveBudgetSettings()" style="background:none;border:none;color:var(--purple);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:4px 8px">Salvar</button>
-  </div>
-  <div class="ss-body">
-    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.5">
-      Defina um limite mensal por categoria. Você será avisado ao atingir 80% e 100% da meta.
-    </div>
-    <div class="ss-field" id="budget-list"></div>
   </div>
 </div>
 
