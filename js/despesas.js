@@ -257,8 +257,7 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
     <div class="card anim-fade-up anim-d1"><div class="card-stripe" style="background:var(--red)"></div><div class="card-label">Total</div><div class="card-value red">${fmt(total)}</div></div>
     <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">A pagar</div><div class="card-value ${aPagar>0?'amber':''}">${fmt(aPagar)}</div></div>
     <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Pago</div><div class="card-value green">${fmt(pago)}</div></div>`;
-  document.getElementById('desp-title').textContent=`Despesas — ${mesLabel(m)}`;
-  document.getElementById('desp-total-badge').textContent=fmt(total);
+  // título e badge removidos (info já aparece nos cards acima)
   const bc={Pago:'pago','Falta Pagar':'falta','Débito auto':'auto'};
   const today=new Date();today.setHours(0,0,0,0);
   function vencBadge(d){

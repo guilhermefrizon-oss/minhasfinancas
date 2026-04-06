@@ -57,8 +57,7 @@ function renderRecTable(){
     <div class="card anim-fade-up anim-d1"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Recebido</div><div class="card-value green">${fmt(totalRecebido)}</div></div>
     <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">Aguardando</div><div class="card-value ${totalAguardando>0?'amber':''}">${fmt(totalAguardando)}</div></div>
     <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--purple)"></div><div class="card-label">Total</div><div class="card-value purple">${fmt(totalRec)}</div></div>`;
-  document.getElementById('rec-table-title').textContent=`Receitas — ${mesLabel(m)}`;
-  document.getElementById('rec-total-badge').textContent=fmt(totalRecebido)+(totalAguardando>0?` + ${fmt(totalAguardando)} aguardando`:'');
+  // título e badge removidos (info já aparece nos cards acima)
   const recRows = items.length
     ?items.map((r,ri)=>{const aguard=(r.status||'Recebido')==='Aguardando';const rd=`anim-d${Math.min(ri+1,10)}`;return`<tr class="tr-anim ${rd}" style="${aguard?'background:rgba(245,197,66,0.03)':''}">
         <td><div class="entry-name">${r.nome}</div>${r.cat?`<div class="entry-cat">${r.cat}</div>`:''}</td>
