@@ -159,6 +159,15 @@ function mobDespCard(d){
   const toggleIcon=isPago?'✓':'○';
   const toggleTitle=isPago?'Pago':'Marcar como pago';
 
+  // Meta line: pagamento + vencimento — sempre na segunda linha, sem quebrar
+  const metaParts = [
+    d.pag || null,
+    vencStr || null
+  ].filter(Boolean);
+  const metaLine = metaParts.length
+    ? `<div class="mob-card-meta">${metaParts.join('<span class="mob-meta-sep">·</span>')}</div>`
+    : '';
+
   return `<div class="swipe-wrapper${isPago?' mob-card-pago':''}" data-id="${d.id}">
     <div class="swipe-delete-bg">🗑</div>
     <div class="mob-card-inner">
@@ -166,11 +175,10 @@ function mobDespCard(d){
       <div class="mob-card-icon">${itemIcon(d.nome,d.icon)}</div>
       <div class="mob-card-main">
         <div class="mob-card-name">${d.nome}</div>
-        <div class="mob-card-sub">
-          <span style="background:${catCol}1a;color:${catCol};padding:1px 8px;border-radius:6px;font-weight:600;font-size:10px;opacity:.8">${catLabel(d.cat)}</span>
-          ${d.pag?`<span>·</span><span>${d.pag}</span>`:''}
-          ${vencStr?`<span>·</span>${vencStr}`:''}
+        <div class="mob-card-row1">
+          <span class="mob-cat-badge" style="background:${catCol}18;color:${catCol}">${catLabel(d.cat)}</span>
         </div>
+        ${metaLine}
       </div>
       <div class="mob-card-right">
         <span class="mob-card-val" style="color:${isPago?'var(--text3)':d.val>0?'var(--text)':'var(--text3)'}">${d.val>0?fmt(d.val):'—'}</span>
@@ -244,15 +252,11 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
   });
   const total=items.reduce((s,d)=>s+(d.val||0),0);
   const pago=items.filter(d=>d.status==='Pago').reduce((s,d)=>s+(d.val||0),0);
-  const falta=items.filter(d=>d.status==='Falta Pagar').reduce((s,d)=>s+(d.val||0),0);
-  const today7=new Date();today7.setHours(0,0,0,0);
-  const em7dias=new Date(today7);em7dias.setDate(em7dias.getDate()+7);
-  const aVencer=items.filter(d=>d.status!=='Pago'&&d.venc&&(()=>{const dv=new Date(d.venc+'T00:00:00');return dv>=today7&&dv<=em7dias;})()).reduce((s,d)=>s+(d.val||0),0);
+  const aPagar=items.filter(d=>d.status==='Falta Pagar'||d.status==='Débito auto').reduce((s,d)=>s+(d.val||0),0);
   document.getElementById('cards-desp').innerHTML=`
     <div class="card anim-fade-up anim-d1"><div class="card-stripe" style="background:var(--red)"></div><div class="card-label">Total</div><div class="card-value red">${fmt(total)}</div></div>
-    <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Pago</div><div class="card-value green">${fmt(pago)}</div></div>
-    <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">Falta pagar</div><div class="card-value ${falta>0?'amber':''}">${fmt(falta)}</div></div>
-    <div class="card anim-fade-up anim-d4"><div class="card-stripe" style="background:var(--purple)"></div><div class="card-label">A vencer (7d)</div><div class="card-value ${aVencer>0?'purple':''}">${aVencer>0?fmt(aVencer):'R$ 0,00'}</div></div>`;
+    <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">A pagar</div><div class="card-value ${aPagar>0?'amber':''}">${fmt(aPagar)}</div></div>
+    <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Pago</div><div class="card-value green">${fmt(pago)}</div></div>`;
   document.getElementById('desp-title').textContent=`Despesas — ${mesLabel(m)}`;
   document.getElementById('desp-total-badge').textContent=fmt(total);
   const bc={Pago:'pago','Falta Pagar':'falta','Débito auto':'auto'};
