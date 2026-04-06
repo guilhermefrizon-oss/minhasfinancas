@@ -681,3 +681,49 @@ body.light .table-box { background: #f0eef8; }
   display: flex;
   animation: fadeUp .3s ease both;
 }
+
+/* ══════ DONUT CHART — layout responsivo ══════ */
+
+/* Desktop: lado a lado */
+.donut-layout {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.donut-chart-wrap {
+  position: relative;
+  width: 180px; height: 180px;
+  flex-shrink: 0;
+}
+.donut-legend-list {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Mobile: donut em cima, lista embaixo */
+@media (max-width: 767px) {
+  .donut-layout {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .donut-chart-wrap {
+    width: 160px; height: 160px;
+    margin: 0 auto;
+  }
+  .donut-legend-list {
+    gap: 0;
+    min-width: unset;
+  }
+  /* Remove borda do último item */
+  .donut-legend-list > div:last-child {
+    border-bottom: none !important;
+  }
+  /* Valor em destaque no mobile */
+  #donut-center-val {
+    font-size: 16px !important;
+  }
+}

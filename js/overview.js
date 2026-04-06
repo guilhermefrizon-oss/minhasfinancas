@@ -91,12 +91,23 @@ function renderDonutChart(cm, desp){
     }
   });
 
-  // Lista lateral com barras de progresso
+  // Lista — barras no desktop, linhas simples no mobile
   const listEl = document.getElementById('donut-legend-list');
   if(listEl){
+    const isMobile = window.innerWidth < 768;
     listEl.innerHTML = sorted.map(([cat,val])=>{
       const pct = Math.round(val/total*100);
       const col = catColor(cat);
+      if(isMobile){
+        // Mobile: linha simples — dot | nome | valor | %
+        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+          <div style="width:9px;height:9px;border-radius:3px;flex-shrink:0;background:${col}"></div>
+          <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${cat}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--text);flex-shrink:0">${fmt(val)}</span>
+          <span style="font-size:11px;color:var(--text3);min-width:32px;text-align:right;flex-shrink:0">${pct}%</span>
+        </div>`;
+      }
+      // Desktop: com barra de progresso
       return `<div style="display:flex;flex-direction:column;gap:3px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
           <div style="display:flex;align-items:center;gap:6px;min-width:0">
