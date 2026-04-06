@@ -343,9 +343,10 @@ function saveEdit(){
   const newStatus=document.getElementById('edit-status').value;
   const newVenc=document.getElementById('edit-venc').value||null;
   const editValRaw = document.getElementById('edit-valor').value;
-  const nv=parseFloat(editValRaw);
-  if(editValRaw !== '' && (isNaN(nv) || nv < 0)){ fieldError('edit-valor','Valor inválido'); return; }
-  const newVal=!isNaN(nv)&&nv>0?nv:(editValRaw===''?null:undefined);
+  const nv = readMoneyField('edit-valor');
+  const isEmpty = editValRaw.trim() === '';
+  if(!isEmpty && (nv === null || nv < 0)){ fieldError('edit-valor','Valor inválido'); return; }
+  const newVal = isEmpty ? null : (nv > 0 ? nv : undefined);
   const scope=document.querySelector('input[name="venc-scope"]:checked')?.value||'only';
   const newNome=document.getElementById('edit-nome').value.trim()||null;
   const newIcon=selectedIconEdit||null;
