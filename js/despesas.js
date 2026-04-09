@@ -1,3 +1,54 @@
+/* ── Tipo da despesa ── */
+const CATS_FIXAS_DEFAULT = ['Moradia','Gastos Fixos','Transporte','Streaming','Financeiro','Saúde'];
+function guessTipo(cat){
+  const main = (cat||'').split(' · ')[0];
+  return CATS_FIXAS_DEFAULT.includes(main) ? 'fixa' : 'variavel';
+}
+
+/* ── Painel de ordenação mobile ── */
+const SORT_OPTIONS = [
+  { key:'venc',   label:'Vencimento',  icon:'📅' },
+  { key:'val',    label:'Valor',       icon:'💰' },
+  { key:'nome',   label:'Nome',        icon:'🔤' },
+  { key:'cat',    label:'Categoria',   icon:'🏷️' },
+  { key:'status', label:'Status',      icon:'✅' },
+  { key:'tipo',   label:'Tipo (Fixa/Variável)', icon:'📌' },
+];
+
+function openSortPanel(){
+  const overlay = document.getElementById('sort-panel-overlay');
+  const panel   = document.getElementById('sort-panel');
+  if(!overlay||!panel) return;
+  // Monta opções
+  document.getElementById('sort-options').innerHTML = SORT_OPTIONS.map(o => {
+    const active = despSortKey === o.key;
+    const dir = active ? (despSortDir === 1 ? ' ↑' : ' ↓') : '';
+    return `<button onclick="applySortMobile('${o.key}')"
+      style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid ${active?'var(--purple)':'var(--border)'};background:${active?'rgba(123,140,255,.08)':'var(--surface2)'};font-family:var(--font);font-size:14px;font-weight:${active?700:500};color:${active?'var(--purple)':'var(--text)'};cursor:pointer;text-align:left;width:100%;transition:all .15s">
+      <span style="font-size:16px">${o.icon}</span>
+      <span style="flex:1">${o.label}</span>
+      <span style="font-size:12px;color:var(--text3)">${dir}</span>
+    </button>`;
+  }).join('');
+  overlay.style.display = 'block';
+  panel.style.display = 'block';
+  requestAnimationFrame(()=>{ panel.style.transform = 'translateY(0)'; });
+}
+
+function closeSortPanel(){
+  const panel = document.getElementById('sort-panel');
+  if(panel){ panel.style.transform='translateY(100%)'; setTimeout(()=>{ panel.style.display='none'; document.getElementById('sort-panel-overlay').style.display='none'; },300); }
+}
+
+function applySortMobile(key){
+  sortDesp(key);
+  // Atualiza label do botão
+  const opt = SORT_OPTIONS.find(o=>o.key===key);
+  const lbl = document.getElementById('sort-label-mobile');
+  if(lbl && opt) lbl.textContent = opt.label + (despSortDir===1?' ↑':' ↓');
+  closeSortPanel();
+}
+
 /* ══════ DESPESAS ══════ */
 /* FIX 2: Ordenação */
 let despSortKey='venc', despSortDir=1;
@@ -177,6 +228,7 @@ function mobDespCard(d){
         <div class="mob-card-name">${d.nome}</div>
         <div class="mob-card-row1">
           <span class="mob-cat-badge" style="background:${catCol}18;color:${catCol}">${catLabel(d.cat)}</span>
+          ${(()=>{const t=d.tipo||guessTipo(d.cat);return `<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:${t==='fixa'?'rgba(123,140,255,.12)':'rgba(56,189,248,.12)'};color:${t==='fixa'?'var(--purple)':'var(--blue)'}">${t==='fixa'?'Fixa':'Variável'}</span>`;})()}
         </div>
         ${metaLine}
       </div>
@@ -248,6 +300,7 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
     if(despSortKey==='val'){return despSortDir*((b.val||0)-(a.val||0));}
     if(despSortKey==='venc'){va=a.venc||'9999';vb=b.venc||'9999';return despSortDir*(va<vb?-1:va>vb?1:0);}
     if(despSortKey==='status'){va=a.status||'';vb=b.status||'';return despSortDir*(va<vb?-1:va>vb?1:0);}
+    if(despSortKey==='tipo'){va=(a.tipo||guessTipo(a.cat));vb=(b.tipo||guessTipo(b.cat));return despSortDir*(va<vb?-1:va>vb?1:0);}
     return 0;
   });
   const total=items.reduce((s,d)=>s+(d.val||0),0);
@@ -272,8 +325,8 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
   }
   const valCell=d=>d.val>0?`<span style="font-weight:700">${fmt(d.val)}</span>`:`<button class="edit-btn" onclick="openModal(${d.id})">+ Valor</button>`;
   const CATS_FIXAS = ['Moradia','Gastos Fixos','Transporte','Streaming','Financeiro','Saúde'];
-  const fixas = items.filter(d=>CATS_FIXAS.includes((d.cat||'').split(' · ')[0]));
-  const variaveis = items.filter(d=>!CATS_FIXAS.includes((d.cat||'').split(' · ')[0]));
+  const fixas = items.filter(d=>(d.tipo||guessTipo(d.cat))==='fixa');
+  const variaveis = items.filter(d=>(d.tipo||guessTipo(d.cat))==='variavel');
   let _rowIdx=0;
   function rowHtml(d){
     const di=_rowIdx++;const dc=`anim-d${Math.min(di+1,10)}`;
@@ -331,6 +384,7 @@ function openModal(id){
   document.getElementById('edit-name-hint').textContent='Alterar o nome atualizará só este lançamento.';
   document.getElementById('edit-icon-preview').innerHTML=ICONS[selectedIconEdit]||DEFAULT_ICON;
   document.getElementById('edit-status').value=d.status||'Falta Pagar';
+  if(document.getElementById('edit-tipo')) document.getElementById('edit-tipo').value=d.tipo||guessTipo(d.cat);
   document.getElementById('edit-venc').value=d.venc||'';
   document.getElementById('edit-valor').value=d.val>0?d.val:'';
   document.getElementById('edit-venc-scope-wrap').style.display='none';
@@ -353,10 +407,12 @@ function saveEdit(){
   const scope=document.querySelector('input[name="venc-scope"]:checked')?.value||'only';
   const newNome=document.getElementById('edit-nome').value.trim()||null;
   const newIcon=selectedIconEdit||null;
+  const editTipo = document.getElementById('edit-tipo');
   if(editingBulkName){
     const oldName=editingBulkName;
     DATA.despesas.filter(d=>d.nome===oldName).forEach(d=>{
       d.status=newStatus;
+      if(editTipo) d.tipo=editTipo.value;
       if(newVal!==undefined)d.val=newVal;
       if(newNome)d.nome=newNome;
       if(newIcon)d.icon=newIcon;
@@ -366,6 +422,7 @@ function saveEdit(){
   } else {
     const d=DATA.despesas.find(x=>x.id===editingId);if(!d)return;
     d.status=newStatus;
+    if(editTipo) d.tipo=editTipo.value;
     if(newVal!==undefined)d.val=newVal;
     if(newNome)d.nome=newNome;
     if(newIcon)d.icon=newIcon;
