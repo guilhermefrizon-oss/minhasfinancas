@@ -727,3 +727,9 @@ body.light .table-box { background: #f0eef8; }
     font-size: 16px !important;
   }
 }
+
+/* Botão ordenar — só mobile */
+#desp-sort-btn { display: none; }
+@media (max-width: 767px) {
+  #desp-sort-btn { display: flex !important; }
+}

@@ -388,6 +388,11 @@
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.5"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           <input type="text" id="desp-search" placeholder="Buscar despesa..." oninput="renderDespTable()" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'">
         </div>
+        <!-- Ordenar: visível só no mobile -->
+        <button onclick="openSortPanel()" id="desp-sort-btn" style="display:none;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span id="sort-label-mobile">Ordenar</span>
+        </button>
       </div>
     </div>
     <div class="table-scroll">
@@ -404,20 +409,6 @@
         </thead>
         <tbody id="desp-tbody"></tbody>
       </table>
-    </div>
-    <!-- Ordenação mobile -->
-    <div id="desp-sort-bar" style="display:flex;align-items:center;justify-content:flex-end;padding:.5rem 0 .25rem">
-      <button onclick="openSortPanel()" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        <span id="sort-label-mobile">Ordenar</span>
-      </button>
-    </div>
-    <!-- Ordenação mobile -->
-    <div id="desp-sort-bar" style="display:flex;align-items:center;justify-content:flex-end;padding:.5rem 0 .25rem">
-      <button onclick="openSortPanel()" style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        <span id="sort-label-mobile">Ordenar</span>
-      </button>
     </div>
     <div class="mobile-card-list" id="desp-mobile-list"></div>
   </div>

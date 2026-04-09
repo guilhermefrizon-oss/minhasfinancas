@@ -228,7 +228,6 @@ function mobDespCard(d){
         <div class="mob-card-name">${d.nome}</div>
         <div class="mob-card-row1">
           <span class="mob-cat-badge" style="background:${catCol}18;color:${catCol}">${catLabel(d.cat)}</span>
-          ${(()=>{const t=d.tipo||guessTipo(d.cat);return `<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:${t==='fixa'?'rgba(123,140,255,.12)':'rgba(56,189,248,.12)'};color:${t==='fixa'?'var(--purple)':'var(--blue)'}">${t==='fixa'?'Fixa':'Variável'}</span>`;})()}
         </div>
         ${metaLine}
       </div>
