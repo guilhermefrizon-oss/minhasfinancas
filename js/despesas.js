@@ -279,11 +279,12 @@ function mobRecCard(r, ri){
   const barCol=aguard?'var(--amber)':'var(--green)';
   const toggleClass=aguard?'':'pago';
   const toggleIcon=aguard?'○':'✓';
-  const toggleTitle=aguard?'Marcar como recebido':'Recebido — clique para editar';
+  const toggleTitle=aguard?'Marcar como recebido':'Recebido';
   const catCol='var(--green)';
+  const sid=mieId(r.id);
   return `<div class="swipe-wrapper" data-rec-id="${r.id}">
     <div class="swipe-delete-bg">🗑</div>
-    <div class="mob-card-inner">
+    <div class="mob-card-inner" onclick="toggleInlineEditRec(${r.id},event)">
       <div class="mob-status-bar" style="background:${barCol}"></div>
       <div class="mob-card-main" style="padding-left:4px">
         <div class="mob-card-name">${r.nome}</div>
@@ -294,9 +295,28 @@ function mobRecCard(r, ri){
       <div class="mob-card-right">
         <span class="mob-card-val" style="color:${aguard?'var(--amber)':'var(--green)'}">${r.val>0?fmt(r.val):'—'}</span>
         <div class="mob-card-actions">
-          <button class="mob-edit-btn" onclick="openRecModal(${r.id})" title="Editar">✏️</button>
-          <button class="mob-toggle-btn ${toggleClass}" onclick="toggleRecStatus(${r.id})" title="${toggleTitle}">${toggleIcon}</button>
+          <button class="mob-toggle-btn ${toggleClass}" onclick="event.stopPropagation();toggleRecStatus(${r.id})" title="${toggleTitle}">${toggleIcon}</button>
         </div>
+      </div>
+    </div>
+    <div class="mob-inline-edit" id="rec-inline-edit-${sid}" style="display:none">
+      <div class="mie-body">
+        <div class="mie-field">
+          <div class="mie-lbl">Valor</div>
+          <input class="mie-input mie-val" type="text" inputmode="numeric" placeholder="R$ 0,00" value="${r.val>0?r.val:''}" id="mie-rec-valor-${sid}" autocomplete="off" onclick="event.stopPropagation()">
+        </div>
+        <div class="mie-field">
+          <div class="mie-lbl">Status</div>
+          <div class="mie-toggle" id="mie-rec-status-${sid}">
+            <button class="mie-opt${(r.status||'Recebido')==='Recebido'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-rec-status-${sid}',this)">Recebido</button>
+            <button class="mie-opt${(r.status||'Recebido')==='Aguardando'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-rec-status-${sid}',this)">Aguardando</button>
+          </div>
+        </div>
+      </div>
+      <div class="mie-footer">
+        <button class="mie-btn-save" onclick="event.stopPropagation();saveInlineEditRec(${r.id})">Salvar</button>
+        <button class="mie-btn-full" onclick="event.stopPropagation();openRecModal(${r.id})">Editar tudo ›</button>
+        <button class="mie-btn-del" onclick="event.stopPropagation();deleteRecEntry(${r.id})">🗑</button>
       </div>
     </div>
   </div>`;
@@ -306,11 +326,11 @@ function toggleRecStatus(id){
   const r=DATA.receitas.find(x=>x.id===id);
   if(!r)return;
   if((r.status||'Recebido')==='Recebido'){
-    openRecModal(id);
-    return;
+    r.status='Aguardando';
+  } else {
+    r.status='Recebido';
   }
-  r.status='Recebido';
-  saveData();renderReceitas();showToast('✅ Marcado como Recebido!');
+  saveData();renderReceitas();showToast(r.status==='Recebido'?'✅ Marcado como Recebido!':'↩ Marcado como Aguardando');
 }
 
 function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRecorrentesList();
@@ -542,5 +562,52 @@ function saveInlineEdit(id) {
   saveData();
   currentInlineId = null;
   renderDespTable();
+  showToast('Atualizado!');
+}
+
+/* ══ EDIÇÃO INLINE — RECEITAS ══ */
+let currentInlineRecId = null;
+
+function toggleInlineEditRec(id, event) {
+  if (event && event.target.closest('button, select, input')) return;
+  const sid = mieId(id);
+  const panel = document.getElementById('rec-inline-edit-' + sid);
+  if (!panel) return;
+  if (currentInlineRecId && currentInlineRecId !== id) {
+    const prev = document.getElementById('rec-inline-edit-' + mieId(currentInlineRecId));
+    if (prev) { prev.style.display = 'none'; prev.classList.remove('mie-open'); }
+  }
+  const isOpen = panel.style.display !== 'none';
+  if (isOpen) {
+    panel.style.display = 'none';
+    panel.classList.remove('mie-open');
+    currentInlineRecId = null;
+  } else {
+    const r = DATA.receitas.find(x => x.id === id);
+    if (r) {
+      const inp = document.getElementById('mie-rec-valor-' + sid);
+      if (inp) {
+        setMoneyField('mie-rec-valor-' + sid, r.val > 0 ? r.val : null);
+        if (!inp._miemasked) { applyMoneyMask(inp); inp._miemasked = true; }
+      }
+    }
+    panel.style.display = 'block';
+    requestAnimationFrame(() => panel.classList.add('mie-open'));
+    currentInlineRecId = id;
+  }
+}
+
+function saveInlineEditRec(id) {
+  const r = DATA.receitas.find(x => x.id === id);
+  if (!r) return;
+  const sid = mieId(id);
+  const statusGroup = document.getElementById('mie-rec-status-' + sid);
+  const activeStatus = statusGroup ? statusGroup.querySelector('.mie-opt.active') : null;
+  if (activeStatus) r.status = activeStatus.textContent.trim();
+  const newVal = readMoneyField('mie-rec-valor-' + sid);
+  if (newVal !== null) r.val = newVal;
+  saveData();
+  currentInlineRecId = null;
+  renderReceitas();
   showToast('Atualizado!');
 }
