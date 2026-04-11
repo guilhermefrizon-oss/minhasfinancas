@@ -220,6 +220,7 @@ function mobDespCard(d){
     : '';
 
   const pagOpts=['Cartão','Vale Alimentação','PIX','Boleto','Débito automático','Dinheiro'].map(o=>`<option${o===d.pag?' selected':''}>${o}</option>`).join('');
+  const sid=mieId(d.id);
   return `<div class="swipe-wrapper${isPago?' mob-card-pago':''}" data-id="${d.id}">
     <div class="swipe-delete-bg">🗑</div>
     <div class="mob-card-inner" onclick="toggleInlineEdit(${d.id},event)">
@@ -239,28 +240,28 @@ function mobDespCard(d){
         </div>
       </div>
     </div>
-    <div class="mob-inline-edit" id="inline-edit-${d.id}" style="display:none">
+    <div class="mob-inline-edit" id="inline-edit-${sid}" style="display:none">
       <div class="mie-body">
         <div class="mie-field">
           <div class="mie-lbl">Valor</div>
-          <input class="mie-input mie-val" type="text" inputmode="numeric" placeholder="R$ 0,00" value="${d.val>0?d.val:''}" id="mie-valor-${d.id}" autocomplete="off" onclick="event.stopPropagation()">
+          <input class="mie-input mie-val" type="text" inputmode="numeric" placeholder="R$ 0,00" value="${d.val>0?d.val:''}" id="mie-valor-${sid}" autocomplete="off" onclick="event.stopPropagation()">
         </div>
         <div class="mie-field">
           <div class="mie-lbl">Status</div>
-          <div class="mie-toggle" id="mie-status-${d.id}">
-            <button class="mie-opt${d.status==='Pago'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-status-${d.id}',this)">Pago</button>
-            <button class="mie-opt${d.status==='Falta Pagar'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-status-${d.id}',this)">Falta pagar</button>
-            <button class="mie-opt${d.status==='Débito auto'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-status-${d.id}',this)">Débito auto</button>
+          <div class="mie-toggle" id="mie-status-${sid}">
+            <button class="mie-opt${d.status==='Pago'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-status-${sid}',this)">Pago</button>
+            <button class="mie-opt${d.status==='Falta Pagar'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-status-${sid}',this)">Falta pagar</button>
+            <button class="mie-opt${d.status==='Débito auto'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-status-${sid}',this)">Débito auto</button>
           </div>
         </div>
         <div class="mie-row">
           <div class="mie-field">
             <div class="mie-lbl">Pagamento</div>
-            <select class="mie-select" id="mie-pag-${d.id}" onclick="event.stopPropagation()">${pagOpts}</select>
+            <select class="mie-select" id="mie-pag-${sid}" onclick="event.stopPropagation()">${pagOpts}</select>
           </div>
           <div class="mie-field">
             <div class="mie-lbl">Vencimento</div>
-            <input class="mie-input" type="number" placeholder="Dia" min="1" max="31" value="${d.diaVenc||''}" id="mie-venc-${d.id}" onclick="event.stopPropagation()">
+            <input class="mie-input" type="number" placeholder="Dia" min="1" max="31" value="${d.diaVenc||''}" id="mie-venc-${sid}" onclick="event.stopPropagation()">
           </div>
         </div>
       </div>
@@ -481,12 +482,12 @@ document.getElementById('edit-modal').addEventListener('click',function(e){if(e.
 let currentInlineId = null;
 
 function toggleInlineEdit(id, event) {
-  // Não abre se o toque foi no botão toggle ou num botão filho
   if (event && event.target.closest('button, select, input')) return;
-  const panel = document.getElementById('inline-edit-' + id);
+  const sid = mieId(id);
+  const panel = document.getElementById('inline-edit-' + sid);
   if (!panel) return;
   if (currentInlineId && currentInlineId !== id) {
-    const prev = document.getElementById('inline-edit-' + currentInlineId);
+    const prev = document.getElementById('inline-edit-' + mieId(currentInlineId));
     if (prev) { prev.style.display = 'none'; prev.classList.remove('mie-open'); }
   }
   const isOpen = panel.style.display !== 'none';
@@ -495,12 +496,11 @@ function toggleInlineEdit(id, event) {
     panel.classList.remove('mie-open');
     currentInlineId = null;
   } else {
-    // Inicializa campo de valor com máscara
     const d = DATA.despesas.find(x => x.id === id);
     if (d) {
-      const inp = document.getElementById('mie-valor-' + id);
+      const inp = document.getElementById('mie-valor-' + sid);
       if (inp) {
-        setMoneyField('mie-valor-' + id, d.val > 0 ? d.val : null);
+        setMoneyField('mie-valor-' + sid, d.val > 0 ? d.val : null);
         if (!inp._miemasked) { applyMoneyMask(inp); inp._miemasked = true; }
       }
     }
@@ -515,14 +515,21 @@ function mieSetToggle(groupId, btn) {
   btn.classList.add('active');
 }
 
+function mieId(id) { return String(id).replace(/\./g, '_'); }
+
 function saveInlineEdit(id) {
   const d = DATA.despesas.find(x => x.id === id);
   if (!d) return;
-  const activeStatus = document.querySelector('#mie-status-' + id + ' .mie-opt.active');
-  if (activeStatus) d.status = activeStatus.textContent.trim() === 'Falta pagar' ? 'Falta Pagar' : activeStatus.textContent.trim() === 'Débito auto' ? 'Débito auto' : 'Pago';
-  const pag = document.getElementById('mie-pag-' + id);
+  const sid = mieId(id);
+  const statusGroup = document.getElementById('mie-status-' + sid);
+  const activeStatus = statusGroup ? statusGroup.querySelector('.mie-opt.active') : null;
+  if (activeStatus) {
+    const t = activeStatus.textContent.trim();
+    d.status = t === 'Falta pagar' ? 'Falta Pagar' : t === 'Débito auto' ? 'Débito auto' : 'Pago';
+  }
+  const pag = document.getElementById('mie-pag-' + sid);
   if (pag) d.pag = pag.value;
-  const diaVencEl = document.getElementById('mie-venc-' + id);
+  const diaVencEl = document.getElementById('mie-venc-' + sid);
   const diaVenc = diaVencEl ? parseInt(diaVencEl.value) : null;
   if (diaVenc && diaVenc >= 1 && diaVenc <= 31) {
     d.diaVenc = diaVenc;
@@ -530,7 +537,7 @@ function saveInlineEdit(id) {
     const maxDay = new Date(+y, +mo, 0).getDate();
     d.venc = `${d.mes}-${String(Math.min(diaVenc, maxDay)).padStart(2, '0')}`;
   }
-  const newVal = readMoneyField('mie-valor-' + id);
+  const newVal = readMoneyField('mie-valor-' + sid);
   if (newVal !== null) d.val = newVal;
   saveData();
   currentInlineId = null;
