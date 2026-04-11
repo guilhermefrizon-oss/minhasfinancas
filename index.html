@@ -662,20 +662,11 @@
       <div class="form-group"><label>Recorrência</label>
         <select id="in-recorr" onchange="toggleMesRange()">
           <option value="unico">Mês único</option>
-          <option value="recorrente">Recorrente</option>
+          <option value="recorrente">Recorrente (período)</option>
         </select>
       </div>
       <div id="mes-unico-wrap" class="form-group"><label>Mês</label><input type="month" id="in-mes"></div>
-      <div id="mes-range-wrap" style="display:none;display:flex;flex-direction:column;gap:10px">
-        <div class="form-group"><label>Frequência</label>
-          <select id="in-freq">
-            <option value="1">Mensal</option>
-            <option value="2">Bimestral</option>
-            <option value="3">Trimestral</option>
-            <option value="6">Semestral</option>
-            <option value="12">Anual</option>
-          </select>
-        </div>
+      <div id="mes-range-wrap" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="form-group"><label>Mês inicial</label><input type="month" id="in-mes-ini"></div>
           <div class="form-group"><label>Mês final</label><input type="month" id="in-mes-fim"></div>
@@ -722,20 +713,11 @@
       <div class="form-group"><label>Recorrência</label>
         <select id="in-rec-recorr" onchange="toggleRecMesRange()">
           <option value="unico">Mês único</option>
-          <option value="recorrente">Recorrente</option>
+          <option value="recorrente">Recorrente (período)</option>
         </select>
       </div>
       <div id="rec-mes-unico-wrap" class="form-group"><label>Mês</label><input type="month" id="in-rec-mes"></div>
-      <div id="rec-mes-range-wrap" style="display:none;flex-direction:column;gap:10px">
-        <div class="form-group"><label>Frequência</label>
-          <select id="in-rec-freq">
-            <option value="1">Mensal</option>
-            <option value="2">Bimestral</option>
-            <option value="3">Trimestral</option>
-            <option value="6">Semestral</option>
-            <option value="12">Anual</option>
-          </select>
-        </div>
+      <div id="rec-mes-range-wrap" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="form-group"><label>Mês inicial</label><input type="month" id="in-rec-mes-ini"></div>
           <div class="form-group"><label>Mês final</label><input type="month" id="in-rec-mes-fim"></div>
