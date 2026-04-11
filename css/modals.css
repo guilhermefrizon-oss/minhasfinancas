@@ -317,3 +317,46 @@
 }
 .gs-empty-icon { font-size: 36px; margin-bottom: 12px; }
 .gs-empty-text { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+
+/* ── Form section labels ── */
+.form-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--purple);
+  margin: 0 0 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.form-section-label:first-child { border-top: none; padding-top: 0; }
+
+/* ── Inline toggle buttons ── */
+.inline-toggle {
+  display: flex;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.toggle-opt {
+  flex: 1;
+  padding: 8px 6px;
+  background: none;
+  border: none;
+  border-right: 1px solid var(--border);
+  color: var(--text3);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  text-align: center;
+}
+.toggle-opt:last-child { border-right: none; }
+.toggle-opt:hover { background: var(--surface2); color: var(--text2); }
+.toggle-opt.active {
+  background: var(--purple);
+  color: #fff;
+}
+/* Large valor input */
+#in-valor { font-size: 22px; font-weight: 700; letter-spacing: .01em; padding: 12px 14px; }

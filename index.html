@@ -626,10 +626,18 @@
 <!-- MODAL ADICIONAR DESPESA -->
 <div id="add-desp-modal" class="modal-overlay" style="display:none;z-index:510">
   <div class="modal-box" style="width:min(520px,92vw)">
-    <div class="modal-title">Nova Despesa</div>
-    <div style="display:grid;gap:12px">
-      <div class="form-group">
-        <label>Ícone e descrição</label>
+
+    <!-- Header com título e botão fechar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div class="modal-title" style="margin-bottom:0">Nova Despesa</div>
+      <button onclick="closeAddDesp()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center" title="Fechar">✕</button>
+    </div>
+
+    <div style="display:grid;gap:0">
+
+      <!-- ── SEÇÃO: O QUE É ── -->
+      <div class="form-section-label">O que é</div>
+      <div class="form-group" style="margin-bottom:10px">
         <div style="display:flex;gap:8px;align-items:center">
           <button id="icon-picker-btn" onclick="openIconPicker()" style="width:44px;height:44px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:center">
             <div id="icon-picker-preview" style="width:28px;height:28px"></div>
@@ -637,7 +645,7 @@
           <input type="text" id="in-desc" placeholder="Nome da despesa (ex: Condomínio)" style="flex:1">
         </div>
       </div>
-      <div class="form-group"><label>Categoria</label>
+      <div class="form-group" style="margin-bottom:20px">
         <select id="in-cat">
           <optgroup label="🏠 Moradia"><option value="Moradia · Aluguel">Aluguel</option><option value="Moradia · Condomínio">Condomínio</option><option value="Moradia · Outros">Outros de Moradia</option></optgroup>
           <optgroup label="⚡ Gastos Fixos"><option value="Gastos Fixos · Luz">Luz</option><option value="Gastos Fixos · Água">Água</option><option value="Gastos Fixos · Gás">Gás</option><option value="Gastos Fixos · Internet">Internet</option><option value="Gastos Fixos · Celular">Celular</option></optgroup>
@@ -652,43 +660,94 @@
           <optgroup label="📦 Outros"><option value="Outros · Presentes">Presentes</option><option value="Outros · Pet">Pet</option><option value="Outros · Outros">Outros</option></optgroup>
         </select>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="form-group"><label>Pagamento</label><select id="in-pag"><option>Cartão</option><option>Vale Alimentação</option><option>PIX</option><option>Boleto</option><option>Débito automático</option><option>Dinheiro</option></select></div>
-        <div class="form-group"><label>Status</label><select id="in-status"><option value="Pago">Pago</option><option value="Falta Pagar">Falta Pagar</option><option value="Débito auto">Débito auto</option></select></div>
-        <div class="form-group"><label>Tipo</label><select id="in-tipo"><option value="fixa">Fixa</option><option value="variavel">Variável</option></select></div>
-        <div class="form-group"><label>Valor (opcional)</label><input type="text" id="in-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off"></div>
-        <div class="form-group"><label>Dia vencimento</label><input type="number" id="in-dia-venc" placeholder="Ex: 10" min="1" max="31"></div>
+
+      <!-- ── SEÇÃO: VALOR ── -->
+      <div class="form-section-label">Valor <span style="font-weight:400;color:var(--text3)">(opcional — pode preencher depois)</span></div>
+      <div class="form-group" style="margin-bottom:20px">
+        <input type="text" id="in-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off" style="font-size:22px;font-weight:700;letter-spacing:.01em;padding:12px 14px">
       </div>
-      <div class="form-group"><label>Recorrência</label>
-        <select id="in-recorr" onchange="toggleMesRange()">
-          <option value="unico">Mês único</option>
-          <option value="recorrente">Recorrente (período)</option>
-        </select>
+
+      <!-- ── SEÇÃO: DETALHES ── -->
+      <div class="form-section-label">Detalhes</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div class="form-group">
+          <label>Pagamento</label>
+          <select id="in-pag"><option>Cartão</option><option>Vale Alimentação</option><option>PIX</option><option>Boleto</option><option>Débito automático</option><option>Dinheiro</option></select>
+        </div>
+        <div class="form-group">
+          <label>Vencimento</label>
+          <input type="number" id="in-dia-venc" placeholder="Dia (ex: 10)" min="1" max="31">
+        </div>
       </div>
-      <div id="mes-unico-wrap" class="form-group"><label>Mês</label><input type="month" id="in-mes"></div>
-      <div id="mes-range-wrap" style="display:none">
+
+      <!-- Status: toggle inline -->
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Status</label>
+        <div class="inline-toggle" id="status-toggle">
+          <button class="toggle-opt active" data-val="Pago" onclick="setToggle('status-toggle','in-status',this)">Pago</button>
+          <button class="toggle-opt" data-val="Falta Pagar" onclick="setToggle('status-toggle','in-status',this)">Falta pagar</button>
+          <button class="toggle-opt" data-val="Débito auto" onclick="setToggle('status-toggle','in-status',this)">Débito auto</button>
+        </div>
+        <input type="hidden" id="in-status" value="Pago">
+      </div>
+
+      <!-- Tipo: toggle inline -->
+      <div class="form-group" style="margin-bottom:20px">
+        <label>Tipo</label>
+        <div class="inline-toggle" id="tipo-toggle">
+          <button class="toggle-opt active" data-val="fixa" onclick="setToggle('tipo-toggle','in-tipo',this)">Fixa</button>
+          <button class="toggle-opt" data-val="variavel" onclick="setToggle('tipo-toggle','in-tipo',this)">Variável</button>
+        </div>
+        <input type="hidden" id="in-tipo" value="fixa">
+      </div>
+
+      <!-- ── SEÇÃO: PERÍODO ── -->
+      <div class="form-section-label">Período</div>
+
+      <!-- Recorrência: toggle inline -->
+      <div class="form-group" style="margin-bottom:10px">
+        <div class="inline-toggle" id="recorr-toggle">
+          <button class="toggle-opt active" data-val="unico" onclick="setToggle('recorr-toggle','in-recorr',this);toggleMesRange()">Mês único</button>
+          <button class="toggle-opt" data-val="recorrente" onclick="setToggle('recorr-toggle','in-recorr',this);toggleMesRange()">Recorrente</button>
+        </div>
+        <input type="hidden" id="in-recorr" value="unico">
+      </div>
+
+      <div id="mes-unico-wrap" class="form-group" style="margin-bottom:20px;display:flex">
+        <input type="month" id="in-mes" style="flex:1">
+      </div>
+      <div id="mes-range-wrap" style="display:none;margin-bottom:20px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="form-group"><label>Mês inicial</label><input type="month" id="in-mes-ini"></div>
           <div class="form-group"><label>Mês final</label><input type="month" id="in-mes-fim"></div>
         </div>
       </div>
-      <div class="modal-actions">
-        <button class="modal-btn-primary" onclick="addEntry()">+ Adicionar despesa</button>
-        <button class="modal-btn-icon" onclick="closeAddDesp()">✕</button>
+
+      <!-- ── AÇÕES ── -->
+      <div style="margin-top:4px">
+        <button class="modal-btn-primary" style="width:100%" onclick="addEntry()">+ Adicionar despesa</button>
+        <button onclick="openManageRecorrentes()" style="width:100%;margin-top:10px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:12px;color:var(--text3);padding:6px;text-align:center;transition:color .15s" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text3)'">
+          Gerenciar contas recorrentes →
+        </button>
       </div>
-      <!-- GERENCIAR CONTAS -->
-      <div style="margin-top:.5rem;padding-top:1rem;border-top:1px solid var(--border)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px">
-          <div style="font-size:13px;font-weight:700">Gerenciar contas recorrentes</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap" id="manage-filter">
-            <button class="pfchip active" onclick="filterManage('all',this)" style="font-size:10px;padding:3px 10px">Todas</button>
-            <button class="pfchip" onclick="filterManage('Falta Pagar',this)" style="font-size:10px;padding:3px 10px">Falta Pagar</button>
-            <button class="pfchip" onclick="filterManage('Débito auto',this)" style="font-size:10px;padding:3px 10px">Débito auto</button>
-          </div>
-        </div>
-        <div id="manage-list" style="max-height:200px;overflow-y:auto"></div>
-      </div>
+
     </div>
+  </div>
+</div>
+
+<!-- MODAL GERENCIAR CONTAS RECORRENTES (separado) -->
+<div id="manage-recorr-modal" class="modal-overlay" style="display:none;z-index:520">
+  <div class="modal-box" style="width:min(480px,92vw)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-title" style="margin-bottom:0">Contas recorrentes</div>
+      <button onclick="closeManageRecorrentes()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:4px;border-radius:6px" title="Fechar">✕</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="manage-filter">
+      <button class="pfchip active" onclick="filterManage('all',this)" style="font-size:10px;padding:3px 10px">Todas</button>
+      <button class="pfchip" onclick="filterManage('Falta Pagar',this)" style="font-size:10px;padding:3px 10px">Falta Pagar</button>
+      <button class="pfchip" onclick="filterManage('Débito auto',this)" style="font-size:10px;padding:3px 10px">Débito auto</button>
+    </div>
+    <div id="manage-list" style="max-height:60vh;overflow-y:auto"></div>
   </div>
 </div>
 

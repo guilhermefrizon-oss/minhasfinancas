@@ -2,6 +2,22 @@
 let manageFilter='all';
 function filterManage(f,el){manageFilter=f;document.querySelectorAll('#manage-filter .pfchip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderManageList();}
 
+/* ── Inline toggle helper ── */
+function setToggle(groupId, hiddenId, btn){
+  document.querySelectorAll('#'+groupId+' .toggle-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(hiddenId).value = btn.dataset.val;
+}
+
+/* ── Gerenciar recorrentes: modal próprio ── */
+function openManageRecorrentes(){
+  renderManageList();
+  document.getElementById('manage-recorr-modal').classList.add('open');
+}
+function closeManageRecorrentes(){
+  document.getElementById('manage-recorr-modal').classList.remove('open');
+}
+
 /* ══ PAINEL RECORRENTES (página Despesas) ══ */
 let recorrentesFilter="all";
 let recorrentesOpen=false;

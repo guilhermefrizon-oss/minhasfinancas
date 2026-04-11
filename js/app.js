@@ -8,7 +8,17 @@ function openAddForm(tipo){
     document.getElementById('in-mes').value=cm;
     document.getElementById('in-mes-ini').value=cm;
     document.getElementById('in-mes-fim').value=cm;
-    renderManageList();
+    // Reset toggles para estado padrão
+    document.getElementById('in-status').value='Pago';
+    document.getElementById('in-tipo').value='fixa';
+    document.getElementById('in-recorr').value='unico';
+    ['status-toggle','tipo-toggle','recorr-toggle'].forEach(gid=>{
+      document.querySelectorAll('#'+gid+' .toggle-opt').forEach((btn,i)=>{
+        btn.classList.toggle('active',i===0);
+      });
+    });
+    document.getElementById('mes-unico-wrap').style.display='flex';
+    document.getElementById('mes-range-wrap').style.display='none';
     document.getElementById('add-desp-modal').classList.add('open');
   } else {
     document.getElementById('in-rec-mes').value=cm;
@@ -22,6 +32,7 @@ function closeAddRec(){document.getElementById('add-rec-modal').classList.remove
 document.getElementById('add-popup').addEventListener('click',function(e){if(e.target===this)closeAddPopup();});
 document.getElementById('add-desp-modal').addEventListener('click',function(e){if(e.target===this)closeAddDesp();});
 document.getElementById('add-rec-modal').addEventListener('click',function(e){if(e.target===this)closeAddRec();});
+document.getElementById('manage-recorr-modal').addEventListener('click',function(e){if(e.target===this)closeManageRecorrentes();});
 
 /* ══════ SHOWPAGE — sem "mensal" (FIX 4) ══════ */
 function showPage(id){
