@@ -219,9 +219,10 @@ function mobDespCard(d){
     ? `<div class="mob-card-meta">${metaParts.join('<span class="mob-meta-sep">·</span>')}</div>`
     : '';
 
+  const pagOpts=['Cartão','Vale Alimentação','PIX','Boleto','Débito automático','Dinheiro'].map(o=>`<option${o===d.pag?' selected':''}>${o}</option>`).join('');
   return `<div class="swipe-wrapper${isPago?' mob-card-pago':''}" data-id="${d.id}">
     <div class="swipe-delete-bg">🗑</div>
-    <div class="mob-card-inner">
+    <div class="mob-card-inner" onclick="toggleInlineEdit(${d.id},event)">
       <div class="mob-status-bar" style="background:${barCol}"></div>
       <div class="mob-card-icon">${itemIcon(d.nome,d.icon)}</div>
       <div class="mob-card-main">
@@ -234,9 +235,39 @@ function mobDespCard(d){
       <div class="mob-card-right">
         <span class="mob-card-val" style="color:${isPago?'var(--text3)':d.val>0?'var(--text)':'var(--text3)'}">${d.val>0?fmt(d.val):'—'}</span>
         <div class="mob-card-actions">
-          <button class="mob-edit-btn" onclick="openModal(${d.id})" title="Editar">✏️</button>
-          <button class="mob-toggle-btn ${toggleClass}" onclick="togglePago(${d.id})" title="${toggleTitle}">${toggleIcon}</button>
+          <button class="mob-toggle-btn ${toggleClass}" onclick="event.stopPropagation();togglePago(${d.id})" title="${toggleTitle}">${toggleIcon}</button>
         </div>
+      </div>
+    </div>
+    <div class="mob-inline-edit" id="inline-edit-${d.id}" style="display:none">
+      <div class="mie-body">
+        <div class="mie-field">
+          <div class="mie-lbl">Valor</div>
+          <input class="mie-input mie-val" type="text" inputmode="numeric" placeholder="R$ 0,00" value="${d.val>0?d.val:''}" id="mie-valor-${d.id}" autocomplete="off" onclick="event.stopPropagation()">
+        </div>
+        <div class="mie-field">
+          <div class="mie-lbl">Status</div>
+          <div class="mie-toggle" id="mie-status-${d.id}">
+            <button class="mie-opt${d.status==='Pago'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-status-${d.id}',this)">Pago</button>
+            <button class="mie-opt${d.status==='Falta Pagar'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-status-${d.id}',this)">Falta pagar</button>
+            <button class="mie-opt${d.status==='Débito auto'?' active':''}" onclick="event.stopPropagation();mieSetToggle('mie-status-${d.id}',this)">Débito auto</button>
+          </div>
+        </div>
+        <div class="mie-row">
+          <div class="mie-field">
+            <div class="mie-lbl">Pagamento</div>
+            <select class="mie-select" id="mie-pag-${d.id}" onclick="event.stopPropagation()">${pagOpts}</select>
+          </div>
+          <div class="mie-field">
+            <div class="mie-lbl">Vencimento</div>
+            <input class="mie-input" type="number" placeholder="Dia" min="1" max="31" value="${d.diaVenc||''}" id="mie-venc-${d.id}" onclick="event.stopPropagation()">
+          </div>
+        </div>
+      </div>
+      <div class="mie-footer">
+        <button class="mie-btn-save" onclick="event.stopPropagation();saveInlineEdit(${d.id})">Salvar</button>
+        <button class="mie-btn-full" onclick="event.stopPropagation();openModal(${d.id})">Editar tudo ›</button>
+        <button class="mie-btn-del" onclick="event.stopPropagation();deleteDespEntry(${d.id})">🗑</button>
       </div>
     </div>
   </div>`;
@@ -445,3 +476,64 @@ function closeModal(){
   editingId=null;originalVenc=null;editingBulkName=null;selectedIconEdit=null;
 }
 document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+/* ══ EDIÇÃO INLINE ══ */
+let currentInlineId = null;
+
+function toggleInlineEdit(id, event) {
+  // Não abre se o toque foi no botão toggle ou num botão filho
+  if (event && event.target.closest('button, select, input')) return;
+  const panel = document.getElementById('inline-edit-' + id);
+  if (!panel) return;
+  if (currentInlineId && currentInlineId !== id) {
+    const prev = document.getElementById('inline-edit-' + currentInlineId);
+    if (prev) { prev.style.display = 'none'; prev.classList.remove('mie-open'); }
+  }
+  const isOpen = panel.style.display !== 'none';
+  if (isOpen) {
+    panel.style.display = 'none';
+    panel.classList.remove('mie-open');
+    currentInlineId = null;
+  } else {
+    // Inicializa campo de valor com máscara
+    const d = DATA.despesas.find(x => x.id === id);
+    if (d) {
+      const inp = document.getElementById('mie-valor-' + id);
+      if (inp) {
+        setMoneyField('mie-valor-' + id, d.val > 0 ? d.val : null);
+        if (!inp._miemasked) { applyMoneyMask(inp); inp._miemasked = true; }
+      }
+    }
+    panel.style.display = 'block';
+    requestAnimationFrame(() => panel.classList.add('mie-open'));
+    currentInlineId = id;
+  }
+}
+
+function mieSetToggle(groupId, btn) {
+  document.querySelectorAll('#' + groupId + ' .mie-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function saveInlineEdit(id) {
+  const d = DATA.despesas.find(x => x.id === id);
+  if (!d) return;
+  const activeStatus = document.querySelector('#mie-status-' + id + ' .mie-opt.active');
+  if (activeStatus) d.status = activeStatus.textContent.trim() === 'Falta pagar' ? 'Falta Pagar' : activeStatus.textContent.trim() === 'Débito auto' ? 'Débito auto' : 'Pago';
+  const pag = document.getElementById('mie-pag-' + id);
+  if (pag) d.pag = pag.value;
+  const diaVencEl = document.getElementById('mie-venc-' + id);
+  const diaVenc = diaVencEl ? parseInt(diaVencEl.value) : null;
+  if (diaVenc && diaVenc >= 1 && diaVenc <= 31) {
+    d.diaVenc = diaVenc;
+    const [y, mo] = d.mes.split('-');
+    const maxDay = new Date(+y, +mo, 0).getDate();
+    d.venc = `${d.mes}-${String(Math.min(diaVenc, maxDay)).padStart(2, '0')}`;
+  }
+  const newVal = readMoneyField('mie-valor-' + id);
+  if (newVal !== null) d.val = newVal;
+  saveData();
+  currentInlineId = null;
+  renderDespTable();
+  showToast('Atualizado!');
+}
