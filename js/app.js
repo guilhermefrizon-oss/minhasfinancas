@@ -24,6 +24,16 @@ function openAddForm(tipo){
     document.getElementById('in-rec-mes').value=cm;
     document.getElementById('in-rec-mes-ini').value=cm;
     document.getElementById('in-rec-mes-fim').value=cm;
+    // Reset toggles para estado padrão
+    document.getElementById('in-rec-status').value='Recebido';
+    document.getElementById('in-rec-recorr').value='unico';
+    ['rec-status-toggle','rec-recorr-toggle'].forEach(gid=>{
+      document.querySelectorAll('#'+gid+' .toggle-opt').forEach((btn,i)=>{
+        btn.classList.toggle('active',i===0);
+      });
+    });
+    document.getElementById('rec-mes-unico-wrap').style.display='flex';
+    document.getElementById('rec-mes-range-wrap').style.display='none';
     document.getElementById('add-rec-modal').classList.add('open');
   }
 }

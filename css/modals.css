@@ -358,5 +358,5 @@
   background: var(--purple);
   color: #fff;
 }
-/* Large valor input */
-#in-valor { font-size: 22px; font-weight: 700; letter-spacing: .01em; padding: 12px 14px; }
+/* Large valor inputs */
+#in-valor, #in-rec-valor { font-size: 22px; font-weight: 700; letter-spacing: .01em; padding: 12px 14px; }
