@@ -95,9 +95,19 @@ function editAllByName(nome){
   document.getElementById('edit-modal').classList.add('open');
 }
 
-function toggleMesRange(){const v=document.getElementById('in-recorr').value;document.getElementById('mes-unico-wrap').style.display=v==='unico'?'flex':'none';document.getElementById('mes-range-wrap').style.display=v==='recorrente'?'block':'none';}
-function toggleRecMesRange(){const v=document.getElementById('in-rec-recorr').value;document.getElementById('rec-mes-unico-wrap').style.display=v==='unico'?'flex':'none';document.getElementById('rec-mes-range-wrap').style.display=v==='recorrente'?'block':'none';}
-function monthsBetween(ini,fim){const meses=[];let[y,m]=ini.split('-').map(Number);const[yf,mf]=fim.split('-').map(Number);while(y<yf||(y===yf&&m<=mf)){meses.push(`${y}-${String(m).padStart(2,'0')}`);m++;if(m>12){m=1;y++;}}return meses;}
+function toggleMesRange(){const v=document.getElementById('in-recorr').value;document.getElementById('mes-unico-wrap').style.display=v==='unico'?'flex':'none';document.getElementById('mes-range-wrap').style.display=v==='recorrente'?'flex':'none';}
+function toggleRecMesRange(){const v=document.getElementById('in-rec-recorr').value;document.getElementById('rec-mes-unico-wrap').style.display=v==='unico'?'flex':'none';document.getElementById('rec-mes-range-wrap').style.display=v==='recorrente'?'flex':'none';}
+function monthsBetween(ini,fim,step=1){
+  const meses=[];
+  let[y,m]=ini.split('-').map(Number);
+  const[yf,mf]=fim.split('-').map(Number);
+  while(y<yf||(y===yf&&m<=mf)){
+    meses.push(`${y}-${String(m).padStart(2,'0')}`);
+    m+=step;
+    while(m>12){m-=12;y++;}
+  }
+  return meses;
+}
 
 /* ── Validação de formulários ── */
 function fieldError(id, msg) {
@@ -191,10 +201,11 @@ function addReceita(){
   } else {
     const ini=document.getElementById('in-rec-mes-ini').value;
     const fim=document.getElementById('in-rec-mes-fim').value;
+    const stepR=parseInt(document.getElementById('in-rec-freq')?.value||'1');
     if(!ini){ fieldError('in-rec-mes-ini','Selecione o mês inicial'); hasErrorR=true; }
     if(!fim){ fieldError('in-rec-mes-fim','Selecione o mês final'); hasErrorR=true; }
     if(ini&&fim&&ini>fim){ fieldError('in-rec-mes-fim','Mês final deve ser após o inicial'); hasErrorR=true; }
-    if(!hasErrorR) meses=monthsBetween(ini,fim);
+    if(!hasErrorR) meses=monthsBetween(ini,fim,stepR);
   }
   if(hasErrorR) return;
   meses.forEach(mes=>{DATA.receitas.push({id:Date.now()+Math.random(),nome:desc,cat:document.getElementById('in-rec-cat').value,mes,val,status:document.getElementById('in-rec-status').value});});
