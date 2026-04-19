@@ -139,19 +139,16 @@
   /* Toast sobe acima da bottom bar */
   .toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
 
-  /* Dropdowns — no mobile centraliza e sobe para não cobrir o botão */
+  /* Dropdowns — posição calculada via JS no mobile */
   .month-picker-dropdown {
     position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
     bottom: auto !important;
     right: auto !important;
     min-width: 260px !important;
     width: min(90vw, 320px) !important;
     max-height: 60vh;
     overflow-y: auto;
-    z-index: 500 !important;
+    z-index: 600 !important;
   }
 }
 

@@ -100,6 +100,7 @@ function toggleDespMonthPicker(){
   document.getElementById('desp-month-chevron').style.transform='rotate(180deg)';
   despPickerYear=parseInt(despSelectedMonth.split('-')[0]);
   renderDespPickerYear();
+  centerPickerMobile(picker);
   const bd=document.getElementById('picker-backdrop');
   if(bd)bd.style.display='block';
   setTimeout(()=>{

@@ -24,6 +24,7 @@ function toggleRecMonthPicker(){
   if(open){closeRecMonthPicker();return;}
   picker.style.display='block';document.getElementById('rec-month-chevron').style.transform='rotate(180deg)';
   recPickerYear=parseInt(recSelectedMonth.split('-')[0]);renderRecPickerYear();
+  centerPickerMobile(picker);
   const bd=document.getElementById('picker-backdrop');
   if(bd)bd.style.display='block';
   setTimeout(()=>{

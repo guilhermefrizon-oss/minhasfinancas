@@ -86,6 +86,18 @@ function initMoneyFields() {
   });
 }
 
+function centerPickerMobile(picker){
+  if(window.innerWidth>=768)return;
+  const pw=Math.min(window.innerWidth*0.9,320);
+  picker.style.width=pw+'px';
+  picker.style.left=((window.innerWidth-pw)/2)+'px';
+  picker.style.top='-9999px'; // esconde temporariamente
+  setTimeout(()=>{
+    const ph=picker.offsetHeight;
+    picker.style.top=Math.max(16,(window.innerHeight-ph)/2)+'px';
+  },0);
+}
+
 // Fecha todos os pickers de mês (usado pelo backdrop)
 function closeAllPickers(){
   if(typeof closeDespMonthPicker==='function')closeDespMonthPicker();
