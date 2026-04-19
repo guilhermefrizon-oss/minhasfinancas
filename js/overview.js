@@ -587,8 +587,9 @@ function renderDailyEvo() {
   const isCurrentMonth = today.getFullYear() === y && today.getMonth()+1 === mo;
   const lastDay = isCurrentMonth ? today.getDate() : daysInMonth;
 
-  // Gastos do mês agrupados por dia
-  const despMonth = DATA.despesas.filter(d => d.mes === m);
+  // Apenas despesas pagas
+  const PAID = ['Pago', 'Débito auto'];
+  const despMonth = DATA.despesas.filter(d => d.mes === m && PAID.includes(d.status));
   const dailySpend = Array(daysInMonth + 1).fill(0); // índice 1..daysInMonth
   despMonth.forEach(d => {
     let day = null;
@@ -635,7 +636,7 @@ function renderDailyEvo() {
         const pmDays = new Date(py, pmo, 0).getDate();
         if (dayNum > pmDays) return;
         let runPrev = 0;
-        const despPrev = DATA.despesas.filter(x => x.mes === pm);
+        const despPrev = DATA.despesas.filter(x => x.mes === pm && PAID.includes(x.status));
         for (let pd = 1; pd <= dayNum; pd++) {
           despPrev.forEach(x => {
             let xday = null;
