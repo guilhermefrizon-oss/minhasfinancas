@@ -290,13 +290,32 @@
   .card { padding: 1.25rem 1.35rem; }
   .card-value { font-size: 22px; }
 
-  /* Gráficos lado a lado quando possível */
-  .charts-grid {
+  /* ── Dashboard grid overview ── */
+  .dash-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 420px 1fr;
+    grid-template-rows: auto;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  .dash-col-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: sticky;
+    top: 80px; /* abaixo do header */
+  }
+  .dash-col-right {
+    display: flex;
+    flex-direction: column;
     gap: 1.25rem;
   }
-  .charts-grid .chart-box { margin-bottom: 0; }
+  /* Toolbar mais compacta no desktop */
+  .dash-toolbar { margin-bottom: .85rem; }
+
+  /* Bloco mês atual — mais compacto no desktop */
+  .cur-month-block { margin-bottom: .85rem; }
+  .cur-month-cards { grid-template-columns: repeat(5, 1fr); }
 
   /* Tabelas com mais respiro */
   th, td { padding: 13px 20px; }

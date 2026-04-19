@@ -818,3 +818,29 @@ body.light .table-box { background: #f0eef8; }
   transition: background .15s;
 }
 .mie-btn-del:active { background: rgba(240,96,96,.25); }
+
+/* ══ DASHBOARD OVERVIEW ══ */
+.dash-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 1rem;
+  margin-top: .5rem;
+}
+.dash-add-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg,#7b8cff,#a78bfa);
+  border: none; border-radius: var(--radius-sm);
+  padding: 7px 14px; color: #fff;
+  font-family: var(--font); font-size: 12px; font-weight: 700;
+  cursor: pointer; letter-spacing: .3px; white-space: nowrap;
+  transition: opacity .15s; flex-shrink: 0;
+}
+.dash-add-btn:hover { opacity: .85; }
+.dash-card { margin-bottom: 0; }
+
+/* Mobile: empilhado com gap */
+.dash-grid { display: flex; flex-direction: column; gap: 1.1rem; }
+.dash-col-left, .dash-col-right { display: flex; flex-direction: column; gap: 1.1rem; }

@@ -294,83 +294,102 @@
 
   <!-- ÁREA DE RESUMO + GRÁFICOS -->
   <div id="overview-charts-area">
-  <div style="margin-bottom:.75rem;margin-top:.5rem;display:flex;align-items:center;justify-content:space-between;gap:10px">
+  <div class="dash-toolbar">
     <div class="section-label" style="margin-bottom:0">Resumo — <span id="overview-month-label" style="color:var(--purple)">todos os meses</span></div>
-    <button onclick="openAddPopup()" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#7b8cff,#a78bfa);border:none;border-radius:var(--radius-sm);padding:7px 14px;color:#fff;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.3px;white-space:nowrap;transition:opacity .15s;flex-shrink:0" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-      Novo lançamento
-    </button>
-  </div>
-  <div style="margin-bottom:1.2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem">
-    <div class="period-filter" id="period-filter" style="margin-bottom:0">
-      <button class="pfchip" onclick="setPeriod(3)">3m</button>
-      <button class="pfchip" onclick="setPeriod(6)">6m</button>
-      <button class="pfchip active" onclick="setPeriod(12)">12m</button>
-      <button class="pfchip" onclick="setPeriod(0)">Tudo</button>
-      <button class="pfchip" id="pfchip-custom" onclick="toggleCustomRange()">Personalizado</button>
-    </div>
-    <div id="custom-range-wrap" style="display:none;margin-top:10px">
-      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
-        <div class="form-group"><label>De</label><input type="month" id="range-from" onchange="applyCustomRange()"></div>
-        <div class="form-group"><label>Até</label><input type="month" id="range-to" onchange="applyCustomRange()"></div>
-        <button class="edit-btn" style="height:38px;padding:0 14px" onclick="setPeriod(12)">✕</button>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="period-filter" id="period-filter" style="margin-bottom:0">
+        <button class="pfchip" onclick="setPeriod(3)">3m</button>
+        <button class="pfchip" onclick="setPeriod(6)">6m</button>
+        <button class="pfchip active" onclick="setPeriod(12)">12m</button>
+        <button class="pfchip" onclick="setPeriod(0)">Tudo</button>
+        <button class="pfchip" id="pfchip-custom" onclick="toggleCustomRange()">Personalizado</button>
       </div>
+      <button onclick="openAddPopup()" class="dash-add-btn">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        Novo lançamento
+      </button>
+    </div>
+  </div>
+  <div id="custom-range-wrap" style="display:none;margin-bottom:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem 1.1rem">
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
+      <div class="form-group"><label>De</label><input type="month" id="range-from" onchange="applyCustomRange()"></div>
+      <div class="form-group"><label>Até</label><input type="month" id="range-to" onchange="applyCustomRange()"></div>
+      <button class="edit-btn" style="height:38px;padding:0 14px" onclick="setPeriod(12)">✕</button>
     </div>
   </div>
 
-  <!-- DONUT MÊS ATUAL -->
-  <div class="chart-box anim-fade-up anim-d3" id="donut-box">
-    <div class="chart-header">
-      <div>
-        <div class="chart-title" id="donut-title">Gastos de <span id="donut-month-label" style="color:var(--purple)">—</span></div>
-        <div class="chart-hint">Por categoria · clique para detalhes</div>
-      </div>
-      <div class="legend" id="legend-donut"></div>
-    </div>
-    <div class="donut-layout">
-      <div class="donut-chart-wrap">
-        <canvas id="chartDonut"></canvas>
-        <div id="donut-center" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Total</div>
-          <div id="donut-center-val" style="font-size:18px;font-weight:800;color:var(--red);line-height:1.2;margin-top:2px"></div>
+  <!-- DASHBOARD GRID -->
+  <div class="dash-grid">
+
+    <!-- COLUNA ESQUERDA -->
+    <div class="dash-col-left">
+
+      <!-- DONUT -->
+      <div class="chart-box anim-fade-up anim-d3 dash-card" id="donut-box">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title" id="donut-title">Gastos de <span id="donut-month-label" style="color:var(--purple)">—</span></div>
+            <div class="chart-hint">Por categoria · clique para detalhes</div>
+          </div>
+          <div class="legend" id="legend-donut"></div>
+        </div>
+        <div class="donut-layout">
+          <div class="donut-chart-wrap">
+            <canvas id="chartDonut"></canvas>
+            <div id="donut-center" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+              <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Total</div>
+              <div id="donut-center-val" style="font-size:18px;font-weight:800;color:var(--red);line-height:1.2;margin-top:2px"></div>
+            </div>
+          </div>
+          <div id="donut-legend-list" class="donut-legend-list"></div>
         </div>
       </div>
-      <div id="donut-legend-list" class="donut-legend-list"></div>
-    </div>
-  </div>
 
-  <div class="chart-box">
-    <div class="chart-header">
-      <div>
-        <div class="chart-title">Receita vs Despesas por categoria</div>
-        <div class="chart-hint">Passe o mouse para ver detalhes · Clique para filtrar o mês</div>
+      <!-- SALDO MENSAL -->
+      <div class="chart-box dash-card">
+        <div class="chart-header"><div class="chart-title">Saldo mensal (Receita − Despesa)</div></div>
+        <div style="position:relative;width:100%;height:160px"><canvas id="chartSaldo"></canvas></div>
       </div>
-      <div class="legend" id="legend-bar"></div>
-    </div>
-    <div style="position:relative;width:100%;height:320px"><canvas id="chartBar"></canvas></div>
-  </div>
-  <div class="chart-box">
-    <div class="chart-header"><div class="chart-title">Saldo mensal (Receita − Despesa)</div></div>
-    <div style="position:relative;width:100%;height:190px"><canvas id="chartSaldo"></canvas></div>
-  </div>
-  <div class="chart-box" id="daily-evo-box">
-    <div class="chart-header">
-      <div>
-        <div class="chart-title">Evolução de gastos</div>
-        <div class="chart-hint">Pagos acumulados por dia · pontilhado = média dos 3 meses anteriores</div>
+
+    </div><!-- /dash-col-left -->
+
+    <!-- COLUNA DIREITA -->
+    <div class="dash-col-right">
+
+      <!-- EVOLUÇÃO DIÁRIA -->
+      <div class="chart-box dash-card" id="daily-evo-box">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Evolução de gastos</div>
+            <div class="chart-hint">Pagos acumulados por dia · pontilhado = média 3 meses anteriores</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button id="daily-evo-prev" onclick="shiftDailyEvoMonth(-1)" style="background:var(--surface3);border:none;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;line-height:1">&#8249;</button>
+            <span id="daily-evo-label" style="font-size:12px;font-weight:700;color:var(--text2);min-width:90px;text-align:center"></span>
+            <button id="daily-evo-next" onclick="shiftDailyEvoMonth(1)" style="background:var(--surface3);border:none;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;line-height:1">&#8250;</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:1rem">
+          <div id="daily-evo-total" style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text)"></div>
+          <div id="daily-evo-delta" style="font-size:12px;font-weight:700"></div>
+        </div>
+        <div style="position:relative;width:100%;height:180px"><canvas id="chartDailyEvo"></canvas></div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <button id="daily-evo-prev" onclick="shiftDailyEvoMonth(-1)" style="background:var(--surface3);border:none;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;line-height:1">&#8249;</button>
-        <span id="daily-evo-label" style="font-size:12px;font-weight:700;color:var(--text2);min-width:90px;text-align:center"></span>
-        <button id="daily-evo-next" onclick="shiftDailyEvoMonth(1)" style="background:var(--surface3);border:none;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;line-height:1">&#8250;</button>
+
+      <!-- RECEITA VS DESPESAS (barras) -->
+      <div class="chart-box dash-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Receita vs Despesas por categoria</div>
+            <div class="chart-hint">Passe o mouse para ver detalhes · Clique para filtrar o mês</div>
+          </div>
+          <div class="legend" id="legend-bar"></div>
+        </div>
+        <div style="position:relative;width:100%;height:260px"><canvas id="chartBar"></canvas></div>
       </div>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:1rem">
-      <div id="daily-evo-total" style="font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--text)"></div>
-      <div id="daily-evo-delta" style="font-size:12px;font-weight:700"></div>
-    </div>
-    <div style="position:relative;width:100%;height:200px"><canvas id="chartDailyEvo"></canvas></div>
-  </div>
+
+    </div><!-- /dash-col-right -->
+  </div><!-- /dash-grid -->
   </div><!-- #overview-charts-area -->
   </div><!-- #overview-real-content -->
 </div>
