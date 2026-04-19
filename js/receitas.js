@@ -24,9 +24,22 @@ function toggleRecMonthPicker(){
   if(open){closeRecMonthPicker();return;}
   picker.style.display='block';document.getElementById('rec-month-chevron').style.transform='rotate(180deg)';
   recPickerYear=parseInt(recSelectedMonth.split('-')[0]);renderRecPickerYear();
-  centerPickerMobile(picker);
-  const bd=document.getElementById('picker-backdrop');
-  if(bd)bd.style.display='block';
+  // Posiciona o picker
+  const btn=document.getElementById('rec-month-btn');
+  const r=btn.getBoundingClientRect();
+  if(window.innerWidth<768){
+    // Mobile: centraliza na tela
+    picker.style.width='280px';
+    picker.style.left=((window.innerWidth-280)/2)+'px';
+    picker.style.top=((window.innerHeight-picker.offsetHeight)/2)+'px';
+    const bd=document.getElementById('picker-backdrop');
+    if(bd)bd.style.display='block';
+  } else {
+    // Desktop: abaixo do botão
+    picker.style.width='';
+    picker.style.left=r.left+'px';
+    picker.style.top=(r.bottom+6)+'px';
+  }
   setTimeout(()=>{
     document.addEventListener('click',recPickerOutside);
     document.addEventListener('touchstart',recPickerOutside,{passive:true});
