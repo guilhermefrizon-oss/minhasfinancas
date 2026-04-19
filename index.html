@@ -361,7 +361,7 @@
 <div class="page" id="page-despesas">
   <div style="margin-top:.25rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
     <div style="position:relative">
-      <button class="month-picker-btn" onclick="toggleDespMonthPicker()">
+      <button class="month-picker-btn" id="desp-month-btn" onclick="toggleDespMonthPicker()">
         <span id="desp-month-btn-label">— —</span>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" id="desp-month-chevron" style="transition:transform .2s"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
@@ -515,7 +515,7 @@
 <div class="page" id="page-receitas">
   <div style="margin-top:.25rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
     <div style="position:relative">
-      <button class="month-picker-btn" onclick="toggleRecMonthPicker()">
+      <button class="month-picker-btn" id="rec-month-btn" onclick="toggleRecMonthPicker()">
         <span id="rec-month-btn-label">— —</span>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" id="rec-month-chevron" style="transition:transform .2s"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
@@ -1183,5 +1183,6 @@
   <button onclick="closeSortPanel()" style="margin-top:1rem;width:100%;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer">Fechar</button>
 </div>
 
+<div id="picker-backdrop" onclick="closeAllPickers()" style="display:none;position:fixed;inset:0;z-index:499;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px)"></div>
 </body>
 </html>

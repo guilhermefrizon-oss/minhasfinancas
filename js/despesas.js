@@ -100,15 +100,26 @@ function toggleDespMonthPicker(){
   document.getElementById('desp-month-chevron').style.transform='rotate(180deg)';
   despPickerYear=parseInt(despSelectedMonth.split('-')[0]);
   renderDespPickerYear();
-  setTimeout(()=>document.addEventListener('click',despPickerOutside),0);
+  const bd=document.getElementById('picker-backdrop');
+  if(bd)bd.style.display='block';
+  setTimeout(()=>{
+    document.addEventListener('click',despPickerOutside);
+    document.addEventListener('touchstart',despPickerOutside,{passive:true});
+  },50);
 }
 function despPickerOutside(e){
-  if(!document.getElementById('desp-month-picker').contains(e.target)&&!document.querySelector('[onclick="toggleDespMonthPicker()"]').contains(e.target))closeDespMonthPicker();
+  const picker=document.getElementById('desp-month-picker');
+  const btn=document.getElementById('desp-month-btn');
+  if(!picker||!btn)return;
+  if(!picker.contains(e.target)&&!btn.contains(e.target))closeDespMonthPicker();
 }
 function closeDespMonthPicker(){
   document.getElementById('desp-month-picker').style.display='none';
   document.getElementById('desp-month-chevron').style.transform='rotate(0deg)';
+  const bd=document.getElementById('picker-backdrop');
+  if(bd)bd.style.display='none';
   document.removeEventListener('click',despPickerOutside);
+  document.removeEventListener('touchstart',despPickerOutside);
 }
 function shiftDespYear(delta){const years=[...new Set(allMonths().map(m=>parseInt(m.split('-')[0])))];const idx=years.indexOf(despPickerYear)+delta;if(idx<0||idx>=years.length)return;despPickerYear=years[idx];renderDespPickerYear();}
 function renderDespPickerYear(){

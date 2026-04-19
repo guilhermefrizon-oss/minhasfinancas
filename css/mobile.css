@@ -139,17 +139,19 @@
   /* Toast sobe acima da bottom bar */
   .toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
 
-  /* Dropdowns sobem acima da bottom bar */
+  /* Dropdowns — no mobile centraliza e sobe para não cobrir o botão */
   .month-picker-dropdown {
     position: fixed !important;
-    top: auto !important;
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
-    left: 12px !important;
-    right: 12px !important;
-    min-width: 0 !important;
-    width: auto !important;
-    max-height: 50vh;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    bottom: auto !important;
+    right: auto !important;
+    min-width: 260px !important;
+    width: min(90vw, 320px) !important;
+    max-height: 60vh;
     overflow-y: auto;
+    z-index: 500 !important;
   }
 }
 

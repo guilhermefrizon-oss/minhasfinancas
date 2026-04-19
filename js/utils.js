@@ -85,3 +85,9 @@ function initMoneyFields() {
     if (el) applyMoneyMask(el);
   });
 }
+
+// Fecha todos os pickers de mês (usado pelo backdrop)
+function closeAllPickers(){
+  if(typeof closeDespMonthPicker==='function')closeDespMonthPicker();
+  if(typeof closeRecMonthPicker==='function')closeRecMonthPicker();
+}

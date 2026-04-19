@@ -174,10 +174,18 @@ function renderOverview(){
         document.getElementById('tt-month').textContent=mesLabel(m).toUpperCase();
         document.getElementById('tt-rows').innerHTML=`<div class="tt-section">RECEITAS</div>`+(recRows||`<div class="tt-row" style="color:#5c5a80;font-size:11px">Sem receitas</div>`)+`<div class="tt-rec-total"><span>Total receita</span><span style="color:#34d27a">${fmt(totalRec)}</span></div><div class="tt-divider"></div><div class="tt-section">DESPESAS</div>`+(despRows||`<div class="tt-row" style="color:#5c5a80;font-size:11px">Sem despesas</div>`)+`<div class="tt-saldo" style="color:${saldoM>=0?'#34d27a':'#f06060'}"><span>Saldo</span><span>${fmt(saldoM)}</span></div>`;
         document.getElementById('tt-total-val').textContent=fmt(totalDesp);
+        tt.style.display='block';
+        const ttW=tt.offsetWidth||270,ttH=tt.offsetHeight||420;
+        const margin=8;
         let x=evt.native.clientX+18,y=evt.native.clientY-20;
-        if(x+270>window.innerWidth)x=evt.native.clientX-275;
-        if(y+400>window.innerHeight)y=window.innerHeight-410;
-        tt.style.left=x+'px';tt.style.top=y+'px';tt.style.display='block';
+        // Se não cabe à direita, coloca à esquerda
+        if(x+ttW+margin>window.innerWidth) x=evt.native.clientX-ttW-12;
+        // Garante que não sai pela esquerda
+        if(x<margin) x=margin;
+        // Ajuste vertical
+        if(y+ttH+margin>window.innerHeight) y=window.innerHeight-ttH-margin;
+        if(y<margin) y=margin;
+        tt.style.left=x+'px';tt.style.top=y+'px';
       },
       onClick(evt){
         const pts=barC.getElementsAtEventForMode(evt,'index',{intersect:false},true);
@@ -193,6 +201,17 @@ function renderOverview(){
     }
   });
   document.getElementById('chartBar').addEventListener('mouseleave',()=>{tt.style.display='none';});
+  // Suporte a toque no mobile — simula hover ao tocar na barra
+  const barCanvas=document.getElementById('chartBar');
+  barCanvas.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    const touch=e.touches[0];
+    const pts=barC.getElementsAtEventForMode(touch,'index',{intersect:false},true);
+    if(!pts.length){tt.style.display='none';return;}
+    const fakeEvt={native:touch};
+    barC.options.onHover(fakeEvt,pts);
+  },{passive:false});
+  barCanvas.addEventListener('touchend',()=>{setTimeout(()=>{tt.style.display='none';},2000);});
   // Anima chart boxes
   document.querySelectorAll('#page-overview .chart-box').forEach((el,i)=>{
     el.classList.remove('anim-fade-up','anim-d1','anim-d2','anim-d3','anim-d4');
