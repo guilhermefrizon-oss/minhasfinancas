@@ -220,6 +220,8 @@ function renderOverview(){
   });
   if(saldoC)saldoC.destroy();
   saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:'#5c5a80',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#5c5a80',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}}});
+  // Gráfico de evolução diária
+  initDailyEvo();
 }
 
 /* ══════════════ DESTAQUE MÊS ATUAL ══════════════ */
@@ -542,4 +544,217 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js')
     .then(()=>console.log('SW registrado'))
     .catch(e=>console.log('SW erro:', e));
+}
+
+/* ══════════════════════════════════════════════
+   GRÁFICO — EVOLUÇÃO DIÁRIA DE GASTOS
+   ══════════════════════════════════════════════ */
+let dailyEvoC = null;
+let dailyEvoMonth = null; // formato 'YYYY-MM'
+
+function initDailyEvo() {
+  // Inicializa com o mês corrente (ou o último com dados)
+  const months = allMonths();
+  if (!months.length) return;
+  const now = new Date();
+  const cm = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  dailyEvoMonth = months.includes(cm) ? cm : months[months.length - 1];
+  renderDailyEvo();
+}
+
+function shiftDailyEvoMonth(delta) {
+  const months = allMonths();
+  if (!months.length) return;
+  const idx = months.indexOf(dailyEvoMonth) + delta;
+  if (idx < 0 || idx >= months.length) return;
+  dailyEvoMonth = months[idx];
+  renderDailyEvo();
+}
+
+function renderDailyEvo() {
+  const m = dailyEvoMonth;
+  if (!m) return;
+
+  // Atualiza label do mês
+  const [y, mo] = m.split('-').map(Number);
+  const label = new Date(y, mo-1, 1).toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
+  const labelEl = document.getElementById('daily-evo-label');
+  if (labelEl) labelEl.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+
+  // Dias do mês
+  const daysInMonth = new Date(y, mo, 0).getDate();
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === y && today.getMonth()+1 === mo;
+  const lastDay = isCurrentMonth ? today.getDate() : daysInMonth;
+
+  // Gastos do mês agrupados por dia
+  const despMonth = DATA.despesas.filter(d => d.mes === m);
+  const dailySpend = Array(daysInMonth + 1).fill(0); // índice 1..daysInMonth
+  despMonth.forEach(d => {
+    let day = null;
+    if (d.venc) {
+      const dv = new Date(d.venc + 'T00:00:00');
+      if (dv.getFullYear() === y && dv.getMonth()+1 === mo) day = dv.getDate();
+    }
+    if (!day) {
+      // Sem vencimento: usa o dia 1 como fallback
+      day = 1;
+    }
+    dailySpend[day] = (dailySpend[day] || 0) + (d.val || 0);
+  });
+
+  // Acumulado dia a dia
+  const labels = [];
+  const accumulated = [];
+  let running = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    labels.push(d === 1 || d % 3 === 0 || d === daysInMonth ? `${String(d).padStart(2,'0')}/${String(mo).padStart(2,'0')}` : '');
+    if (d <= lastDay) {
+      running += dailySpend[d] || 0;
+      accumulated.push(Math.round(running * 100) / 100);
+    } else {
+      accumulated.push(null); // dias futuros ficam em branco
+    }
+  }
+
+  const totalMonth = running;
+
+  // Média dos 3 meses anteriores — acumulado para o mesmo dia
+  const allM = allMonths();
+  const mIdx = allM.indexOf(m);
+  const prev3 = allM.slice(Math.max(0, mIdx - 3), mIdx);
+
+  let avgAccum = Array(daysInMonth).fill(null);
+  if (prev3.length > 0) {
+    avgAccum = Array.from({length: daysInMonth}, (_, di) => {
+      const dayNum = di + 1;
+      let sum = 0;
+      let count = 0;
+      prev3.forEach(pm => {
+        const [py, pmo] = pm.split('-').map(Number);
+        const pmDays = new Date(py, pmo, 0).getDate();
+        if (dayNum > pmDays) return;
+        let runPrev = 0;
+        const despPrev = DATA.despesas.filter(x => x.mes === pm);
+        for (let pd = 1; pd <= dayNum; pd++) {
+          despPrev.forEach(x => {
+            let xday = null;
+            if (x.venc) {
+              const xd = new Date(x.venc + 'T00:00:00');
+              if (xd.getFullYear() === py && xd.getMonth()+1 === pmo) xday = xd.getDate();
+            }
+            if (!xday) xday = 1;
+            if (xday === pd) runPrev += (x.val || 0);
+          });
+        }
+        sum += runPrev;
+        count++;
+      });
+      return count > 0 ? Math.round(sum / count * 100) / 100 : null;
+    });
+  }
+
+  // Delta vs média (último dia com dados)
+  const avgFinal = avgAccum[lastDay - 1];
+  const deltaEl = document.getElementById('daily-evo-delta');
+  const totalEl = document.getElementById('daily-evo-total');
+  if (totalEl) totalEl.textContent = fmt(totalMonth);
+  if (deltaEl) {
+    if (avgFinal && avgFinal > 0) {
+      const pct = ((totalMonth - avgFinal) / avgFinal * 100).toFixed(1);
+      const up = totalMonth >= avgFinal;
+      deltaEl.textContent = (up ? '+' : '') + pct + '%';
+      deltaEl.style.color = up ? 'var(--red)' : 'var(--green)';
+    } else {
+      deltaEl.textContent = '';
+    }
+  }
+
+  // Gráfico
+  const ctx = document.getElementById('chartDailyEvo');
+  if (!ctx) return;
+  if (dailyEvoC) { dailyEvoC.destroy(); dailyEvoC = null; }
+
+  const isDark = !document.body.classList.contains('light');
+  const gridColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
+  const tickColor = isDark ? '#5c5a80' : '#9896c8';
+
+  dailyEvoC = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Acumulado',
+          data: accumulated,
+          borderColor: '#7b8cff',
+          backgroundColor: 'rgba(123,140,255,0.12)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#7b8cff',
+          borderWidth: 2.5,
+          spanGaps: false,
+        },
+        {
+          label: 'Média 3 meses',
+          data: avgAccum,
+          borderColor: 'rgba(160,160,180,0.55)',
+          backgroundColor: 'transparent',
+          fill: false,
+          tension: 0.35,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          pointHoverBackgroundColor: '#a0a0b4',
+          borderWidth: 1.5,
+          borderDash: [5, 4],
+          spanGaps: true,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e1c3a',
+          borderColor: '#2e2c50',
+          borderWidth: 1,
+          padding: 10,
+          callbacks: {
+            title: (items) => {
+              const d = items[0].dataIndex + 1;
+              return `${String(d).padStart(2,'0')}/${String(mo).padStart(2,'0')}/${y}`;
+            },
+            label: (item) => {
+              const name = item.datasetIndex === 0 ? 'Acumulado' : 'Média 3m';
+              return ` ${name}: ${fmt(item.raw || 0)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: tickColor,
+            font: { size: 10 },
+            maxRotation: 0,
+            autoSkip: false,
+          },
+          grid: { color: gridColor }
+        },
+        y: {
+          ticks: {
+            color: tickColor,
+            font: { size: 10 },
+            callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : 'R$'+v.toLocaleString('pt-BR')
+          },
+          grid: { color: gridColor }
+        }
+      }
+    }
+  });
 }

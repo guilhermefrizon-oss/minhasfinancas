@@ -353,6 +353,24 @@
     <div class="chart-header"><div class="chart-title">Saldo mensal (Receita − Despesa)</div></div>
     <div style="position:relative;width:100%;height:190px"><canvas id="chartSaldo"></canvas></div>
   </div>
+  <div class="chart-box" id="daily-evo-box">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Evolução de gastos</div>
+        <div class="chart-hint">Acumulado diário · pontilhado = média dos 3 meses anteriores</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button id="daily-evo-prev" onclick="shiftDailyEvoMonth(-1)" style="background:var(--surface3);border:none;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;line-height:1">&#8249;</button>
+        <span id="daily-evo-label" style="font-size:12px;font-weight:700;color:var(--text2);min-width:90px;text-align:center"></span>
+        <button id="daily-evo-next" onclick="shiftDailyEvoMonth(1)" style="background:var(--surface3);border:none;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;line-height:1">&#8250;</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:1rem">
+      <div id="daily-evo-total" style="font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--text)"></div>
+      <div id="daily-evo-delta" style="font-size:12px;font-weight:700"></div>
+    </div>
+    <div style="position:relative;width:100%;height:200px"><canvas id="chartDailyEvo"></canvas></div>
+  </div>
   </div><!-- #overview-charts-area -->
   </div><!-- #overview-real-content -->
 </div>
