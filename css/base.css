@@ -831,14 +831,14 @@ body.light .table-box { background: #f0eef8; }
 }
 .dash-add-btn {
   display: flex; align-items: center; gap: 6px;
-  background: linear-gradient(135deg,#7b8cff,#a78bfa);
-  border: none; border-radius: var(--radius-sm);
-  padding: 7px 14px; color: #fff;
-  font-family: var(--font); font-size: 12px; font-weight: 700;
+  background: var(--surface3);
+  border: none; border-radius: 20px;
+  padding: 4px 14px; color: var(--text2);
+  font-family: var(--font); font-size: 11px; font-weight: 700;
   cursor: pointer; letter-spacing: .3px; white-space: nowrap;
-  transition: opacity .15s; flex-shrink: 0;
+  transition: all .15s; flex-shrink: 0; text-transform: uppercase;
 }
-.dash-add-btn:hover { opacity: .85; }
+.dash-add-btn:hover { background: rgba(123,140,255,0.18); color: var(--purple); }
 .dash-card { margin-bottom: 0; }
 
 /* Mobile: empilhado com gap */

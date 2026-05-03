@@ -305,7 +305,7 @@
         <button class="pfchip" id="pfchip-custom" onclick="toggleCustomRange()">Personalizado</button>
       </div>
       <button onclick="openAddPopup()" class="dash-add-btn">
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
         Novo lançamento
       </button>
     </div>
@@ -363,9 +363,9 @@
             <div class="chart-title">Evolução de gastos</div>
             <div class="chart-hint">Pagos acumulados por dia · pontilhado = média 3 meses anteriores</div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px">
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
             <button id="daily-evo-prev" onclick="shiftDailyEvoMonth(-1)" style="background:var(--surface3);border:none;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;line-height:1">&#8249;</button>
-            <span id="daily-evo-label" style="font-size:12px;font-weight:700;color:var(--text2);min-width:90px;text-align:center"></span>
+            <span id="daily-evo-label" style="font-size:12px;font-weight:700;color:var(--text2);min-width:100px;text-align:center;display:inline-block"></span>
             <button id="daily-evo-next" onclick="shiftDailyEvoMonth(1)" style="background:var(--surface3);border:none;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;line-height:1">&#8250;</button>
           </div>
         </div>
