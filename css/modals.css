@@ -356,7 +356,7 @@
 .toggle-opt:hover { background: var(--surface2); color: var(--text2); }
 .toggle-opt.active {
   background: var(--purple);
-  color: #fff;
+  color: var(--bg);
 }
 /* Large valor inputs */
 #in-valor, #in-rec-valor { font-size: 22px; font-weight: 700; letter-spacing: .01em; padding: 12px 14px; }
@@ -365,7 +365,7 @@
 .modal-overlay .inline-toggle .toggle-opt { flex:1; padding:9px 6px; background:transparent !important; border:none !important; border-right:1px solid var(--border) !important; border-radius:0 !important; color:var(--text3) !important; font-family:var(--font); font-size:12px; font-weight:600; cursor:pointer; text-align:center; width:auto; transition:background .15s,color .15s; }
 .modal-overlay .inline-toggle .toggle-opt:last-child { border-right:none !important; }
 .modal-overlay .inline-toggle .toggle-opt:hover { background:var(--surface2) !important; color:var(--text2) !important; }
-.modal-overlay .inline-toggle .toggle-opt.active { background:var(--purple) !important; color:#fff !important; }
+.modal-overlay .inline-toggle .toggle-opt.active { background:var(--purple) !important; color:var(--bg) !important; }
 /* Section labels alta especificidade */
 .modal-overlay .form-section-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--purple) !important; margin:0 0 10px; padding-top:16px; border-top:1px solid var(--border); }
 /* Valor grande */

@@ -117,16 +117,16 @@
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #7b8cff, #a78bfa);
+    background: var(--text);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 16px rgba(167,139,250,.45);
+    box-shadow: 0 4px 14px rgba(0,0,0,.22);
     transition: transform .15s, box-shadow .15s;
   }
   .bn-add:active .bn-add-circle {
     transform: scale(.93);
-    box-shadow: 0 2px 8px rgba(167,139,250,.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
   }
   .bn-add-label {
     font-size: 10px;

@@ -81,7 +81,7 @@ function renderDonutChart(cm, desp){
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'#1a1830', borderColor:'#2e2c50', borderWidth:1,
+          backgroundColor:'#18181b', borderColor:'#3a3a3d', borderWidth:1,
           callbacks:{
             label: ctx => ` ${ctx.label}: ${fmt(ctx.raw)} (${Math.round(ctx.raw/total*100)}%)`
           }
@@ -160,7 +160,7 @@ function renderOverview(){
   }));
   const recDataset={label:'Receita',data:rec.map(v=>Math.round(v*100)/100),backgroundColor:months.map((_,i)=>alpha(i)?'rgba(52,210,122,0.55)':'rgba(52,210,122,0.15)'),borderRadius:4,stack:'receita'};
   const tt=document.getElementById('chartTooltip');
-  const ttBase={backgroundColor:'#1a1830',borderColor:'#2e2c50',borderWidth:1};
+  const ttBase={backgroundColor:'#18181b',borderColor:'#3a3a3d',borderWidth:1};
   if(barC)barC.destroy();
   barC=new Chart(document.getElementById('chartBar'),{
     type:'bar',data:{labels:months.map(mesLabel),datasets:[recDataset,...catDatasets]},
@@ -197,7 +197,7 @@ function renderOverview(){
         catDatasets.forEach((ds,di)=>{const col=catColor(cats[di]);barC.data.datasets[di+1].backgroundColor=months.map((m,i)=>!overviewSelectedMonth||overviewSelectedMonth===m?col:col+'22');});
         barC.update();
       },
-      scales:{x:{ticks:{color:'#5c5a80',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#5c5a80',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}
+      scales:{x:{ticks:{color:'#8e8e93',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8e8e93',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}
     }
   });
   document.getElementById('chartBar').addEventListener('mouseleave',()=>{tt.style.display='none';});
@@ -219,7 +219,7 @@ function renderOverview(){
     el.classList.add('anim-fade-up',`anim-d${i+2}`);
   });
   if(saldoC)saldoC.destroy();
-  saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:'#5c5a80',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#5c5a80',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}}});
+  saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:'#8e8e93',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8e8e93',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}}});
   // Gráfico de evolução diária
   initDailyEvo();
 }
@@ -404,7 +404,7 @@ function renderCurPickerYear(){
         const isNow  = m===realCm;
         return `<div onclick="selectCurMonth('${m}')" style="padding:9px 16px;cursor:pointer;font-size:13px;font-weight:${active?700:500};color:${active?'var(--purple)':isNow?'var(--text)':'var(--text2)'};background:${active?'var(--surface2)':'transparent'};display:flex;align-items:center;justify-content:space-between;transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='${active?'var(--surface2)':'transparent'}'">
           ${MONTH_NAMES_PT[mo-1]}
-          ${isNow?'<span style="font-size:9px;background:var(--purple);color:#fff;padding:1px 6px;border-radius:10px;font-weight:700">hoje</span>':''}
+          ${isNow?'<span style="font-size:9px;background:var(--purple);color:var(--bg);padding:1px 6px;border-radius:10px;font-weight:700">hoje</span>':''}
         </div>`;
       }).join('')
     : `<div style="padding:10px 16px;font-size:12px;color:var(--text3)">Sem dados em ${curPickerYear}</div>`;
@@ -530,12 +530,12 @@ function applyTheme(theme){
     document.body.classList.add('light');
     document.getElementById('theme-btn').textContent = '☀️';
     const m=document.getElementById('theme-color-meta');
-    if(m) m.setAttribute('content','#f4f3fb');
+    if(m) m.setAttribute('content','#f7f7f8');
   } else {
     document.body.classList.remove('light');
     document.getElementById('theme-btn').textContent = '🌙';
     const m=document.getElementById('theme-color-meta');
-    if(m) m.setAttribute('content','#0f0e1a');
+    if(m) m.setAttribute('content','#0a0a0b');
   }
   localStorage.setItem('gastos_theme', theme);
 }
@@ -543,8 +543,8 @@ function toggleTheme(){
   const cur = document.body.classList.contains('light') ? 'light' : 'dark';
   applyTheme(cur==='light' ? 'dark' : 'light');
 }
-// Carregar tema salvo
-applyTheme(localStorage.getItem('gastos_theme') || 'dark');
+// Carregar tema salvo (padrão: claro)
+applyTheme(localStorage.getItem('gastos_theme') || 'light');
 
 // App inicia via _onFbLogin após Firebase auth
 
@@ -697,13 +697,13 @@ function renderDailyEvo() {
         {
           label: 'Acumulado',
           data: accumulated,
-          borderColor: '#7b8cff',
-          backgroundColor: 'rgba(123,140,255,0.12)',
+          borderColor: isDark ? '#ffffff' : '#0a0a0a',
+          backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(10,10,10,0.06)',
           fill: true,
           tension: 0.35,
           pointRadius: 0,
           pointHoverRadius: 5,
-          pointHoverBackgroundColor: '#7b8cff',
+          pointHoverBackgroundColor: isDark ? '#ffffff' : '#0a0a0a',
           borderWidth: 2.5,
           spanGaps: false,
         },
@@ -730,8 +730,8 @@ function renderDailyEvo() {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#1e1c3a',
-          borderColor: '#2e2c50',
+          backgroundColor: '#18181b',
+          borderColor: '#3a3a3d',
           borderWidth: 1,
           padding: 10,
           callbacks: {

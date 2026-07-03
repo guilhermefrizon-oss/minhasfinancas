@@ -11,9 +11,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Meus Gastos">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0f0e1a" id="theme-color-meta">
+  <meta name="theme-color" content="#f7f7f8" id="theme-color-meta">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 
   <!-- Estilos -->
   <link rel="stylesheet" href="css/base.css">
@@ -242,9 +247,9 @@
   <div id="overview-greeting" style="margin-top:.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px">
     <div>
       <div id="overview-greeting-label" style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Bom dia</div>
-      <div id="overview-greeting-name" style="font-size:24px;font-weight:800;color:var(--text);line-height:1.1"></div>
+      <div id="overview-greeting-name" style="font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-.4px;color:var(--text);line-height:1.1"></div>
     </div>
-    <div id="overview-greeting-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0;background:rgba(123,140,255,.15);color:var(--purple)"></div>
+    <div id="overview-greeting-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;background:var(--text);color:var(--bg)"></div>
   </div>
 
   <!-- DESTAQUE MÊS ATUAL -->
@@ -269,7 +274,7 @@
           </div>
         </div>
       </div>
-      <button onclick="goToDespesas()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 12px;color:var(--text2);font-size:11px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--purple)';this.style.color='var(--purple)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'"><span class="hide-mobile">Ver detalhes </span>→</button>
+      <button onclick="goToDespesas()" class="cur-month-details-btn"><span class="hide-mobile">Ver detalhes </span>→</button>
     </div>
     <div class="cur-month-cards" id="cur-month-cards"></div>
     <div class="cur-month-progress-wrap" id="cur-month-progress-wrap">
@@ -286,8 +291,8 @@
     <div style="font-size:56px">💸</div>
     <div style="font-size:18px;font-weight:800;color:var(--text)">Nenhum lançamento ainda</div>
     <div style="font-size:13px;color:var(--text2);line-height:1.6;max-width:260px">Que tal registrar sua primeira despesa ou receita? É rapidinho!</div>
-    <button onclick="openAddPopup()" style="margin-top:.5rem;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#7b8cff,#a78bfa);border:none;border-radius:var(--radius);padding:12px 24px;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;box-shadow:0 4px 16px rgba(123,140,255,.35)" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+    <button onclick="openAddPopup()" style="margin-top:.5rem;display:flex;align-items:center;gap:8px;background:var(--text);border:none;border-radius:var(--radius);padding:12px 24px;color:var(--bg);font-family:var(--font-display);font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="var(--bg)" stroke-width="2.2" stroke-linecap="round"/></svg>
       Adicionar primeiro lançamento
     </button>
   </div>
@@ -949,7 +954,7 @@
   <button class="bn-add" onclick="openAddPopup()">
     <div class="bn-add-circle">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-        <path d="M11 4v14M4 11h14" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M11 4v14M4 11h14" style="stroke:var(--bg)" stroke-width="2.4" stroke-linecap="round"/>
       </svg>
     </div>
     <span class="bn-add-label">Adicionar</span>
@@ -1191,7 +1196,7 @@
 
 <!-- ══════ TOOLTIP "COMECE AQUI" ══════ -->
 <div id="add-tooltip" style="display:none;position:fixed;bottom:calc(72px + env(safe-area-inset-bottom,0px) + 12px);left:50%;transform:translateX(-50%);z-index:300;pointer-events:none;flex-direction:column;align-items:center;gap:6px;transition:opacity .3s">
-  <div style="background:var(--purple);color:#fff;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;box-shadow:0 4px 16px rgba(123,140,255,.4)">
+  <div style="background:var(--purple);color:var(--bg);font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)">
     👆 Comece aqui!
   </div>
   <div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:7px solid var(--purple)"></div>
