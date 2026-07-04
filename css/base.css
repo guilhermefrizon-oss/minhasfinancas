@@ -126,6 +126,18 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .tt-saldo { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-top: 6px; padding-top: 6px; border-top: 1px solid #3a3a3d; }
 
 .table-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; }
+
+/* ── Últimas transações (lista da Home) ── */
+.rtx-item { display: flex; align-items: center; gap: 12px; padding: .8rem 0; border-bottom: 1px solid var(--border); }
+.rtx-item:last-child { border-bottom: none; padding-bottom: .5rem; }
+.rtx-icon-badge { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.rtx-icon-badge svg { width: 20px; height: 20px; }
+.rtx-main { flex: 1; min-width: 0; }
+.rtx-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.1px; }
+.rtx-meta { font-size: 11px; color: var(--text3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rtx-right { text-align: right; flex-shrink: 0; padding-left: 8px; }
+.rtx-amount { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: -.2px; white-space: nowrap; }
+.rtx-date { font-size: 10px; color: var(--text3); margin-top: 3px; text-transform: capitalize; }
 .table-header { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.04); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 .table-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: -.2px; }
 table { width: 100%; border-collapse: collapse; }
@@ -418,17 +430,10 @@ option { background: var(--surface2); }
   isolation: isolate;
   box-shadow: 0 12px 32px rgba(0,0,0,.18);
 }
-.cur-month-block, .cur-month-block .cmv-main-val, .cur-month-block .cmv-sec-val,
-.cur-month-block .cmv-main-label, .cur-month-block .cmv-sec-label, .cur-month-block .cur-month-progress-label {
-  color: #f5f5f7;
-}
-.cur-month-block .cmv-main-label, .cur-month-block .cmv-sec-label,
+.cur-month-block, .cur-month-block .cur-month-progress-label { color: #f5f5f7; }
 .cur-month-block .cur-month-progress-label { color: #9a9aa2; }
-.cur-month-block .cmv-main-divider, .cur-month-block .cmv-sec-sep { background: rgba(255,255,255,.14); }
-.cur-month-block .cmv-secondary-row { border-color: rgba(255,255,255,.1); }
 .cur-month-block .cur-month-bar { background: rgba(255,255,255,.12); }
-/* saldo positivo/negativo agora só tinge a barra de progresso e o valor de saldo, sem gradiente animado */
-.cur-month-block::before { content: none; }
+/* saldo positivo/negativo agora só tinge a barra de progresso, sem gradiente animado */
 @media(max-width:539px) {
   .cur-month-block {
     padding: 1rem 1rem 0;
@@ -448,7 +453,7 @@ option { background: var(--surface2); }
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at top left, rgba(167,139,250,0.10) 0%, transparent 65%);
+  background: radial-gradient(ellipse at top left, rgba(255,255,255,0.06) 0%, transparent 65%);
   pointer-events: none;
 }
 .cur-month-header {
@@ -529,93 +534,89 @@ option { background: var(--surface2); }
   gap: 0;
 }
 
-/* ── Linha principal: Receita vs Gasto ── */
-.cmv-main-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 0;
-  padding: .1rem 0 1rem;
-}
-.cmv-main-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.cmv-main-item.cmv-main-desp { align-items: flex-end; text-align: right; }
-.cmv-main-label {
-  font-size: 10px;
+/* ── Hero: Saldo do mês (a única cifra grande do cartão) ── */
+.cmv-hero { padding: .1rem 0 1.1rem; }
+.cmv-hero-label {
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .1em;
-  color: var(--text3);
+  color: #9a9aa2;
+  margin-bottom: 4px;
 }
-.cmv-main-val {
+.cmv-hero-val {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: clamp(30px, 9vw, 40px);
   font-weight: 700;
-  letter-spacing: -.6px;
-  line-height: 1.1;
-}
-.cmv-main-divider {
-  width: 1px;
-  height: 48px;
-  background: var(--border);
-  margin: 0 1.1rem;
-  flex-shrink: 0;
+  letter-spacing: -1px;
+  line-height: 1.05;
 }
 .cmv-trend {
   font-size: 10px;
   font-weight: 700;
-  margin-top: 2px;
+  margin-top: 4px;
   min-height: 14px;
 }
 
-/* ── Linha secundária: Pago / A sair / Saldo ── */
-.cmv-secondary-row {
+/* ── Sub-linha: Receita / Gasto, compacta ── */
+.cmv-sub-row {
   display: grid;
-  grid-template-columns: 1fr auto 1fr auto 1fr;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  border-top: 1px solid var(--border);
-  padding-top: .85rem;
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding: .85rem 0;
   gap: 0;
 }
-.cmv-sec-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.cmv-sec-item.cmv-sec-saldo { align-items: flex-end; text-align: right; }
-.cmv-sec-label {
+.cmv-sub-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cmv-sub-item.cmv-sub-desp { align-items: flex-end; text-align: right; }
+.cmv-sub-label {
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .1em;
-  color: var(--text3);
+  color: #9a9aa2;
+}
+.cmv-sub-val {
+  font-family: var(--font-display);
+  font-size: clamp(15px, 4.2vw, 17px);
+  font-weight: 700;
+  letter-spacing: -.2px;
+  white-space: nowrap;
+}
+.cmv-sub-sep {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,.14);
+  margin: 0 1rem;
+  flex-shrink: 0;
+}
+
+/* ── Pills: Pago / A sair ── */
+.cmv-pills-row {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding-top: .85rem;
+  flex-wrap: wrap;
+}
+.cmv-pill {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  background: rgba(255,255,255,.06);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
 }
-.cmv-sec-val {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -.2px;
-  color: var(--text2);
-}
+.cmv-pill-label { color: #9a9aa2; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.cmv-pill-val { font-weight: 700; }
 .cmv-count {
-  background: rgba(240,96,96,.18);
-  color: var(--red);
+  background: rgba(255,69,58,.2);
+  color: #ff6961;
   border-radius: 20px;
   padding: 1px 5px;
   font-size: 9px;
   font-weight: 700;
-}
-.cmv-sec-sep {
-  width: 1px;
-  height: 30px;
-  background: var(--border);
-  margin: 0 .85rem;
-  flex-shrink: 0;
 }
 
 /* Skeleton para tabelas */

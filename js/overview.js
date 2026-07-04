@@ -127,6 +127,53 @@ function renderDonutChart(cm, desp){
   }
 }
 
+/* ══════ ÚLTIMAS TRANSAÇÕES (lista da Home) ══════ */
+function renderRecentTransactions(){
+  const listEl = document.getElementById('recent-tx-list');
+  if(!listEl) return;
+  const cm = getCurMonth();
+  const desp = DATA.despesas.filter(d=>d.mes===cm).map(d=>Object.assign({},d,{_type:'desp'}));
+  const rec  = DATA.receitas.filter(r=>r.mes===cm).map(r=>Object.assign({},r,{_type:'rec'}));
+  let items = desp.concat(rec);
+
+  items.sort((a,b)=>{
+    const da = a.venc ? new Date(a.venc+'T00:00:00').getTime() : null;
+    const db = b.venc ? new Date(b.venc+'T00:00:00').getTime() : null;
+    if(da!=null && db!=null) return db-da;
+    if(da!=null) return -1;
+    if(db!=null) return 1;
+    return (b.id||0)-(a.id||0);
+  });
+  items = items.slice(0,6);
+
+  if(!items.length){
+    listEl.innerHTML = `<div style="padding:1.5rem 0;text-align:center;color:var(--text3);font-size:13px">Nenhuma transação neste mês ainda.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = items.map(it=>{
+    const isDesp = it._type==='desp';
+    const sign = isDesp ? '−' : '+';
+    const color = isDesp ? 'var(--red)' : 'var(--green)';
+    const badgeColor = isDesp ? catColor(it.cat) : '#1fa056';
+    const dateStr = it.venc
+      ? new Date(it.venc+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
+      : mesLabel(it.mes);
+    const metaLine = [catLabel(it.cat), it.pag||null].filter(Boolean).join(' · ');
+    return `<div class="rtx-item">
+      <div class="rtx-icon-badge" style="background:${badgeColor}18">${itemIcon(it.nome, it.icon)}</div>
+      <div class="rtx-main">
+        <div class="rtx-name">${it.nome}</div>
+        <div class="rtx-meta">${metaLine}</div>
+      </div>
+      <div class="rtx-right">
+        <div class="rtx-amount" style="color:${color}">${sign} ${fmt(it.val)}</div>
+        <div class="rtx-date">${dateStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderOverview(){
   // Empty state — esconde gráficos se não há dados
   if (typeof renderEmptyState === 'function') renderEmptyState();
@@ -140,6 +187,7 @@ function renderOverview(){
     el.classList.add('anim-fade-up',`anim-d${i+1}`);
   });
   renderCurMonth();
+  renderRecentTransactions();
   const months=filteredMonths();
   const rec=months.map(m=>DATA.receitas.filter(r=>r.mes===m).reduce((s,r)=>s+(r.val||0),0));
   const desp=months.map(m=>DATA.despesas.filter(d=>d.mes===m).reduce((s,d)=>s+(d.val||0),0));
@@ -289,39 +337,29 @@ function renderCurMonth(){
   document.getElementById('cur-month-name').textContent =
     monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
-  // Novo card redesenhado: Receita vs Gasto em destaque
+  // Novo card redesenhado: Saldo em destaque (hero), Receita/Gasto como apoio compacto
   document.getElementById('cur-month-cards').innerHTML = `
-    <!-- Linha principal: Receita vs Gasto -->
-    <div class="cmv-main-row anim-fade-up anim-d1">
-      <div class="cmv-main-item cmv-main-rec">
-        <div class="cmv-main-label">Receita</div>
-        <div class="cmv-main-val" id="cmv-rec"></div>
+    <div class="cmv-hero anim-fade-up anim-d1">
+      <div class="cmv-hero-label">Saldo do mês</div>
+      <div class="cmv-hero-val" id="cmv-saldo"></div>
+      <div id="cmv-saldo-trend" class="cmv-trend"></div>
+    </div>
+    <div class="cmv-sub-row anim-fade-up anim-d2">
+      <div class="cmv-sub-item">
+        <div class="cmv-sub-label">Receita</div>
+        <div class="cmv-sub-val" id="cmv-rec"></div>
         <div id="cmv-rec-trend" class="cmv-trend"></div>
       </div>
-      <div class="cmv-main-divider"></div>
-      <div class="cmv-main-item cmv-main-desp">
-        <div class="cmv-main-label">Gasto</div>
-        <div class="cmv-main-val" id="cmv-desp"></div>
+      <div class="cmv-sub-sep"></div>
+      <div class="cmv-sub-item cmv-sub-desp">
+        <div class="cmv-sub-label">Gasto</div>
+        <div class="cmv-sub-val" id="cmv-desp"></div>
         <div id="cmv-desp-trend" class="cmv-trend"></div>
       </div>
     </div>
-    <!-- Linha secundária: Pago / A sair / Saldo -->
-    <div class="cmv-secondary-row anim-fade-up anim-d2">
-      <div class="cmv-sec-item">
-        <div class="cmv-sec-label">Pago</div>
-        <div class="cmv-sec-val" id="cmv-pago"></div>
-      </div>
-      <div class="cmv-sec-sep"></div>
-      <div class="cmv-sec-item" style="cursor:${totalFalta>0?'pointer':'default'}" onclick="${totalFalta>0?'goToDespesas()':''}">
-        <div class="cmv-sec-label">A sair${totalFalta>0?` <span class="cmv-count">${countFalta}</span>`:''}</div>
-        <div class="cmv-sec-val" id="cmv-falta" style="color:${totalFalta>0?'var(--red)':'var(--text3)'}"></div>
-      </div>
-      <div class="cmv-sec-sep"></div>
-      <div class="cmv-sec-item cmv-sec-saldo">
-        <div class="cmv-sec-label">Saldo</div>
-        <div class="cmv-sec-val" id="cmv-saldo" style="color:${saldo>=0?'var(--green)':'var(--red)'}"></div>
-        <div id="cmv-saldo-trend" class="cmv-trend"></div>
-      </div>
+    <div class="cmv-pills-row anim-fade-up anim-d2">
+      <div class="cmv-pill"><span class="cmv-pill-label">Pago</span><span class="cmv-pill-val" id="cmv-pago"></span></div>
+      <div class="cmv-pill" style="cursor:${totalFalta>0?'pointer':'default'}" onclick="${totalFalta>0?'goToDespesas()':''}"><span class="cmv-pill-label">A sair${totalFalta>0?` <span class="cmv-count">${countFalta}</span>`:''}</span><span class="cmv-pill-val" id="cmv-falta" style="color:${totalFalta>0?'var(--red)':'inherit'}"></span></div>
     </div>`;
 
   // Classe de saldo no bloco para gradiente dinâmico
@@ -333,7 +371,7 @@ function renderCurMonth(){
   // Count-up animado nos valores
   animateValue(document.getElementById('cmv-rec'),   totalRec,   'var(--green)');
   animateValue(document.getElementById('cmv-desp'),  totalDesp,  totalDesp>0?'var(--red)':'var(--text3)');
-  animateValue(document.getElementById('cmv-pago'),  totalPago,  'var(--text2)');
+  animateValue(document.getElementById('cmv-pago'),  totalPago,  '#e5e5e7');
   animateValue(document.getElementById('cmv-falta'), totalFalta, totalFalta>0?'var(--red)':'var(--text3)');
   animateValue(document.getElementById('cmv-saldo'), saldo,      saldo>=0?'var(--green)':'var(--red)');
 

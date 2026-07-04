@@ -21,10 +21,8 @@ function applyGreeting(primeiro){
   if(avatarEl){
     const initial = (primeiro||'?').charAt(0).toUpperCase();
     avatarEl.textContent = initial;
-    const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
-    const bg = colors[(primeiro||'A').charCodeAt(0) % colors.length];
-    avatarEl.style.background = bg + '25';
-    avatarEl.style.color = bg;
+    avatarEl.style.background = 'var(--text)';
+    avatarEl.style.color = 'var(--bg)';
   }
 
   // Header greeting legado (caso exista)
@@ -35,21 +33,19 @@ function applyGreeting(primeiro){
 function applyHeaderName(nomeCompleto){
   const primeiro = nomeCompleto.split(' ')[0];
   const initial = primeiro.charAt(0).toUpperCase();
-  const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
-  const bg = colors[primeiro.charCodeAt(0)%colors.length];
 
   // Header avatar (desktop)
   const avatarEl = document.getElementById('header-profile-avatar');
   const nameEl = document.getElementById('header-profile-name');
-  if(avatarEl){ avatarEl.textContent = initial; avatarEl.style.background = bg+'33'; }
+  if(avatarEl){ avatarEl.textContent = initial; avatarEl.style.background = 'var(--text)'; avatarEl.style.color = 'var(--bg)'; }
   if(nameEl) nameEl.textContent = primeiro;
 
   // Bottom nav avatar (mobile)
   const bnAvatar = document.getElementById('bn-avatar');
   if(bnAvatar){
     bnAvatar.textContent = initial;
-    bnAvatar.style.background = bg+'30';
-    bnAvatar.style.color = bg;
+    bnAvatar.style.background = 'var(--surface3)';
+    bnAvatar.style.color = 'var(--text2)';
   }
 
   applyGreeting(primeiro);

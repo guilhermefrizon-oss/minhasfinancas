@@ -115,7 +115,7 @@ function renderEmptyState() {
   const isEmpty = DATA.despesas.length === 0 && DATA.receitas.length === 0;
   container.style.display = isEmpty ? 'flex' : 'none';
   // Esconde/mostra os gráficos e filtros
-  const toHide = ['donut-box', 'overview-charts-area', 'overview-period-area'];
+  const toHide = ['donut-box', 'overview-charts-area', 'overview-period-area', 'recent-tx-box'];
   toHide.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isEmpty ? 'none' : '';
