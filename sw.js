@@ -1,4 +1,4 @@
-const CACHE = 'meus-gastos-v30';
+const CACHE = 'meus-gastos-v32';
 const ASSETS = [
   './',
   './index.html',
@@ -59,13 +59,13 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
+  // Network-first pra JS/CSS também — evita misturar HTML novo com JS/CSS
+  // antigo em cache (o bug que causava a tela ficar incompleta após um update).
   e.respondWith(
-    caches.match(e.request).then(cached =>
-      cached || fetch(e.request).then(res => {
-        if (e.request.method === 'GET' && res.ok)
-          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
-        return res;
-      }).catch(() => cached)
-    )
+    fetch(e.request).then(res => {
+      if (e.request.method === 'GET' && res.ok)
+        caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+      return res;
+    }).catch(() => caches.match(e.request))
   );
 });

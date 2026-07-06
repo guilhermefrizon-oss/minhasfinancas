@@ -308,29 +308,6 @@
 
   <!-- ÁREA DE RESUMO + GRÁFICOS -->
   <div id="overview-charts-area">
-  <div class="dash-toolbar">
-    <div class="section-label" style="margin-bottom:0">Resumo — <span id="overview-month-label" style="color:var(--purple)">todos os meses</span></div>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <div class="period-filter" id="period-filter" style="margin-bottom:0">
-        <button class="pfchip" onclick="setPeriod(3)">3m</button>
-        <button class="pfchip" onclick="setPeriod(6)">6m</button>
-        <button class="pfchip active" onclick="setPeriod(12)">12m</button>
-        <button class="pfchip" onclick="setPeriod(0)">Tudo</button>
-        <button class="pfchip" id="pfchip-custom" onclick="toggleCustomRange()">Personalizado</button>
-      </div>
-      <button onclick="openAddPopup()" class="dash-add-btn">
-        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-        Novo lançamento
-      </button>
-    </div>
-  </div>
-  <div id="custom-range-wrap" style="display:none;margin-bottom:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem 1.1rem">
-    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
-      <div class="form-group"><label>De</label><input type="month" id="range-from" onchange="applyCustomRange()"></div>
-      <div class="form-group"><label>Até</label><input type="month" id="range-to" onchange="applyCustomRange()"></div>
-      <button class="edit-btn" style="height:38px;padding:0 14px" onclick="setPeriod(12)">✕</button>
-    </div>
-  </div>
 
   <!-- DASHBOARD GRID -->
   <div class="dash-grid">

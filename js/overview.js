@@ -1,38 +1,12 @@
 /* ══════ OVERVIEW ══════ */
 function updateOverviewCards(){}
 
-let currentPeriod=12,customRangeFrom=null,customRangeTo=null;
-function setPeriod(n){
-  currentPeriod=n;customRangeFrom=null;customRangeTo=null;
-  document.querySelectorAll('#period-filter .pfchip').forEach(el=>{
-    el.classList.toggle('active',(n===3&&el.textContent==='3m')||(n===6&&el.textContent==='6m')||(n===12&&el.textContent==='12m')||(n===0&&el.textContent==='Tudo'));
-  });
-  document.getElementById('pfchip-custom').classList.remove('active');
-  document.getElementById('custom-range-wrap').style.display='none';
-  overviewSelectedMonth=null;renderOverview();
-}
-function toggleCustomRange(){
-  const wrap=document.getElementById('custom-range-wrap');
-  if(wrap.style.display==='block'){setPeriod(12);return;}
-  wrap.style.display='block';
-  document.querySelectorAll('#period-filter .pfchip').forEach(el=>el.classList.remove('active'));
-  document.getElementById('pfchip-custom').classList.add('active');
-  const all=allMonths();
-  document.getElementById('range-from').value=all[0]||'';
-  document.getElementById('range-to').value=all[all.length-1]||'';
-  customRangeFrom=document.getElementById('range-from').value;
-  customRangeTo=document.getElementById('range-to').value;
-  renderOverview();
-}
-function applyCustomRange(){
-  customRangeFrom=document.getElementById('range-from').value;
-  customRangeTo=document.getElementById('range-to').value;
-  if(customRangeFrom&&customRangeTo&&customRangeFrom<=customRangeTo){overviewSelectedMonth=null;renderOverview();}
-}
+const currentPeriod = 12; // sem seletor na UI — janela fixa dos últimos 12 meses
 function filteredMonths(){
-  const all=allMonths();
-  if(customRangeFrom&&customRangeTo)return all.filter(m=>m>=customRangeFrom&&m<=customRangeTo);
-  if(currentPeriod===0)return all;
+  const now = new Date();
+  const nowKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  // Nunca mostra meses futuros (lançamentos fixos já cadastrados adiante não "aconteceram" ainda)
+  const all = allMonths().filter(m => m <= nowKey);
   return all.slice(-currentPeriod);
 }
 
