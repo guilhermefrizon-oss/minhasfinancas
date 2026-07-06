@@ -594,12 +594,15 @@ function renderDailyEvo() {
   const dailySpend = Array(daysInMonth + 1).fill(0); // índice 1..daysInMonth
   despMonth.forEach(d => {
     let day = null;
-    if (d.venc) {
-      const dv = new Date(d.venc + 'T00:00:00');
+    // Prioriza a data real em que foi marcado como pago; cai pro vencimento
+    // só em lançamentos antigos que não têm essa informação ainda.
+    const ref = d.pagoEm || d.venc;
+    if (ref) {
+      const dv = new Date(ref + 'T00:00:00');
       if (dv.getFullYear() === y && dv.getMonth()+1 === mo) day = dv.getDate();
     }
     if (!day) {
-      // Sem vencimento: usa o dia 1 como fallback
+      // Sem data de referência no mês: usa o dia 1 como fallback
       day = 1;
     }
     dailySpend[day] = (dailySpend[day] || 0) + (d.val || 0);
@@ -641,8 +644,9 @@ function renderDailyEvo() {
         for (let pd = 1; pd <= dayNum; pd++) {
           despPrev.forEach(x => {
             let xday = null;
-            if (x.venc) {
-              const xd = new Date(x.venc + 'T00:00:00');
+            const xref = x.pagoEm || x.venc;
+            if (xref) {
+              const xd = new Date(xref + 'T00:00:00');
               if (xd.getFullYear() === py && xd.getMonth()+1 === pmo) xday = xd.getDate();
             }
             if (!xday) xday = 1;

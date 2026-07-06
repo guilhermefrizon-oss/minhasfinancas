@@ -177,7 +177,7 @@ function addEntry(){
   meses.forEach(mes=>{
     let venc=null;
     if(diaVenc){const[y,mo]=mes.split('-');const maxDay=new Date(+y,+mo,0).getDate();const dd=String(Math.min(diaVenc,maxDay)).padStart(2,'0');venc=`${mes}-${dd}`;}
-    DATA.despesas.push({id:Date.now()+Math.random(),nome:desc,cat,pag,mes,val,status,venc,diaVenc,icon:selectedIcon||null});
+    DATA.despesas.push({id:Date.now()+Math.random(),nome:desc,cat,pag,mes,val,status,venc,diaVenc,icon:selectedIcon||null,pagoEm: status==='Pago' ? (venc || new Date().toISOString().slice(0,10)) : null});
   });
   saveData();
   document.getElementById('in-desc').value='';document.getElementById('in-valor').value='';document.getElementById('in-dia-venc').value='';

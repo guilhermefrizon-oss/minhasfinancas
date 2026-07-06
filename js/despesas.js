@@ -196,6 +196,7 @@ function togglePago(id){
     return;
   }
   d.status = 'Pago';
+  d.pagoEm = new Date().toISOString().slice(0,10); // data real do pagamento, usada na Evolução de gastos
   saveData();
   renderDespTable();
   renderCurMonth();
@@ -487,7 +488,9 @@ function saveEdit(){
   if(editingBulkName){
     const oldName=editingBulkName;
     DATA.despesas.filter(d=>d.nome===oldName).forEach(d=>{
+      const wasPago=d.status==='Pago';
       d.status=newStatus;
+      if(newStatus==='Pago'){ if(!wasPago) d.pagoEm=new Date().toISOString().slice(0,10); } else { d.pagoEm=null; }
       if(editTipo) d.tipo=editTipo.value;
       if(newVal!==undefined)d.val=newVal;
       if(newNome)d.nome=newNome;
@@ -497,7 +500,9 @@ function saveEdit(){
     editingBulkName=null;
   } else {
     const d=DATA.despesas.find(x=>x.id===editingId);if(!d)return;
+    const wasPago=d.status==='Pago';
     d.status=newStatus;
+    if(newStatus==='Pago'){ if(!wasPago) d.pagoEm=new Date().toISOString().slice(0,10); } else { d.pagoEm=null; }
     if(editTipo) d.tipo=editTipo.value;
     if(newVal!==undefined)d.val=newVal;
     if(newNome)d.nome=newNome;
@@ -570,7 +575,9 @@ function saveInlineEdit(id) {
   const activeStatus = statusGroup ? statusGroup.querySelector('.mie-opt.active') : null;
   if (activeStatus) {
     const t = activeStatus.textContent.trim();
+    const wasPago = d.status === 'Pago';
     d.status = t === 'Falta pagar' ? 'Falta Pagar' : t === 'Débito auto' ? 'Débito auto' : 'Pago';
+    if (d.status === 'Pago') { if (!wasPago) d.pagoEm = new Date().toISOString().slice(0,10); } else { d.pagoEm = null; }
   }
   const pag = document.getElementById('mie-pag-' + sid);
   if (pag) d.pag = pag.value;
