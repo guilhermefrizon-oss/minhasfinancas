@@ -107,7 +107,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .card-value.amber { color: var(--amber); }
 .card-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
 
-.chart-box { background: var(--surface); border: none; box-shadow: var(--shadow-card); border-radius: var(--radius); padding: 1.4rem; margin-bottom: 1.4rem; }
+.chart-box { background: var(--surface); border: none; box-shadow: var(--shadow-card); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
 .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
 .chart-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
 .chart-hint { font-size: 11px; color: var(--text3); margin-top: 3px; }
@@ -127,7 +127,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .tt-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #fff; margin-top: 5px; }
 .tt-saldo { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-top: 6px; padding-top: 6px; border-top: 1px solid #3a3a3d; }
 
-.table-box { background: var(--surface); border: none; box-shadow: var(--shadow-card); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; }
+.table-box { background: var(--surface); border: none; box-shadow: var(--shadow-card); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
 
 /* ── Últimas transações (lista da Home) — cartões separados ── */
 .rtx-item {
@@ -438,7 +438,7 @@ option { background: var(--surface2); }
   background: #0a0a0a;
   border-radius: var(--radius);
   padding: 1.25rem 1.25rem 1.1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.75rem;
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -718,52 +718,27 @@ body.light #chartTooltip { background: #0a0a0a; }
   animation: fadeUp .3s ease both;
 }
 
-/* ══════ DONUT CHART — layout responsivo ══════ */
-
-/* Desktop: lado a lado */
-.donut-layout {
+/* ══════ GASTOS POR CATEGORIA — total + anéis (sem gráfico de pizza) ══════ */
+.donut-total-row {
   display: flex;
-  align-items: center;
-  gap: 24px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
 }
-.donut-chart-wrap {
-  position: relative;
-  width: 180px; height: 180px;
-  flex-shrink: 0;
-}
+.donut-total-label { font-size: 13px; font-weight: 600; color: var(--text2); }
+.donut-total-val { font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -.4px; color: var(--red); }
 .donut-legend-list {
-  flex: 1;
-  min-width: 160px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 .cat-ring-row { display: flex; align-items: center; gap: 12px; }
 .cat-ring { position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .cat-ring span { font-weight: 700; color: var(--text); }
 .cat-ring-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cat-ring-val { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text); flex-shrink: 0; }
-
-/* Mobile: donut em cima, lista embaixo */
-@media (max-width: 767px) {
-  .donut-layout {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-  .donut-chart-wrap {
-    width: 160px; height: 160px;
-    margin: 0 auto;
-  }
-  .donut-legend-list {
-    gap: 12px;
-    min-width: unset;
-  }
-  /* Valor em destaque no mobile */
-  #donut-center-val {
-    font-size: 16px !important;
-  }
-}
 
 /* Botão ordenar — só mobile */
 #desp-sort-btn { display: none; }

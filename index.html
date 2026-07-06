@@ -244,7 +244,7 @@
   <!-- CONTEÚDO REAL -->
   <div id="overview-real-content">
   <!-- SAUDAÇÃO -->
-  <div id="overview-greeting" style="margin-top:.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px">
+  <div id="overview-greeting" style="margin-top:.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:12px">
     <div>
       <div id="overview-greeting-label" style="font-size:13px;font-weight:500;color:var(--text3);letter-spacing:0;margin-bottom:2px">Bom dia</div>
       <div id="overview-greeting-name" style="font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-.4px;color:var(--text);line-height:1.1"></div>
@@ -298,7 +298,7 @@
   </div>
 
   <!-- ÚLTIMAS TRANSAÇÕES -->
-  <div id="recent-tx-box" style="margin-bottom:1.25rem">
+  <div id="recent-tx-box" style="margin-bottom:1.75rem">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
       <div class="table-title">Últimas transações</div>
       <button onclick="goToDespesas()" style="background:none;border:none;color:var(--text3);font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer">Ver todas</button>
@@ -338,7 +338,7 @@
     <!-- COLUNA ESQUERDA -->
     <div class="dash-col-left">
 
-      <!-- DONUT -->
+      <!-- GASTOS POR CATEGORIA (sem gráfico de pizza — só o total + anéis) -->
       <div class="chart-box anim-fade-up anim-d3 dash-card" id="donut-box">
         <div class="chart-header">
           <div>
@@ -347,17 +347,12 @@
           </div>
           <div class="legend" id="legend-donut"></div>
         </div>
-        <div id="donut-insight" style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:1rem"></div>
-        <div class="donut-layout">
-          <div class="donut-chart-wrap">
-            <canvas id="chartDonut"></canvas>
-            <div id="donut-center" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-              <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Total</div>
-              <div id="donut-center-val" style="font-size:18px;font-weight:800;color:var(--red);line-height:1.2;margin-top:2px"></div>
-            </div>
-          </div>
-          <div id="donut-legend-list" class="donut-legend-list"></div>
+        <div id="donut-insight" style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:1.1rem"></div>
+        <div class="donut-total-row">
+          <span class="donut-total-label">Total gasto</span>
+          <span id="donut-center-val" class="donut-total-val"></span>
         </div>
+        <div id="donut-legend-list" class="donut-legend-list"></div>
       </div>
 
       <!-- SALDO MENSAL -->

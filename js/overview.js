@@ -36,7 +36,6 @@ function filteredMonths(){
   return all.slice(-currentPeriod);
 }
 
-let donutC = null;
 function renderDonutChart(cm, desp){
   const donutBox = document.getElementById('donut-box');
   if(!desp || !desp.length){
@@ -60,36 +59,9 @@ function renderDonutChart(cm, desp){
   const sorted = Object.entries(bycat).sort((a,b)=>b[1]-a[1]);
   const total  = sorted.reduce((s,[,v])=>s+v, 0);
 
-  // Centro
+  // Total gasto, exibido como valor único (sem gráfico de pizza)
   const centerEl = document.getElementById('donut-center-val');
   if(centerEl){ centerEl.dataset.rawVal='0'; animateValue(centerEl, total, 'var(--red)'); }
-
-  const labels = sorted.map(([k])=>k);
-  const values = sorted.map(([,v])=>Math.round(v*100)/100);
-  const colors = labels.map(l=>catColor(l));
-
-  // Destrói e recria o chart
-  if(donutC){ donutC.destroy(); donutC=null; }
-  const ctx = document.getElementById('chartDonut');
-  if(!ctx) return;
-  donutC = new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels, datasets:[{ data:values, backgroundColor:colors, borderWidth:2, borderColor:'var(--surface)', hoverBorderColor:'var(--surface)', hoverOffset:6 }] },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      cutout:'72%',
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:'#18181b', borderColor:'#3a3a3d', borderWidth:1,
-          callbacks:{
-            label: ctx => ` ${ctx.label}: ${fmt(ctx.raw)} (${Math.round(ctx.raw/total*100)}%)`
-          }
-        }
-      },
-      animation:{ animateRotate:true, duration:600 }
-    }
-  });
 
   // Frase de insight, no espírito da referência "Metas"
   const insightEl = document.getElementById('donut-insight');
