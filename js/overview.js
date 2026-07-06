@@ -91,40 +91,48 @@ function renderDonutChart(cm, desp){
     }
   });
 
-  // Lista — barras no desktop, linhas simples no mobile
+  // Frase de insight, no espírito da referência "Metas"
+  const insightEl = document.getElementById('donut-insight');
+  if(insightEl && sorted.length){
+    const [topCat, topVal] = sorted[0];
+    const topPct = Math.round(topVal/total*100);
+    insightEl.innerHTML = `<strong style="color:var(--text);font-weight:700">${topCat}</strong> concentra o maior gasto do mês: <strong style="color:var(--text);font-weight:700">${topPct}%</strong> do total.`;
+  } else if(insightEl){
+    insightEl.innerHTML = '';
+  }
+
+  // Lista — anel de progresso fino por categoria (mesma linguagem em mobile e desktop)
   const listEl = document.getElementById('donut-legend-list');
   if(listEl){
-    const isMobile = window.innerWidth < 768;
     listEl.innerHTML = sorted.map(([cat,val])=>{
       const pct = Math.round(val/total*100);
       const col = catColor(cat);
-      if(isMobile){
-        // Mobile: linha simples — dot | nome | valor | %
-        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
-          <div style="width:9px;height:9px;border-radius:3px;flex-shrink:0;background:${col}"></div>
-          <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${cat}</span>
-          <span style="font-size:13px;font-weight:700;color:var(--text);flex-shrink:0">${fmt(val)}</span>
-          <span style="font-size:11px;color:var(--text3);min-width:32px;text-align:right;flex-shrink:0">${pct}%</span>
-        </div>`;
-      }
-      // Desktop: com barra de progresso
-      return `<div style="display:flex;flex-direction:column;gap:3px">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-          <div style="display:flex;align-items:center;gap:6px;min-width:0">
-            <div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:${col}"></div>
-            <span style="font-size:11px;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <span style="font-size:11px;font-weight:700;color:var(--text)">${fmt(val)}</span>
-            <span style="font-size:10px;color:var(--text3);min-width:28px;text-align:right">${pct}%</span>
-          </div>
-        </div>
-        <div style="height:3px;border-radius:10px;background:var(--surface2);overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:${col};border-radius:10px;transition:width .5s ease"></div>
-        </div>
+      return `<div class="cat-ring-row">
+        ${ringSVG(pct, col, 36)}
+        <span class="cat-ring-name">${cat}</span>
+        <span class="cat-ring-val">${fmt(val)}</span>
       </div>`;
     }).join('');
   }
+}
+
+/* Anel de progresso fino (estilo "Metas") usado na lista por categoria */
+function ringSVG(pct, color, size){
+  size = size || 36;
+  const stroke = 3.5;
+  const r = size/2 - stroke;
+  const c = size/2;
+  const circ = 2*Math.PI*r;
+  const clamped = Math.max(0, Math.min(100, pct));
+  const dash = (clamped/100)*circ;
+  const fontSize = size <= 36 ? 9 : 10;
+  return `<div class="cat-ring" style="width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="position:absolute;inset:0;transform:rotate(-90deg)">
+      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--surface3)" stroke-width="${stroke}"/>
+      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${dash} ${circ-dash}"/>
+    </svg>
+    <span style="font-size:${fontSize}px">${clamped}%</span>
+  </div>`;
 }
 
 /* ══════ ÚLTIMAS TRANSAÇÕES (lista da Home) ══════ */

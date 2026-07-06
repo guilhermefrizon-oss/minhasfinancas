@@ -20,6 +20,8 @@
   --amber: #ffcc33;
   --amber-bg: rgba(255,204,51,0.12);
   --purple: #ffffff;
+  --shadow-card: 0 0 0 1px rgba(255,255,255,.05), 0 1px 2px rgba(0,0,0,.4);
+  --shadow-card-hover: 0 0 0 1px rgba(255,255,255,.09), 0 4px 12px rgba(0,0,0,.45);
   --radius: 20px;
   --radius-sm: 12px;
 }
@@ -93,8 +95,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
 .cards { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 1.5rem; }
 @media(min-width:600px){ .cards { grid-template-columns: repeat(4,1fr); } }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.1rem 1.1rem; position: relative; overflow: hidden; transition: transform .15s, border-color .15s; }
-.card:hover { transform: translateY(-1px); border-color: var(--text3); }
+.card { background: var(--surface); border: none; box-shadow: var(--shadow-card); border-radius: var(--radius); padding: 1.25rem 1.1rem 1.1rem; position: relative; overflow: hidden; transition: transform .15s, box-shadow .15s; }
+.card:hover { transform: translateY(-1px); box-shadow: var(--shadow-card-hover); }
 .card-stripe { position: absolute; top: 0; left: 0; width: 100%; height: 2px; border-radius: var(--radius) var(--radius) 0 0; }
 .card-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
 .card-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; line-height: 1; letter-spacing: -.3px; }
@@ -105,7 +107,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .card-value.amber { color: var(--amber); }
 .card-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
 
-.chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; margin-bottom: 1.4rem; }
+.chart-box { background: var(--surface); border: none; box-shadow: var(--shadow-card); border-radius: var(--radius); padding: 1.4rem; margin-bottom: 1.4rem; }
 .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
 .chart-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
 .chart-hint { font-size: 11px; color: var(--text3); margin-top: 3px; }
@@ -125,7 +127,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .tt-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #fff; margin-top: 5px; }
 .tt-saldo { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-top: 6px; padding-top: 6px; border-top: 1px solid #3a3a3d; }
 
-.table-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; }
+.table-box { background: var(--surface); border: none; box-shadow: var(--shadow-card); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; }
 
 /* ── Últimas transações (lista da Home) — cartões separados ── */
 .rtx-item {
@@ -133,14 +135,15 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   align-items: center;
   gap: 12px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
+  box-shadow: var(--shadow-card);
   border-radius: var(--radius-sm);
   padding: .85rem 1rem;
   margin-bottom: 10px;
-  transition: transform .15s, border-color .15s;
+  transition: transform .15s, box-shadow .15s;
 }
 .rtx-item:last-child { margin-bottom: 0; }
-.rtx-item:hover { border-color: var(--text3); transform: translateY(-1px); }
+.rtx-item:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-1px); }
 .rtx-icon-badge { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .rtx-icon-badge svg { width: 20px; height: 20px; }
 .rtx-main { flex: 1; min-width: 0; }
@@ -686,6 +689,8 @@ body.light {
   --amber: #b8860b;
   --amber-bg: rgba(184,134,11,0.10);
   --purple: #0a0a0a;
+  --shadow-card: 0 1px 2px rgba(0,0,0,.035), 0 6px 16px rgba(0,0,0,.045);
+  --shadow-card-hover: 0 2px 4px rgba(0,0,0,.05), 0 10px 24px rgba(0,0,0,.07);
 }
 body.light .nav { background: #fff; }
 body.light .header { background: #fff; }
@@ -731,8 +736,13 @@ body.light #chartTooltip { background: #0a0a0a; }
   min-width: 160px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 10px;
 }
+.cat-ring-row { display: flex; align-items: center; gap: 12px; }
+.cat-ring { position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.cat-ring span { font-weight: 700; color: var(--text); }
+.cat-ring-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-ring-val { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text); flex-shrink: 0; }
 
 /* Mobile: donut em cima, lista embaixo */
 @media (max-width: 767px) {
@@ -746,12 +756,8 @@ body.light #chartTooltip { background: #0a0a0a; }
     margin: 0 auto;
   }
   .donut-legend-list {
-    gap: 0;
+    gap: 12px;
     min-width: unset;
-  }
-  /* Remove borda do último item */
-  .donut-legend-list > div:last-child {
-    border-bottom: none !important;
   }
   /* Valor em destaque no mobile */
   #donut-center-val {
