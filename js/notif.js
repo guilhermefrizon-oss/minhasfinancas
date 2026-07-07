@@ -33,7 +33,7 @@ function renderNotif(){
     const nd=`anim-d${Math.min(ni+1,10)}`;
     const statusLabel = isDebito ? 'Débito auto' : 'Falta Pagar';
     const statusColor = isDebito ? 'var(--blue)' : 'var(--amber)';
-    const statusBg    = isDebito ? 'rgba(123,140,255,.12)' : 'rgba(245,197,66,.12)';
+    const statusBg    = isDebito ? 'var(--blue-bg)' : 'var(--amber-bg)';
     return `
     <div class="anim-fade-up ${nd}" style="
       background:var(--surface);

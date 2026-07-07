@@ -24,7 +24,7 @@ function openSortPanel(){
     const active = despSortKey === o.key;
     const dir = active ? (despSortDir === 1 ? ' ↑' : ' ↓') : '';
     return `<button onclick="applySortMobile('${o.key}')"
-      style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid ${active?'var(--purple)':'var(--border)'};background:${active?'rgba(123,140,255,.08)':'var(--surface2)'};font-family:var(--font);font-size:14px;font-weight:${active?700:500};color:${active?'var(--purple)':'var(--text)'};cursor:pointer;text-align:left;width:100%;transition:all .15s">
+      style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid ${active?'var(--purple)':'var(--border)'};background:${active?'var(--surface3)':'var(--surface2)'};font-family:var(--font);font-size:14px;font-weight:${active?700:500};color:${active?'var(--purple)':'var(--text)'};cursor:pointer;text-align:left;width:100%;transition:all .15s">
       <span style="font-size:16px">${o.icon}</span>
       <span style="flex:1">${o.label}</span>
       <span style="font-size:12px;color:var(--text3)">${dir}</span>
