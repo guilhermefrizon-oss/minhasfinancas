@@ -359,6 +359,36 @@ function toggleRecStatus(id){
   saveData();renderReceitas();showToast(r.status==='Recebido'?'✅ Marcado como Recebido!':'↩ Marcado como Aguardando');
 }
 
+function renderDespByName(items){
+  const box = document.getElementById('desp-byname-box');
+  const listEl = document.getElementById('desp-byname-list');
+  if(!box||!listEl) return;
+  const groups = {};
+  items.forEach(d=>{
+    const key = (d.nome||'Sem nome').trim();
+    if(!groups[key]) groups[key] = { total:0, count:0 };
+    groups[key].total += (d.val||0);
+    groups[key].count += 1;
+  });
+  const repeated = Object.entries(groups)
+    .filter(([,g]) => g.count > 1)
+    .sort((a,b) => b[1].total - a[1].total);
+
+  if(!repeated.length){ box.style.display='none'; return; }
+  box.style.display='';
+  listEl.innerHTML = repeated.map(([nome,g]) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:.7rem 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0">
+        <span style="font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nome}</span>
+        <span class="badge nd" style="flex-shrink:0">${g.count}x</span>
+      </div>
+      <span style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);flex-shrink:0">${fmt(g.total)}</span>
+    </div>`).join('');
+  // remove borda do último item
+  const lastRow = listEl.lastElementChild;
+  if(lastRow) lastRow.style.borderBottom = 'none';
+}
+
 function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRecorrentesList();
   const m=despSelectedMonth;
   const searchEl=document.getElementById('desp-search');
@@ -387,6 +417,7 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
     <div class="card anim-fade-up anim-d1"><div class="card-stripe" style="background:var(--red)"></div><div class="card-label">Total</div><div class="card-value red">${fmt(total)}</div></div>
     <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">A pagar</div><div class="card-value ${aPagar>0?'amber':''}">${fmt(aPagar)}</div></div>
     <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Pago</div><div class="card-value green">${fmt(pago)}</div></div>`;
+  renderDespByName(items);
   // título e badge removidos (info já aparece nos cards acima)
   const bc={Pago:'pago','Falta Pagar':'falta','Débito auto':'auto'};
   const today=new Date();today.setHours(0,0,0,0);
