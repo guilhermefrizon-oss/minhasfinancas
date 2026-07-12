@@ -7,6 +7,22 @@ function profileInitial(nome){return (nome||'?').charAt(0).toUpperCase();}
 function capitalizeName(str){
   return (str||'').trim().toLowerCase().replace(/(^|[\s'’-])(\p{L})/gu, (m,sep,ch)=>sep+ch.toUpperCase());
 }
+// Pinta um avatar: foto (se houver) ou inicial com cor de fundo
+function paintAvatar(el, foto, initial, bg, color){
+  if(!el) return;
+  if(foto){
+    el.textContent = '';
+    el.style.backgroundImage = 'url("'+foto+'")';
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    el.style.backgroundColor = 'transparent';
+  } else {
+    el.style.backgroundImage = '';
+    el.textContent = initial;
+    if(bg) el.style.backgroundColor = bg;
+    if(color) el.style.color = color;
+  }
+}
 
 function applyGreeting(primeiro){
   const hour = new Date().getHours();
@@ -25,12 +41,7 @@ function applyGreeting(primeiro){
 
   // Avatar com inicial
   const avatarEl = document.getElementById('overview-greeting-avatar');
-  if(avatarEl){
-    const initial = (primeiro||'?').charAt(0).toUpperCase();
-    avatarEl.textContent = initial;
-    avatarEl.style.background = 'var(--text)';
-    avatarEl.style.color = 'var(--bg)';
-  }
+  paintAvatar(avatarEl, _userProfileData && _userProfileData.foto, (primeiro||'?').charAt(0).toUpperCase(), 'var(--text)', 'var(--bg)');
 
   // Header greeting legado (caso exista)
   const el = document.getElementById('header-greeting');
@@ -41,19 +52,16 @@ function applyHeaderName(nomeCompleto){
   const primeiro = capitalizeName(nomeCompleto.split(' ')[0]);
   const initial = primeiro.charAt(0).toUpperCase();
 
+  const foto = _userProfileData && _userProfileData.foto;
+
   // Header avatar (desktop)
   const avatarEl = document.getElementById('header-profile-avatar');
   const nameEl = document.getElementById('header-profile-name');
-  if(avatarEl){ avatarEl.textContent = initial; avatarEl.style.background = 'var(--text)'; avatarEl.style.color = 'var(--bg)'; }
+  paintAvatar(avatarEl, foto, initial, 'var(--text)', 'var(--bg)');
   if(nameEl) nameEl.textContent = primeiro;
 
   // Bottom nav avatar (mobile)
-  const bnAvatar = document.getElementById('bn-avatar');
-  if(bnAvatar){
-    bnAvatar.textContent = initial;
-    bnAvatar.style.background = 'var(--surface3)';
-    bnAvatar.style.color = 'var(--text2)';
-  }
+  paintAvatar(document.getElementById('bn-avatar'), foto, initial, 'var(--surface3)', 'var(--text2)');
 
   applyGreeting(primeiro);
 }
@@ -141,9 +149,136 @@ function renderUserProfile(){
 
   // Avatar grande
   const avatarEl = document.getElementById('profile-avatar-big');
-  avatarEl.textContent = primeiroNome.charAt(0).toUpperCase();
   const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
-  avatarEl.style.background = colors[primeiroNome.charCodeAt(0)%colors.length];
+  paintAvatar(avatarEl, _userProfileData.foto, capitalizeName(primeiroNome).charAt(0).toUpperCase(), colors[primeiroNome.charCodeAt(0)%colors.length], '#fff');
+  const rm = document.getElementById('profile-remove-photo');
+  if(rm) rm.style.display = _userProfileData.foto ? 'block' : 'none';
+}
+
+/* ══════ FOTO DE PERFIL — recortar/ajustar no círculo ══════ */
+let _pc = null;
+
+function onPhotoFile(e){
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ showToast('Selecione uma imagem.'); return; }
+  const reader = new FileReader();
+  reader.onload = () => openPhotoCrop(reader.result);
+  reader.readAsDataURL(file);
+}
+
+function openPhotoCrop(dataUrl){
+  const modal = document.getElementById('photo-crop-modal');
+  const img = document.getElementById('pc-img');
+  const frame = document.getElementById('pc-frame');
+  const F = frame.clientWidth || 240;
+  const im = new Image();
+  im.onload = () => {
+    const minScale = Math.max(F/im.naturalWidth, F/im.naturalHeight);
+    _pc = { F, natW: im.naturalWidth, natH: im.naturalHeight, minScale, scale: minScale, x: 0, y: 0, drag: false };
+    img.src = dataUrl;
+    img.style.width = im.naturalWidth + 'px';
+    img.style.height = im.naturalHeight + 'px';
+    _pc.x = (F - im.naturalWidth * minScale) / 2;
+    _pc.y = (F - im.naturalHeight * minScale) / 2;
+    document.getElementById('pc-zoom').value = 1;
+    _pcBindDrag();
+    pcApply();
+    modal.style.display = 'flex';
+  };
+  im.src = dataUrl;
+}
+
+function closePhotoCrop(){
+  document.getElementById('photo-crop-modal').style.display = 'none';
+  _pc = null;
+}
+
+function pcClamp(){
+  const imgW = _pc.natW * _pc.scale, imgH = _pc.natH * _pc.scale;
+  _pc.x = Math.min(0, Math.max(_pc.F - imgW, _pc.x));
+  _pc.y = Math.min(0, Math.max(_pc.F - imgH, _pc.y));
+}
+
+function pcApply(){
+  if(!_pc) return;
+  pcClamp();
+  document.getElementById('pc-img').style.transform =
+    'translate(' + _pc.x + 'px,' + _pc.y + 'px) scale(' + _pc.scale + ')';
+}
+
+function pcZoom(v){
+  if(!_pc) return;
+  const c = _pc.F / 2;
+  const prev = _pc.scale;
+  const next = _pc.minScale * parseFloat(v);
+  // mantém o ponto central estável ao dar zoom
+  _pc.x = c - (c - _pc.x) * (next / prev);
+  _pc.y = c - (c - _pc.y) * (next / prev);
+  _pc.scale = next;
+  pcApply();
+}
+
+function _pcBindDrag(){
+  const frame = document.getElementById('pc-frame');
+  if(!frame || frame._bound) return;
+  frame._bound = true;
+  let sx, sy, ox, oy;
+  frame.addEventListener('pointerdown', e => {
+    if(!_pc) return;
+    _pc.drag = true;
+    try{ frame.setPointerCapture(e.pointerId); }catch(_){}
+    sx = e.clientX; sy = e.clientY; ox = _pc.x; oy = _pc.y;
+    frame.style.cursor = 'grabbing';
+  });
+  frame.addEventListener('pointermove', e => {
+    if(!_pc || !_pc.drag) return;
+    _pc.x = ox + (e.clientX - sx);
+    _pc.y = oy + (e.clientY - sy);
+    pcApply();
+  });
+  const end = () => { if(_pc) _pc.drag = false; frame.style.cursor = 'grab'; };
+  frame.addEventListener('pointerup', end);
+  frame.addEventListener('pointercancel', end);
+}
+
+function savePhotoCrop(){
+  if(!_pc) return;
+  const OUT = 256;
+  const srcSize = _pc.F / _pc.scale;
+  const srcX = -_pc.x / _pc.scale;
+  const srcY = -_pc.y / _pc.scale;
+  const canvas = document.createElement('canvas');
+  canvas.width = OUT; canvas.height = OUT;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(document.getElementById('pc-img'), srcX, srcY, srcSize, srcSize, 0, 0, OUT, OUT);
+  _userProfileData.foto = canvas.toDataURL('image/jpeg', 0.85);
+  closePhotoCrop();
+  refreshAvatars();
+  _persistUserProfile();
+  showToast('Foto atualizada!');
+}
+
+function removePhoto(){
+  delete _userProfileData.foto;
+  closePhotoCrop();
+  refreshAvatars();
+  _persistUserProfile();
+  showToast('Foto removida.');
+}
+
+function refreshAvatars(){
+  const nome = _userProfileData.nome || (window._fbUser && window._fbUser.email ? window._fbUser.email.split('@')[0] : '');
+  applyHeaderName(nome || '?');
+  if(document.getElementById('profile-avatar-big')) renderUserProfile();
+}
+
+function _persistUserProfile(){
+  const user = window._fbUser;
+  if(!user) return;
+  try{ localStorage.setItem('gastos_user_profile_' + user.uid, JSON.stringify(_userProfileData)); }catch(_){}
+  saveUserProfileToCloud(user);
 }
 
 function openEditField(field, title, currentValue, inputType='text'){
