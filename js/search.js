@@ -67,13 +67,13 @@ function renderGlobalSearch(){
 
   if(!q && _gsFilter === 'all'){
     summary.textContent = '';
-    results.innerHTML = `<div class="gs-empty"><div class="gs-empty-icon">🔍</div><div class="gs-empty-text">Digite para buscar</div><div style="font-size:12px;margin-top:4px">Busque por nome, categoria ou forma de pagamento</div></div>`;
+    results.innerHTML = `<div class="gs-empty"><div class="gs-empty-icon">${uiIcon('search',36)}</div><div class="gs-empty-text">Digite para buscar</div><div style="font-size:12px;margin-top:4px">Busque por nome, categoria ou forma de pagamento</div></div>`;
     return;
   }
 
   if(!count){
     summary.textContent = '';
-    results.innerHTML = `<div class="gs-empty"><div class="gs-empty-icon">😶</div><div class="gs-empty-text">Nenhum resultado</div><div style="font-size:12px;margin-top:4px">Tente outros termos ou filtros</div></div>`;
+    results.innerHTML = `<div class="gs-empty"><div class="gs-empty-icon">${uiIcon('frown',36)}</div><div class="gs-empty-text">Nenhum resultado</div><div style="font-size:12px;margin-top:4px">Tente outros termos ou filtros</div></div>`;
     return;
   }
 
@@ -92,7 +92,7 @@ function renderGlobalSearch(){
     html += `<div class="gs-month-label">${mLabel}<span class="gs-month-total">${fmt(gTotal)}</span></div>`;
     group.forEach(it => {
       const isRec = it._tipo === 'rec';
-      const iconHtml = it.icon ? `<div style="width:22px;height:22px">${it.icon}</div>` : `<span style="font-size:18px">${isRec ? '💰' : '💳'}</span>`;
+      const iconHtml = it.icon ? `<div style="width:22px;height:22px">${it.icon}</div>` : `<span style="display:inline-flex">${isRec ? uiIcon('wallet',18,'var(--green)') : uiIcon('card',18,'var(--red)')}</span>`;
       const catLabel2 = it.cat ? catLabel(it.cat) : '';
       const metaParts = [catLabel2, it.pag].filter(Boolean);
       const statusColor = it.status==='Pago'||it.status==='Recebido' ? 'var(--green)' : it.status==='Falta Pagar' ? 'var(--red)' : 'var(--amber)';

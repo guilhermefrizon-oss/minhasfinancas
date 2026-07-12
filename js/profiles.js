@@ -1,12 +1,15 @@
 /* ══════ SISTEMA DE PERFIS — UI ══════ */
-let pinTarget=null,pinBuffer='',editingProfileId=null,selectedAvatar='👤';
+let pinTarget=null,pinBuffer='',editingProfileId=null;
+const PROFILE_COLORS=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
+function profileColor(nome){return PROFILE_COLORS[(nome||'?').charCodeAt(0)%PROFILE_COLORS.length];}
+function profileInitial(nome){return (nome||'?').charAt(0).toUpperCase();}
 
 function applyGreeting(primeiro){
   const hour = new Date().getHours();
-  let greeting, emoji;
-  if (hour >= 5  && hour < 12) { greeting = 'Bom dia';    emoji = '☀️'; }
-  else if (hour >= 12 && hour < 18) { greeting = 'Boa tarde';  emoji = '🌤️'; }
-  else                          { greeting = 'Boa noite';  emoji = '🌙'; }
+  let greeting;
+  if (hour >= 5  && hour < 12) { greeting = 'Bom dia'; }
+  else if (hour >= 12 && hour < 18) { greeting = 'Boa tarde'; }
+  else                          { greeting = 'Boa noite'; }
 
   // Label de saudação com horário
   const labelEl = document.getElementById('overview-greeting-label');
@@ -187,7 +190,7 @@ async function saveUserProfile(){
   if(_userProfileData.nome) applyHeaderName(_userProfileData.nome);
 
   // 3. Fecha a tela e mostra feedback — não bloqueia esperando a rede
-  showToast('Perfil atualizado! ✅');
+  showToast('Perfil atualizado!');
   btn.textContent = 'Salvar';
   btn.disabled = false;
   closeUserProfile();
@@ -202,7 +205,7 @@ async function saveUserProfileToCloud(user, attempt=1){
       ..._userProfileData,
       atualizadoEm: Date.now()
     });
-    console.log('[Perfil] Sincronizado com a nuvem ✓');
+    console.log('[Perfil] Sincronizado com a nuvem');
   } catch(e){
     console.warn(`[Perfil] Falha no sync (tentativa ${attempt}):`, e.message);
     // Tenta novamente com backoff: 5s, 15s, 30s
@@ -225,15 +228,14 @@ function openProfileScreen(){PROFILES=loadProfiles();renderProfileList();documen
 function closeProfileScreen(){document.getElementById('profile-screen').style.display='none';}
 function renderProfileList(){
   const pid=getActiveProfileId();
-  const colors=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
   document.getElementById('profile-list').innerHTML=PROFILES.map(p=>{
-    const idx=p.nome.charCodeAt(0)%colors.length;const isActive=p.id===pid;
+    const col=profileColor(p.nome);const isActive=p.id===pid;
     return`<div class="profile-card ${isActive?'active-profile':''}" onclick="selectProfile('${p.id}')">
-      <div class="profile-avatar" style="background:${colors[idx]}22">${p.avatar}</div>
-      <div style="flex:1"><div style="font-weight:700;font-size:15px">${p.nome}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${isActive?'✓ Ativo agora':'Clique para entrar'}</div></div>
+      <div class="profile-avatar" style="background:${col}22;color:${col};font-weight:800">${profileInitial(p.nome)}</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:15px">${p.nome}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:4px">${isActive?uiIcon('check',12)+' Ativo agora':'Clique para entrar'}</div></div>
       <div style="display:flex;gap:8px">
-        <button onclick="event.stopPropagation();openEditProfile('${p.id}')" class="edit-btn" style="font-size:13px">✏️</button>
-        ${PROFILES.length>1?`<button onclick="event.stopPropagation();deleteProfile('${p.id}')" class="edit-btn" style="border-color:var(--red);color:var(--red);font-size:13px">🗑</button>`:''}
+        <button onclick="event.stopPropagation();openEditProfile('${p.id}')" class="edit-btn" style="font-size:13px;display:inline-flex;align-items:center" title="Editar">${uiIcon('edit',14)}</button>
+        ${PROFILES.length>1?`<button onclick="event.stopPropagation();deleteProfile('${p.id}')" class="edit-btn" style="border-color:var(--red);color:var(--red);font-size:13px;display:inline-flex;align-items:center" title="Excluir">${uiIcon('trash',14)}</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -242,7 +244,7 @@ function selectProfile(id){
   const p=PROFILES.find(x=>x.id===id);if(!p)return;
   if(id===getActiveProfileId()){closeProfileScreen();return;}
   pinTarget=id;pinBuffer='';updatePinDots();
-  document.getElementById('pin-avatar').textContent=p.avatar;
+  const pinAv=document.getElementById('pin-avatar');pinAv.textContent=profileInitial(p.nome);pinAv.style.background=profileColor(p.nome)+'22';pinAv.style.color=profileColor(p.nome);pinAv.style.fontWeight='800';
   document.getElementById('pin-title').textContent=p.nome;
   document.getElementById('pin-error').textContent='';
   document.getElementById('pin-modal').classList.add('open');
@@ -267,11 +269,9 @@ function checkPin(){
     document.getElementById('pin-error').textContent='PIN incorreto.';pinBuffer='';updatePinDots();
   }
 }
-function openCreateProfile(){editingProfileId=null;selectedAvatar='👤';document.getElementById('create-profile-title').textContent='Novo perfil';document.getElementById('cp-nome').value='';document.getElementById('cp-pin').value='';document.getElementById('cp-pin2').value='';document.getElementById('cp-error').textContent='';renderEmojiPicker();document.getElementById('create-profile-modal').classList.add('open');}
-function openEditProfile(id){const p=PROFILES.find(x=>x.id===id);if(!p)return;editingProfileId=id;selectedAvatar=p.avatar;document.getElementById('create-profile-title').textContent='Editar perfil';document.getElementById('cp-nome').value=p.nome;document.getElementById('cp-pin').value='';document.getElementById('cp-pin2').value='';document.getElementById('cp-error').textContent='';renderEmojiPicker();document.getElementById('create-profile-modal').classList.add('open');}
+function openCreateProfile(){editingProfileId=null;document.getElementById('create-profile-title').textContent='Novo perfil';document.getElementById('cp-nome').value='';document.getElementById('cp-pin').value='';document.getElementById('cp-pin2').value='';document.getElementById('cp-error').textContent='';document.getElementById('create-profile-modal').classList.add('open');}
+function openEditProfile(id){const p=PROFILES.find(x=>x.id===id);if(!p)return;editingProfileId=id;document.getElementById('create-profile-title').textContent='Editar perfil';document.getElementById('cp-nome').value=p.nome;document.getElementById('cp-pin').value='';document.getElementById('cp-pin2').value='';document.getElementById('cp-error').textContent='';document.getElementById('create-profile-modal').classList.add('open');}
 function closeCreateProfile(){document.getElementById('create-profile-modal').classList.remove('open');editingProfileId=null;}
-function renderEmojiPicker(){const emojis=['👤','👨','👩','👦','👧','🧒','👴','👵','🧑','👨‍💼','👩‍💼','🧑‍💻','👨‍🍳','👩‍🎨','🦸','🐱'];document.getElementById('emoji-picker').innerHTML=emojis.map(e=>`<span class="${e===selectedAvatar?'selected':''}" onclick="selectEmoji('${e}')">${e}</span>`).join('');}
-function selectEmoji(e){selectedAvatar=e;renderEmojiPicker();}
 function saveProfile(){
   const nome=document.getElementById('cp-nome').value.trim();
   const pin=document.getElementById('cp-pin').value.trim();
@@ -279,7 +279,7 @@ function saveProfile(){
   if(!nome){document.getElementById('cp-error').textContent='Digite um nome.';return;}
   if(editingProfileId){
     if(pin){if(!/^[0-9]{4}$/.test(pin)){document.getElementById('cp-error').textContent='PIN deve ter 4 dígitos.';return;}if(pin!==pin2){document.getElementById('cp-error').textContent='PINs não coincidem.';return;}}
-    const p=PROFILES.find(x=>x.id===editingProfileId);p.nome=nome;p.avatar=selectedAvatar;if(pin)p.pin=hashPin(pin);
+    const p=PROFILES.find(x=>x.id===editingProfileId);p.nome=nome;if(pin)p.pin=hashPin(pin);
     saveProfiles(PROFILES);updateHeaderProfile();renderProfileList();closeCreateProfile();showToast('Perfil atualizado!');
   } else {
     if(!/^[0-9]{4}$/.test(pin)){document.getElementById('cp-error').textContent='PIN deve ter 4 dígitos.';return;}
@@ -289,7 +289,7 @@ function saveProfile(){
     localStorage.setItem(profileDataKey(id,'despesas'),'[]');
     localStorage.setItem(profileDataKey(id,'receitas'),'[]');
     localStorage.setItem('gastos_version_'+id,DATA_VERSION);
-    PROFILES.push({id,nome,avatar:selectedAvatar,pin:hashPin(pin),createdAt:Date.now()});
+    PROFILES.push({id,nome,pin:hashPin(pin),createdAt:Date.now()});
     saveProfiles(PROFILES);renderProfileList();closeCreateProfile();showToast('Perfil criado!');
   }
 }

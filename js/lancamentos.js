@@ -54,7 +54,7 @@ function renderRecorrentesList(){
     const hasDebito=[...e.statuses].includes("Débito auto");
     const statusLabel=hasFalta?'<span class="badge falta" style="font-size:10px;padding:2px 7px">Falta Pagar</span>':hasDebito?'<span class="badge pago" style="font-size:10px;padding:2px 7px">Débito auto</span>':'<span class="badge pago" style="font-size:10px;padding:2px 7px">Pago</span>';
     const nomeSafe=e.nome.replace(/'/g,"\\'");
-    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--border);flex-wrap:wrap"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">${itemIcon(e.nome,e.icon)}<div style="min-width:0"><div style="font-weight:600;font-size:13px">${e.nome}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px">${catLabel(e.cat)} · ${e.count} meses ${statusLabel}</div></div></div><div style="display:flex;gap:6px;flex-shrink:0"><button class="edit-btn" onclick="editAllByName('${nomeSafe}')">✏️ Editar</button><button class="edit-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteAllByName('${nomeSafe}')">🗑</button></div></div>`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--border);flex-wrap:wrap"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">${itemIcon(e.nome,e.icon)}<div style="min-width:0"><div style="font-weight:600;font-size:13px">${e.nome}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px">${catLabel(e.cat)} · ${e.count} meses ${statusLabel}</div></div></div><div style="display:flex;gap:6px;flex-shrink:0"><button class="edit-btn" onclick="editAllByName('${nomeSafe}')" style="display:inline-flex;align-items:center;gap:5px">${uiIcon('edit',13)} Editar</button><button class="edit-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteAllByName('${nomeSafe}')">${uiIcon('trash',14)}</button></div></div>`;
   }).join("");
 }
 function updateRecorrentesBadge(){
@@ -82,8 +82,8 @@ function renderManageList(){
         <div><div style="font-weight:600;font-size:13px">${e.nome}</div><div style="font-size:11px;color:var(--text3)">${catLabel(e.cat)} · ${e.count} mês(es)</div></div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0">
-        <button class="edit-btn" onclick="editAllByName('${e.nome.replace(/'/g,"\\'")}')">✏️</button>
-        <button class="edit-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteAllByName('${e.nome.replace(/'/g,"\\'")}')">🗑</button>
+        <button class="edit-btn" onclick="editAllByName('${e.nome.replace(/'/g,"\\'")}')" style="display:inline-flex;align-items:center" title="Editar">${uiIcon('edit',13)}</button>
+        <button class="edit-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteAllByName('${e.nome.replace(/'/g,"\\'")}')">${uiIcon('trash',14)}</button>
       </div>
     </div>`).join('');
 }
@@ -125,7 +125,7 @@ function fieldError(id, msg) {
   if (prev) prev.remove();
   const hint = document.createElement('div');
   hint.className = 'field-error-msg';
-  hint.innerHTML = '⚠ ' + msg;
+  hint.innerHTML = uiIcon('warning',12) + ' ' + msg;
   el.parentElement.appendChild(hint);
   el.focus();
   el.addEventListener('input', function clear() {

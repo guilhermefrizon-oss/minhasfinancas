@@ -52,7 +52,7 @@ async function saveProfileSettings() {
     _userProfileData = { ..._userProfileData, nome };
     localStorage.setItem('gastos_user_profile_' + user.uid, JSON.stringify(_userProfileData));
     applyHeaderName(nome);
-    showToast('✅ Perfil atualizado!');
+    showToast('Perfil atualizado!');
     closeSettingsScreen('screen-profile');
   } catch(e) {
     showToast('Erro ao salvar. Tente novamente.');
@@ -76,7 +76,7 @@ async function saveNewPassword() {
   try {
     const { updatePassword } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
     await updatePassword(user, pass);
-    showToast('✅ Senha alterada!');
+    showToast('Senha alterada!');
     document.getElementById('ps-new-pass').value  = '';
     document.getElementById('ps-new-pass2').value = '';
     document.getElementById('ps-pass-wrap').style.display = 'none';
@@ -163,7 +163,7 @@ function exportCSV() {
   a.download = `meus-gastos-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✅ CSV exportado!');
+  showToast('CSV exportado!');
 }
 
 function backupJSON() {
@@ -179,7 +179,7 @@ function backupJSON() {
   a.download = `backup-meus-gastos-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✅ Backup baixado!');
+  showToast('Backup baixado!');
 }
 
 function clearAllData() {
@@ -189,7 +189,7 @@ function clearAllData() {
     saveData();
     renderOverview();
     closeSettingsScreen('screen-data');
-    showToast('🗑 Dados apagados.');
+    showToast('Dados apagados.');
   });
 }
 

@@ -17,7 +17,7 @@ function renderNotif(){
   if(!iminentes.length){
     document.getElementById('notif-list').innerHTML=`
       <div style="text-align:center;padding:3rem 1rem">
-        <div style="font-size:48px;margin-bottom:12px">✅</div>
+        <div style="margin-bottom:12px">${uiIcon('checkCircle',48,'var(--green)')}</div>
         <div style="font-size:16px;font-weight:700;color:var(--text)">Tudo em dia!</div>
         <div style="font-size:13px;color:var(--text3);margin-top:6px">Nenhuma conta vence nos próximos 3 dias.</div>
       </div>`;
@@ -57,7 +57,7 @@ function renderNotif(){
         <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${statusBg};color:${statusColor}">${statusLabel}</span>
         <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${urgColor}22;color:${urgColor}">${label}</span>
         <div style="flex:1"></div>
-        <button class="edit-btn" onclick="openModal(${d.id})" style="padding:4px 10px">✏️ Editar</button>
+        <button class="edit-btn" onclick="openModal(${d.id})" style="padding:4px 10px;display:inline-flex;align-items:center;gap:5px">${uiIcon('edit',13)} Editar</button>
       </div>
     </div>`;
   }).join('');

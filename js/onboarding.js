@@ -9,22 +9,22 @@ const TOOLTIP_KEY    = 'mg_tooltip_done';
 /* ── Slides de boas-vindas ── */
 const SLIDES = [
   {
-    emoji: '👋',
+    icon: 'sparkles',
     title: 'Bem-vindo ao Meus Gastos!',
     text:  'Seu app para controlar receitas e despesas de um jeito simples e visual.',
   },
   {
-    emoji: '➕',
+    icon: 'plus',
     title: 'Adicione seus lançamentos',
     text:  'Toque no botão "+" para registrar uma despesa ou receita em segundos.',
   },
   {
-    emoji: '📊',
+    icon: 'barChart',
     title: 'Acompanhe seu saldo',
     text:  'Na tela Geral você vê o resumo do mês, gráficos e quanto ainda falta pagar.',
   },
   {
-    emoji: '🔔',
+    icon: 'bell',
     title: 'Alertas de vencimento',
     text:  'Defina datas de vencimento e receba alertas antes das contas chegarem.',
   },
@@ -41,7 +41,7 @@ function showOnboarding() {
 
 function _renderSlide() {
   const s = SLIDES[_slideIdx];
-  document.getElementById('ob-emoji').textContent = s.emoji;
+  document.getElementById('ob-emoji').innerHTML = uiIcon(s.icon, 52, 'var(--purple)');
   document.getElementById('ob-title').textContent = s.title;
   document.getElementById('ob-text').textContent  = s.text;
 

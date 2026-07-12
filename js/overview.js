@@ -520,12 +520,12 @@ function confirmCancel(){
 function applyTheme(theme){
   if(theme==='light'){
     document.body.classList.add('light');
-    document.getElementById('theme-btn').textContent = '☀️';
+    document.getElementById('theme-btn').innerHTML = uiIcon('sun',18);
     const m=document.getElementById('theme-color-meta');
     if(m) m.setAttribute('content','#f7f7f8');
   } else {
     document.body.classList.remove('light');
-    document.getElementById('theme-btn').textContent = '🌙';
+    document.getElementById('theme-btn').innerHTML = uiIcon('moon',18);
     const m=document.getElementById('theme-color-meta');
     if(m) m.setAttribute('content','#0a0a0b');
   }

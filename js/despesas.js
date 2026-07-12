@@ -7,12 +7,12 @@ function guessTipo(cat){
 
 /* ── Painel de ordenação mobile ── */
 const SORT_OPTIONS = [
-  { key:'venc',   label:'Vencimento',  icon:'📅' },
-  { key:'val',    label:'Valor',       icon:'💰' },
-  { key:'nome',   label:'Nome',        icon:'🔤' },
-  { key:'cat',    label:'Categoria',   icon:'🏷️' },
-  { key:'status', label:'Status',      icon:'✅' },
-  { key:'tipo',   label:'Tipo (Fixa/Variável)', icon:'📌' },
+  { key:'venc',   label:'Vencimento',  icon:'calendar' },
+  { key:'val',    label:'Valor',       icon:'wallet' },
+  { key:'nome',   label:'Nome',        icon:'type' },
+  { key:'cat',    label:'Categoria',   icon:'tag' },
+  { key:'status', label:'Status',      icon:'check' },
+  { key:'tipo',   label:'Tipo (Fixa/Variável)', icon:'pin' },
 ];
 
 function openSortPanel(){
@@ -25,7 +25,7 @@ function openSortPanel(){
     const dir = active ? (despSortDir === 1 ? ' ↑' : ' ↓') : '';
     return `<button onclick="applySortMobile('${o.key}')"
       style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid ${active?'var(--purple)':'var(--border)'};background:${active?'var(--surface3)':'var(--surface2)'};font-family:var(--font);font-size:14px;font-weight:${active?700:500};color:${active?'var(--purple)':'var(--text)'};cursor:pointer;text-align:left;width:100%;transition:all .15s">
-      <span style="font-size:16px">${o.icon}</span>
+      <span style="display:inline-flex">${uiIcon(o.icon,16)}</span>
       <span style="flex:1">${o.label}</span>
       <span style="font-size:12px;color:var(--text3)">${dir}</span>
     </button>`;
@@ -200,7 +200,7 @@ function togglePago(id){
   saveData();
   renderDespTable();
   renderCurMonth();
-  showToast('✅ Marcado como Pago!');
+  showToast('Marcado como Pago!');
 }
 
 function mobSectionHeader(label, subtotal){
@@ -221,9 +221,9 @@ function mobDespCard(d){
   if(!isPago && d.venc){
     const dv=new Date(d.venc+'T00:00:00');
     const diff=Math.round((dv-today)/(1000*60*60*24));
-    if(diff<0) vencStr=`<span style="color:var(--red);font-weight:700">⚠ Venceu</span>`;
-    else if(diff===0) vencStr=`<span style="color:var(--amber);font-weight:700">⚠ Hoje</span>`;
-    else if(diff<=3) vencStr=`<span style="color:var(--amber);font-weight:700">⚠ Em ${diff}d</span>`;
+    if(diff<0) vencStr=`<span style="color:var(--red);font-weight:700">${uiIcon('warning',12)}Venceu</span>`;
+    else if(diff===0) vencStr=`<span style="color:var(--amber);font-weight:700">${uiIcon('warning',12)}Hoje</span>`;
+    else if(diff<=3) vencStr=`<span style="color:var(--amber);font-weight:700">${uiIcon('warning',12)}Em ${diff}d</span>`;
     else vencStr=`<span style="color:var(--text3)">${dv.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</span>`;
   } else if(!isPago && !d.venc){
     vencStr='';
@@ -231,9 +231,9 @@ function mobDespCard(d){
 
   const catCol=catColor(d.cat);
 
-  // Toggle button: ✓ verde = pago, ○ = não pago (igual pra débito e falta pagar)
+  // Toggle button: check verde = pago, círculo = não pago (igual pra débito e falta pagar)
   const toggleClass=isPago?'pago':isDebito?'debito':'';
-  const toggleIcon=isPago?'✓':'○';
+  const toggleIcon=isPago?uiIcon('check',16):uiIcon('circle',16);
   const toggleTitle=isPago?'Pago':'Marcar como pago';
 
   // Meta line: pagamento + vencimento — sempre na segunda linha, sem quebrar
@@ -248,7 +248,7 @@ function mobDespCard(d){
   const pagOpts=['Cartão','Vale Alimentação','PIX','Boleto','Débito automático','Dinheiro'].map(o=>`<option${o===d.pag?' selected':''}>${o}</option>`).join('');
   const sid=mieId(d.id);
   return `<div class="swipe-wrapper${isPago?' mob-card-pago':''}" data-id="${d.id}">
-    <div class="swipe-delete-bg">🗑</div>
+    <div class="swipe-delete-bg">${uiIcon('trash',22)}</div>
     <div class="mob-card-inner" onclick="toggleInlineEdit(${d.id},event)">
       <div class="mob-status-bar" style="background:${barCol}"></div>
       <div class="mob-card-icon">${itemIcon(d.nome,d.icon)}</div>
@@ -294,7 +294,7 @@ function mobDespCard(d){
       <div class="mie-footer">
         <button class="mie-btn-save" onclick="event.stopPropagation();saveInlineEdit(${d.id})">Salvar</button>
         <button class="mie-btn-full" onclick="event.stopPropagation();openModal(${d.id})">Editar tudo ›</button>
-        <button class="mie-btn-del" onclick="event.stopPropagation();deleteDespEntry(${d.id})">🗑</button>
+        <button class="mie-btn-del" onclick="event.stopPropagation();deleteDespEntry(${d.id})">${uiIcon('trash',18,'var(--red)')}</button>
       </div>
     </div>
   </div>`;
@@ -304,12 +304,12 @@ function mobRecCard(r, ri){
   const aguard=(r.status||'Recebido')==='Aguardando';
   const barCol=aguard?'var(--amber)':'var(--green)';
   const toggleClass=aguard?'':'pago';
-  const toggleIcon=aguard?'○':'✓';
+  const toggleIcon=aguard?uiIcon('circle',16):uiIcon('check',16);
   const toggleTitle=aguard?'Marcar como recebido':'Recebido';
   const catCol='var(--green)';
   const sid=mieId(r.id);
   return `<div class="swipe-wrapper" data-rec-id="${r.id}">
-    <div class="swipe-delete-bg">🗑</div>
+    <div class="swipe-delete-bg">${uiIcon('trash',22)}</div>
     <div class="mob-card-inner" onclick="toggleInlineEditRec(${r.id},event)">
       <div class="mob-status-bar" style="background:${barCol}"></div>
       <div class="mob-card-main" style="padding-left:4px">
@@ -342,7 +342,7 @@ function mobRecCard(r, ri){
       <div class="mie-footer">
         <button class="mie-btn-save" onclick="event.stopPropagation();saveInlineEditRec(${r.id})">Salvar</button>
         <button class="mie-btn-full" onclick="event.stopPropagation();openRecModal(${r.id})">Editar tudo ›</button>
-        <button class="mie-btn-del" onclick="event.stopPropagation();deleteRecEntry(${r.id})">🗑</button>
+        <button class="mie-btn-del" onclick="event.stopPropagation();deleteRecEntry(${r.id})">${uiIcon('trash',18,'var(--red)')}</button>
       </div>
     </div>
   </div>`;
@@ -356,7 +356,7 @@ function toggleRecStatus(id){
   } else {
     r.status='Recebido';
   }
-  saveData();renderReceitas();showToast(r.status==='Recebido'?'✅ Marcado como Recebido!':'↩ Marcado como Aguardando');
+  saveData();renderReceitas();showToast(r.status==='Recebido'?'Marcado como Recebido!':'Marcado como Aguardando');
 }
 
 function renderDespByName(items){
@@ -444,7 +444,7 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
         <td>${valCell(d)}</td>
         <td>${vencBadge(d)}</td>
         <td><span class="badge ${bc[d.status]||'nd'}" style="cursor:pointer" onclick="togglePago(${d.id})">${d.status}</span></td>
-        <td style="white-space:nowrap"><button class="edit-btn" onclick="openModal(${d.id})" style="margin-right:4px">✏️</button><button class="btn-del" onclick="deleteDespEntry(${d.id})">×</button></td>
+        <td style="white-space:nowrap"><button class="edit-btn" onclick="openModal(${d.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Editar">${uiIcon('edit',14)}</button><button class="btn-del" onclick="deleteDespEntry(${d.id})" style="display:inline-flex;align-items:center" title="Excluir">${uiIcon('trash',14)}</button></td>
       </tr>`;
   }
   function sectionHeader(label, subtotal){

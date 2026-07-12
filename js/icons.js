@@ -216,6 +216,45 @@ function _autoIconListener(inputId, previewId, isEdit) {
   });
 }
 
+/* ══════ ÍCONES DE UI (traçado) ══════ */
+const UI_PATHS = {
+  trash:      `<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>`,
+  edit:       `<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>`,
+  plus:       `<path d="M12 5v14M5 12h14"/>`,
+  close:      `<path d="M18 6 6 18M6 6l12 12"/>`,
+  check:      `<polyline points="20 6 9 17 4 12"/>`,
+  checkCircle:`<path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><polyline points="22 4 12 14.01 9 11.01"/>`,
+  circle:     `<circle cx="12" cy="12" r="9"/>`,
+  warning:    `<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>`,
+  search:     `<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>`,
+  frown:      `<circle cx="12" cy="12" r="9"/><path d="M8 15.5s1.5-2 4-2 4 2 4 2"/><path d="M9 9h.01M15 9h.01"/>`,
+  bell:       `<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>`,
+  wallet:     `<path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>`,
+  card:       `<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>`,
+  box:        `<path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/>`,
+  barChart:   `<path d="M3 20h18"/><path d="M7 20v-5M12 20V8M17 20v-8"/>`,
+  download:   `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>`,
+  repeat:     `<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>`,
+  user:       `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
+  sun:        `<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>`,
+  moon:       `<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/>`,
+  sparkles:   `<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/>`,
+  arrowDown:  `<path d="M12 5v14M19 12l-7 7-7-7"/>`,
+  xCircle:    `<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>`,
+  wifiOff:    `<path d="M2 2l20 20"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.8a15 15 0 0 1 4.2-2.5M20.9 12.7a15 15 0 0 0-4-2.4"/><path d="M5 12.9a10 10 0 0 1 3-1.8M16.7 9.3a10 10 0 0 0-4.7-1.3"/><path d="M12 20h.01"/>`,
+  loader:     `<path d="M12 3v4M12 17v4M5.6 5.6l2.9 2.9M15.5 15.5l2.9 2.9M3 12h4M17 12h4M5.6 18.4l2.9-2.9M15.5 8.5l2.9-2.9"/>`,
+  calendar:   `<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>`,
+  tag:        `<path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><path d="M7.5 7.5h.01"/>`,
+  type:       `<path d="M4 7V4h16v3M9 20h6M12 4v16"/>`,
+  pin:        `<path d="M12 17v5"/><path d="M9 10.8V4h6v6.8a3 3 0 0 0 .9 2.1l1.4 1.4a1 1 0 0 1-.7 1.7H7.4a1 1 0 0 1-.7-1.7l1.4-1.4a3 3 0 0 0 .9-2.1Z"/>`,
+};
+
+function uiIcon(name, size = 20, color = 'currentColor', sw = 2) {
+  const p = UI_PATHS[name];
+  if (!p) return '';
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0">${p}</svg>`;
+}
+
 function initIcons() {
   const iconModal = document.getElementById('icon-modal');
   if (iconModal) iconModal.addEventListener('click', function(e){ if(e.target===this) closeIconModal(); });

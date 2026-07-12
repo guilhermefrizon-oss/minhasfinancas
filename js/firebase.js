@@ -139,13 +139,13 @@ async function loadDataFromCloud(uid){
           unsub();
           if(snap.exists()){
             const d = snap.data();
-            console.log('[App] Dados carregados do servidor ✓');
+            console.log('[App] Dados carregados do servidor');
             resolve({ despesas: d.despesas||[], receitas: d.receitas||[] });
           } else {
             // Documento não existe — cria vazio e retorna limpo
             fns.setDoc(docRef, { despesas:[], receitas:[], _criado: Date.now() }, { merge: true })
               .catch(e => console.warn('[App] Erro ao criar documento:', e));
-            console.log('[App] Conta nova criada ✓');
+            console.log('[App] Conta nova criada');
             resolve({ despesas: [], receitas: [] });
           }
         }
@@ -169,16 +169,19 @@ function showSyncStatus(status){
     document.body.appendChild(el);
   }
   const cfg = {
-    saving: { color:'#7b8cff', bg:'rgba(123,140,255,.13)', border:'rgba(123,140,255,.25)', text:'⟳ Salvando...' },
-    saved:  { color:'#34d27a', bg:'rgba(52,210,122,.1)',   border:'rgba(52,210,122,.2)',   text:'✓ Salvo'       },
-    error:  { color:'#f06060', bg:'rgba(240,96,96,.13)',   border:'rgba(240,96,96,.25)',   text:'✗ Erro ao salvar' },
-    offline:{ color:'#f5c542', bg:'rgba(245,197,66,.1)',   border:'rgba(245,197,66,.2)',   text:'⚡ Offline — salvo localmente' },
+    saving: { color:'#7b8cff', bg:'rgba(123,140,255,.13)', border:'rgba(123,140,255,.25)', icon:'loader',  text:'Salvando...' },
+    saved:  { color:'#34d27a', bg:'rgba(52,210,122,.1)',   border:'rgba(52,210,122,.2)',   icon:'check',   text:'Salvo'       },
+    error:  { color:'#f06060', bg:'rgba(240,96,96,.13)',   border:'rgba(240,96,96,.25)',   icon:'xCircle', text:'Erro ao salvar' },
+    offline:{ color:'#f5c542', bg:'rgba(245,197,66,.1)',   border:'rgba(245,197,66,.2)',   icon:'wifiOff', text:'Offline — salvo localmente' },
   };
   const s = cfg[status] || cfg.saved;
   el.style.color       = s.color;
   el.style.background  = s.bg;
   el.style.borderColor = s.border;
-  el.textContent       = s.text;
+  el.style.display     = 'inline-flex';
+  el.style.alignItems  = 'center';
+  el.style.gap         = '6px';
+  el.innerHTML         = uiIcon(s.icon,13) + '<span>' + s.text + '</span>';
   clearTimeout(_syncHideTimer);
   el.classList.add('si-visible');
   if(status === 'saved' || status === 'offline'){
@@ -271,7 +274,7 @@ function startRealtimeSync(uid) {
         renderNotif     && renderNotif();
         updateNotifBadge();
         showSyncStatus('saved');
-        console.log('[Sync] Dados atualizados do Firestore ✓');
+        console.log('[Sync] Dados atualizados do Firestore');
       }
     }
   }, (err) => {

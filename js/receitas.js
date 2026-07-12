@@ -88,7 +88,7 @@ function renderRecTable(){
         <td><span class="cat-pill" style="background:var(--green-bg);color:var(--green)">${r.cat||'—'}</span></td>
         <td><span style="font-weight:700;color:${aguard?'var(--amber)':'var(--green)'}">${r.val>0?fmt(r.val):'—'}</span></td>
         <td><span class="badge ${aguard?'falta':'pago'}" style="${aguard?'background:var(--amber-bg);color:var(--amber)':''}">${aguard?'Aguardando':'Recebido'}</span></td>
-        <td style="white-space:nowrap"><button class="edit-btn" onclick="openRecModal(${r.id})" style="margin-right:4px">✏️</button><button class="btn-del" onclick="deleteRecEntry(${r.id})">×</button></td>
+        <td style="white-space:nowrap"><button class="edit-btn" onclick="openRecModal(${r.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Editar">${uiIcon('edit',14)}</button><button class="btn-del" onclick="deleteRecEntry(${r.id})" style="display:inline-flex;align-items:center" title="Excluir">${uiIcon('trash',14)}</button></td>
       </tr>`;}).join('')
     +`<tr class="total-row"><td colspan="2">Total recebido</td><td style="color:var(--green)">${fmt(totalRecebido)}</td><td></td><td></td></tr>`
     :`<tr><td colspan="5" class="empty-msg">Nenhuma receita neste mês.</td></tr>`;
