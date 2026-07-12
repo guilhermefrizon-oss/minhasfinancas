@@ -1,7 +1,8 @@
-const CACHE = 'meus-gastos-v35';
+const CACHE = 'meus-gastos-v36';
 const ASSETS = [
   './',
   './index.html',
+  './favicon.svg',
   './css/base.css',
   './css/mobile.css',
   './css/modals.css',
