@@ -3,6 +3,10 @@ let pinTarget=null,pinBuffer='',editingProfileId=null;
 const PROFILE_COLORS=['#7b8cff','#a78bfa','#34d27a','#f06060','#f5c542','#38bdf8','#fb923c','#e879f9'];
 function profileColor(nome){return PROFILE_COLORS[(nome||'?').charCodeAt(0)%PROFILE_COLORS.length];}
 function profileInitial(nome){return (nome||'?').charAt(0).toUpperCase();}
+// Capitaliza nome próprio: "guilherme" → "Guilherme", "ana maria" → "Ana Maria"
+function capitalizeName(str){
+  return (str||'').trim().toLowerCase().replace(/(^|[\s'’-])(\p{L})/gu, (m,sep,ch)=>sep+ch.toUpperCase());
+}
 
 function applyGreeting(primeiro){
   const hour = new Date().getHours();
@@ -34,7 +38,7 @@ function applyGreeting(primeiro){
 }
 
 function applyHeaderName(nomeCompleto){
-  const primeiro = nomeCompleto.split(' ')[0];
+  const primeiro = capitalizeName(nomeCompleto.split(' ')[0]);
   const initial = primeiro.charAt(0).toUpperCase();
 
   // Header avatar (desktop)
@@ -69,11 +73,11 @@ function updateHeaderProfile(user){
       applyHeaderName(snap.data().nome);
     } else {
       // Fallback: usa parte antes do @ e do ponto
-      const emailName = user.email.split('@')[0].replace(/[._]/g,' ').replace(/\w/g,c=>c.toUpperCase());
+      const emailName = capitalizeName(user.email.split('@')[0].replace(/[._]/g,' '));
       applyHeaderName(emailName);
     }
   }).catch(()=>{
-    const emailName = user.email.split('@')[0].replace(/[._]/g,' ').replace(/\w/g,c=>c.toUpperCase());
+    const emailName = capitalizeName(user.email.split('@')[0].replace(/[._]/g,' '));
     applyHeaderName(emailName);
   });
 }
