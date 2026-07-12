@@ -1,4 +1,18 @@
 /* ══════ OVERVIEW ══════ */
+
+/* Cores de eixo dos gráficos (theme-aware, legíveis em ambos os temas) */
+function chartAxis(){
+  const light = document.body.classList.contains('light');
+  return {
+    tick: light ? '#5a5a63' : '#adadb6',
+    grid: light ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)',
+    font: 12,
+    money: v => (Math.abs(v) >= 1000)
+      ? 'R$' + (v/1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'k'
+      : 'R$' + v.toLocaleString('pt-BR'),
+  };
+}
+
 function updateOverviewCards(){}
 
 const currentPeriod = 12; // sem seletor na UI — janela fixa dos últimos 12 meses
@@ -163,6 +177,7 @@ function renderOverview(){
   const recDataset={label:'Receita',data:rec.map(v=>Math.round(v*100)/100),backgroundColor:months.map((_,i)=>alpha(i)?'rgba(52,210,122,0.55)':'rgba(52,210,122,0.15)'),borderRadius:4,stack:'receita'};
   const tt=document.getElementById('chartTooltip');
   const ttBase={backgroundColor:'#18181b',borderColor:'#3a3a3d',borderWidth:1};
+  const ax=chartAxis();
   if(barC)barC.destroy();
   barC=new Chart(document.getElementById('chartBar'),{
     type:'bar',data:{labels:months.map(mesLabel),datasets:[recDataset,...catDatasets]},
@@ -174,7 +189,7 @@ function renderOverview(){
         const despRows=cats.map(cat=>{const v=DATA.despesas.filter(d=>d.mes===m&&(d.cat||'Outros').split(' · ')[0]===cat).reduce((s,d)=>s+(d.val||0),0);return v>0?{cat,v}:null;}).filter(Boolean).sort((a,b)=>b.v-a.v).map(({cat,v})=>`<div class="tt-row"><div class="tt-label"><div class="tt-dot" style="background:${catColor(cat)}"></div>${cat}</div><div class="tt-val">${fmt(v)}</div></div>`).join('');
         const recRows=DATA.receitas.filter(r=>r.mes===m).sort((a,b)=>b.val-a.val).map(r=>`<div class="tt-row"><div class="tt-label"><div class="tt-dot" style="background:#34d27a"></div>${r.nome}</div><div class="tt-val" style="color:#34d27a">${fmt(r.val)}</div></div>`).join('');
         document.getElementById('tt-month').textContent=mesLabel(m).toUpperCase();
-        document.getElementById('tt-rows').innerHTML=`<div class="tt-section">RECEITAS</div>`+(recRows||`<div class="tt-row" style="color:#5c5a80;font-size:11px">Sem receitas</div>`)+`<div class="tt-rec-total"><span>Total receita</span><span style="color:#34d27a">${fmt(totalRec)}</span></div><div class="tt-divider"></div><div class="tt-section">DESPESAS</div>`+(despRows||`<div class="tt-row" style="color:#5c5a80;font-size:11px">Sem despesas</div>`)+`<div class="tt-saldo" style="color:${saldoM>=0?'#34d27a':'#f06060'}"><span>Saldo</span><span>${fmt(saldoM)}</span></div>`;
+        document.getElementById('tt-rows').innerHTML=`<div class="tt-section">RECEITAS</div>`+(recRows||`<div class="tt-row" style="color:#9a9aa2;font-size:11px">Sem receitas</div>`)+`<div class="tt-rec-total"><span>Total receita</span><span style="color:#34d27a">${fmt(totalRec)}</span></div><div class="tt-divider"></div><div class="tt-section">DESPESAS</div>`+(despRows||`<div class="tt-row" style="color:#9a9aa2;font-size:11px">Sem despesas</div>`)+`<div class="tt-saldo" style="color:${saldoM>=0?'#34d27a':'#f06060'}"><span>Saldo</span><span>${fmt(saldoM)}</span></div>`;
         document.getElementById('tt-total-val').textContent=fmt(totalDesp);
         tt.style.display='block';
         const ttW=tt.offsetWidth||270,ttH=tt.offsetHeight||420;
@@ -199,7 +214,7 @@ function renderOverview(){
         catDatasets.forEach((ds,di)=>{const col=catColor(cats[di]);barC.data.datasets[di+1].backgroundColor=months.map((m,i)=>!overviewSelectedMonth||overviewSelectedMonth===m?col:col+'22');});
         barC.update();
       },
-      scales:{x:{ticks:{color:'#8e8e93',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8e8e93',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}
+      scales:{x:{ticks:{color:ax.tick,autoSkip:false,maxRotation:45,font:{size:ax.font}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}
     }
   });
   document.getElementById('chartBar').addEventListener('mouseleave',()=>{tt.style.display='none';});
@@ -221,7 +236,7 @@ function renderOverview(){
     el.classList.add('anim-fade-up',`anim-d${i+2}`);
   });
   if(saldoC)saldoC.destroy();
-  saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:'#8e8e93',autoSkip:false,maxRotation:45,font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8e8e93',callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}}}});
+  saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:ax.tick,autoSkip:false,maxRotation:45,font:{size:ax.font}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}}});
   // Gráfico de evolução diária
   initDailyEvo();
 }
@@ -530,6 +545,10 @@ function applyTheme(theme){
     if(m) m.setAttribute('content','#0a0a0b');
   }
   localStorage.setItem('gastos_theme', theme);
+  // Reconstrói a Visão Geral para os gráficos pegarem as cores do novo tema
+  if(document.body.classList.contains('app-ready') && typeof renderOverview === 'function'){
+    renderOverview();
+  }
 }
 function toggleTheme(){
   const cur = document.body.classList.contains('light') ? 'light' : 'dark';
@@ -682,8 +701,9 @@ function renderDailyEvo() {
   if (dailyEvoC) { dailyEvoC.destroy(); dailyEvoC = null; }
 
   const isDark = !document.body.classList.contains('light');
-  const gridColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
-  const tickColor = isDark ? '#5c5a80' : '#9896c8';
+  const _ax = chartAxis();
+  const gridColor = _ax.grid;
+  const tickColor = _ax.tick;
 
   dailyEvoC = new Chart(ctx, {
     type: 'line',
@@ -746,17 +766,19 @@ function renderDailyEvo() {
         x: {
           ticks: {
             color: tickColor,
-            font: { size: 10 },
+            font: { size: 11.5 },
             maxRotation: 0,
-            autoSkip: false,
+            autoSkip: true,
+            maxTicksLimit: 7,
           },
           grid: { color: gridColor }
         },
         y: {
           ticks: {
             color: tickColor,
-            font: { size: 10 },
-            callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : 'R$'+v.toLocaleString('pt-BR')
+            font: { size: 11.5 },
+            maxTicksLimit: 6,
+            callback: _ax.money
           },
           grid: { color: gridColor }
         }

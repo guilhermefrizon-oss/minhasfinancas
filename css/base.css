@@ -9,8 +9,8 @@
   --surface3: #262629;
   --border: #2c2c30;
   --text: #f5f5f7;
-  --text2: #9a9aa2;
-  --text3: #6b6b73;
+  --text2: #a8a8b1;
+  --text3: #88888f;
   --green: #30d158;
   --green-bg: rgba(48,209,88,0.12);
   --red: #ff453a;
@@ -678,8 +678,8 @@ body.light {
   --surface3: #e9e9eb;
   --border: #e4e4e7;
   --text: #0a0a0a;
-  --text2: #6e6e76;
-  --text3: #a3a3aa;
+  --text2: #5c5c63;
+  --text3: #78787f;
   --green: #1fa056;
   --green-bg: rgba(31,160,86,0.09);
   --red: #e0333a;
