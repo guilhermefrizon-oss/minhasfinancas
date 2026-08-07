@@ -559,10 +559,28 @@ applyTheme(localStorage.getItem('gastos_theme') || 'light');
 
 // App inicia via _onFbLogin após Firebase auth
 
-/* ── PWA: registra service worker ── */
+/* ── PWA: registra service worker + auto-atualização ── */
 if('serviceWorker' in navigator){
+  // Se um SW novo assumir o controle, recarrega a página uma única vez
+  // para que TODAS as telas passem a usar o código atualizado.
+  const _hadController = !!navigator.serviceWorker.controller;
+  let _reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (_reloading || !_hadController) return;
+    _reloading = true;
+    window.location.reload();
+  });
+
   navigator.serviceWorker.register('sw.js')
-    .then(()=>console.log('SW registrado'))
+    .then(reg => {
+      console.log('SW registrado');
+      // Procura atualização ao abrir o app...
+      reg.update();
+      // ...e sempre que o app volta ao primeiro plano (PWA reaberto)
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update();
+      });
+    })
     .catch(e=>console.log('SW erro:', e));
 }
 
