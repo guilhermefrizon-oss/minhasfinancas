@@ -1,10 +1,24 @@
 /* ══════ ÍCONES ══════ */
 
-/* Logos reais via Simple Icons CDN */
-function brandImg(slug, color, size=28) {
-  const initial = slug.charAt(0).toUpperCase();
-  const fallback = `<div style='width:${size}px;height:${size}px;border-radius:6px;background:#${color}22;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.5)}px;font-weight:800;color:#${color}'>${initial}</div>`;
-  return `<img src="https://cdn.simpleicons.org/${slug}/${color}" width="${size}" height="${size}" alt="${slug}" style="object-fit:contain;display:block;border-radius:4px" onerror="this.replaceWith((()=>{const d=document.createElement('div');d.style.cssText='width:${size}px;height:${size}px;border-radius:6px;background:#${color}22;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.5)}px;font-weight:800;color:#${color}';d.textContent='${initial}';return d;})())">`;
+/* Contraste automático: texto claro ou escuro conforme a cor de fundo */
+function _contrastText(hex) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
+  // luminância percebida
+  return (0.299*r + 0.587*g + 0.114*b) > 150 ? '#1a1a1a' : '#ffffff';
+}
+
+/* Badge de marca 100% inline (sem CDN externo) — sempre renderiza offline.
+   `label` opcional sobrescreve a inicial derivada do slug. */
+function brandImg(slug, color, size=28, label) {
+  const txt = (label || slug.charAt(0)).toUpperCase();
+  const fg = _contrastText(color);
+  const len = txt.length;
+  const fs = len >= 5 ? 8 : len >= 3 ? 10 : len === 2 ? 13 : 15;
+  // contorno sutil para marcas muito claras (ex.: branco) não sumirem no fundo
+  const stroke = (0.299*parseInt(color.substr(0,2),16) + 0.587*parseInt(color.substr(2,2),16) + 0.114*parseInt(color.substr(4,2),16)) > 225
+    ? '<rect x="0.75" y="0.75" width="30.5" height="30.5" rx="5.5" fill="none" stroke="#e2e2e2" stroke-width="1.5"/>' : '';
+  return `<div style="width:${size}px;height:${size}px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#${color}"/>${stroke}<text x="16" y="21" text-anchor="middle" font-size="${fs}" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="${fg}">${txt}</text></svg></div>`;
 }
 
 /* SVGs genéricos para categorias sem marca */
@@ -65,25 +79,25 @@ const ICONS = {
   'Salário': SVG.salary,         'Freela': SVG.freelance,
   // Marcas reais
   'Spotify':         brandImg('spotify',       '1ED760'),
-  'YouTube':         brandImg('youtube',       'FF0000'),
-  'YouTube Premium': brandImg('youtube',       'FF0000'),
+  'YouTube':         brandImg('youtube',       'FF0000', 28, 'YT'),
+  'YouTube Premium': brandImg('youtube',       'FF0000', 28, 'YT'),
   'Netflix':         brandImg('netflix',       'E50914'),
-  'Amazon Prime':    brandImg('amazonprime',  '00A8E1'),
+  'Amazon Prime':    brandImg('amazonprime',  '00A8E1', 28, 'aP'),
   'Amazon':          brandImg('amazon',        'FF9900'),
-  'Apple TV':        brandImg('apple',        'A2AAAD'),
+  'Apple TV':        brandImg('apple',        '333333', 28, 'tv'),
   'Apple Music':     brandImg('applemusic',   'FC3C44'),
   'Globoplay':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#F5423C"/><text x="16" y="21" text-anchor="middle" font-size="14" font-weight="900" font-family="Arial" fill="white">G</text></svg></div>`,
   'Disney+':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#113CCF"/><text x="16" y="22" text-anchor="middle" font-size="11" font-weight="900" font-family="Arial" fill="white">D+</text></svg></div>`,
   'HBO Max':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#002BE7"/><text x="16" y="22" text-anchor="middle" font-size="11" font-weight="900" font-family="Arial" fill="white">Max</text></svg></div>`,
-  'Paramount+':      brandImg('paramountplus','0064FF'),
+  'Paramount+':      brandImg('paramountplus','0064FF', 28, 'P+'),
   'Deezer':          brandImg('deezer',        'FEAA2D'),
   'Crunchyroll':     brandImg('crunchyroll',   'F47521'),
   'Twitch':          brandImg('twitch',        '9146FF'),
   'Xbox':            brandImg('xbox',          '107C10'),
-  'PlayStation':     brandImg('playstation',   '003087'),
-  'Steam':           brandImg('steam',         '000000'),
-  'Uber':            brandImg('uber',          'FFFFFF'),
-  '99':              brandImg('99taxi',       'F4C72F'),
+  'PlayStation':     brandImg('playstation',   '003087', 28, 'PS'),
+  'Steam':           brandImg('steam',         '171A21'),
+  'Uber':            brandImg('uber',          '000000'),
+  '99':              brandImg('99taxi',       'F4C72F', 28, '99'),
   'iFood':           brandImg('ifood',         'EA1D2C'),
   'Rappi':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#FF441F"/><text x="16" y="22" text-anchor="middle" font-size="13" font-weight="900" font-family="Arial" fill="white">R</text></svg></div>`,
   'Nubank':          brandImg('nubank',        '8A05BE'),
@@ -96,8 +110,8 @@ const ICONS = {
   'Banco do Brasil':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#FABC01"/><text x="16" y="22" text-anchor="middle" font-size="13" font-weight="900" font-family="Arial" fill="#003882">BB</text></svg></div>`,
   'C6 Bank':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#231F20"/><text x="16" y="22" text-anchor="middle" font-size="11" font-weight="900" font-family="Arial" fill="#E0D5C5">C6</text></svg></div>`,
   'PicPay':          brandImg('picpay',        '21C25E'),
-  'Mercado Pago':    brandImg('mercadopago',  '00B1EA'),
-  'PayPal':          brandImg('paypal',        '00457C'),
+  'Mercado Pago':    brandImg('mercadopago',  '00B1EA', 28, 'MP'),
+  'PayPal':          brandImg('paypal',        '00457C', 28, 'PP'),
   'Mercado Livre':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#FFE600"/><text x="16" y="22" text-anchor="middle" font-size="9" font-weight="900" font-family="Arial" fill="#333">ML</text></svg></div>`,
   'Shopee':          brandImg('shopee',        'EE4D2D'),
   'Shein':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#E84393"/><text x="16" y="22" text-anchor="middle" font-size="10" font-weight="900" font-family="Arial" fill="white">SHEIN</text></svg></div>`,
