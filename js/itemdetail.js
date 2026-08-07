@@ -123,7 +123,7 @@ function openItemDetail(nome, ev) {
 
   document.getElementById('item-detail-modal').classList.add('open');
   document.getElementById('idet-scroll').scrollTop = 0;
-  renderItemDetailChart(withVal);
+  renderItemDetailChart(withVal, catCol);
 }
 
 function closeItemDetail() {
@@ -138,7 +138,7 @@ function mesLabelFull(m) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function renderItemDetailChart(rows) {
+function renderItemDetailChart(rows, color) {
   const ctx = document.getElementById('idet-chart');
   if (!ctx) return;
   if (itemDetailChart) { itemDetailChart.destroy(); itemDetailChart = null; }
@@ -146,17 +146,13 @@ function renderItemDetailChart(rows) {
 
   const labels = rows.map(d => mesLabel(d.mes));
   const data = rows.map(d => d.val);
-  const avg = data.reduce((s, v) => s + v, 0) / data.length;
   const ax = chartAxis();
-  // Acima da média = vermelho, abaixo = verde, na média = roxo
-  const colors = data.map(v =>
-    v > avg * 1.05 ? 'rgba(240,96,96,0.78)' :
-    v < avg * 0.95 ? 'rgba(52,210,122,0.78)' :
-    'rgba(123,140,255,0.78)');
+  // Cor única (cor da categoria do item)
+  const barColor = (color || '#7b8cff') + 'cc';
 
   itemDetailChart = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 5, maxBarThickness: 46 }] },
+    data: { labels, datasets: [{ data, backgroundColor: barColor, borderRadius: 5, maxBarThickness: 46 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
