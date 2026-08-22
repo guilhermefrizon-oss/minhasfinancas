@@ -254,10 +254,13 @@ option { background: var(--surface2); }
 @media(max-width: 767px) {
   .table-scroll { display: none; }
   .mobile-card-list { display: flex; flex-direction: column; gap: 0; }
-  .history-controls { width:100%; justify-content:stretch; gap:6px; }
-  .history-controls > div { min-width:100%; max-width:none !important; }
-  .history-filter { flex:1; min-width:0; font-size:11px; }
-  .history-clear { padding:6px 4px; }
+  .table-header { align-items:stretch; }
+  .table-header .table-title { flex:0 0 100%; }
+  .history-controls { flex:0 0 100%; width:100%; justify-content:stretch; gap:6px; }
+  .history-controls > div { flex:0 0 100%; min-width:100%; max-width:none !important; }
+  .history-filter { order:2; flex:1 1 calc(50% - 3px); min-width:0; height:38px; font-size:12px; }
+  .history-clear { order:4; margin-left:auto; padding:8px 6px; }
+  #desp-sort-btn { order:3; height:38px; padding:6px 13px !important; }
 
   /* Status bar on left edge */
   .mob-status-bar {

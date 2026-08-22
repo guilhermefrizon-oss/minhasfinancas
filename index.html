@@ -414,13 +414,13 @@
           <input type="text" id="desp-search" placeholder="Buscar despesa..." oninput="renderDespTable()" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <select id="desp-status-filter" class="history-filter" aria-label="Filtrar despesas por status" onchange="setDespFilter('status',this.value)">
-          <option value="all">Todos os status</option>
+          <option value="all">Status</option>
           <option value="Pago">Pago</option>
           <option value="Falta Pagar">A pagar</option>
           <option value="Débito auto">Débito auto</option>
         </select>
         <select id="desp-cat-filter" class="history-filter" aria-label="Filtrar despesas por categoria" onchange="setDespFilter('cat',this.value)">
-          <option value="all">Todas categorias</option>
+          <option value="all">Categoria</option>
         </select>
         <button id="desp-clear-filters" class="history-clear" type="button" onclick="clearDespFilters()" style="display:none">Limpar</button>
         <!-- Ordenar: visível só no mobile -->
@@ -571,12 +571,12 @@
           <input type="text" id="rec-search" placeholder="Buscar receita..." oninput="renderRecTable()" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <select id="rec-status-filter" class="history-filter" aria-label="Filtrar receitas por status" onchange="setRecFilter('status',this.value)">
-          <option value="all">Todos os status</option>
+          <option value="all">Status</option>
           <option value="Recebido">Recebido</option>
           <option value="Aguardando">Aguardando</option>
         </select>
         <select id="rec-cat-filter" class="history-filter" aria-label="Filtrar receitas por categoria" onchange="setRecFilter('cat',this.value)">
-          <option value="all">Todas categorias</option>
+          <option value="all">Categoria</option>
         </select>
         <button id="rec-clear-filters" class="history-clear" type="button" onclick="clearRecFilters()" style="display:none">Limpar</button>
       </div>

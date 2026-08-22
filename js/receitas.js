@@ -18,7 +18,7 @@ function updateRecCategoryFilter(){
   if(!select) return;
   const categories=[...new Set(DATA.receitas.map(r=>r.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   if(recFilterCat!=='all'&&!categories.includes(recFilterCat)) recFilterCat='all';
-  select.innerHTML=`<option value="all">Todas categorias</option>`+categories.map(cat=>`<option value="${cat}">${cat}</option>`).join('');
+  select.innerHTML=`<option value="all">Categoria</option>`+categories.map(cat=>`<option value="${cat}">${cat}</option>`).join('');
   select.value=recFilterCat;
   const status=document.getElementById('rec-status-filter'); if(status) status.value=recFilterStatus;
   const clear=document.getElementById('rec-clear-filters');

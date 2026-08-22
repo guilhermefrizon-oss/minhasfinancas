@@ -69,7 +69,7 @@ function updateDespCategoryFilter(){
   if(!select) return;
   const categories=[...new Set(DATA.despesas.map(d=>d.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   if(despFilterCat!=='all'&&!categories.includes(despFilterCat)) despFilterCat='all';
-  select.innerHTML=`<option value="all">Todas categorias</option>`+categories.map(cat=>`<option value="${cat}">${catLabel(cat)}</option>`).join('');
+  select.innerHTML=`<option value="all">Categoria</option>`+categories.map(cat=>`<option value="${cat}">${catLabel(cat)}</option>`).join('');
   select.value=despFilterCat;
   const status=document.getElementById('desp-status-filter'); if(status) status.value=despFilterStatus;
   const clear=document.getElementById('desp-clear-filters');
