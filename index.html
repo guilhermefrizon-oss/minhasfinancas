@@ -408,11 +408,21 @@
   <div class="table-box">
     <div class="table-header" style="flex-wrap:wrap;gap:10px">
       <div class="table-title" id="desp-title">Despesas</div>
-      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:180px;justify-content:flex-end">
+      <div class="history-controls">
         <div style="position:relative;flex:1;max-width:240px">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.5"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           <input type="text" id="desp-search" placeholder="Buscar despesa..." oninput="renderDespTable()" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'">
         </div>
+        <select id="desp-status-filter" class="history-filter" aria-label="Filtrar despesas por status" onchange="setDespFilter('status',this.value)">
+          <option value="all">Todos os status</option>
+          <option value="Pago">Pago</option>
+          <option value="Falta Pagar">A pagar</option>
+          <option value="Débito auto">Débito auto</option>
+        </select>
+        <select id="desp-cat-filter" class="history-filter" aria-label="Filtrar despesas por categoria" onchange="setDespFilter('cat',this.value)">
+          <option value="all">Todas categorias</option>
+        </select>
+        <button id="desp-clear-filters" class="history-clear" type="button" onclick="clearDespFilters()" style="display:none">Limpar</button>
         <!-- Ordenar: visível só no mobile -->
         <button onclick="openSortPanel()" id="desp-sort-btn" style="display:none;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -553,8 +563,23 @@
   </div>
   <div class="cards" id="cards-rec"></div>
   <div class="table-box">
-    <div class="table-header">
+    <div class="table-header" style="gap:10px">
       <div class="table-title" id="rec-table-title">Receitas</div>
+      <div class="history-controls">
+        <div style="position:relative;flex:1;max-width:240px">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.5"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <input type="text" id="rec-search" placeholder="Buscar receita..." oninput="renderRecTable()" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <select id="rec-status-filter" class="history-filter" aria-label="Filtrar receitas por status" onchange="setRecFilter('status',this.value)">
+          <option value="all">Todos os status</option>
+          <option value="Recebido">Recebido</option>
+          <option value="Aguardando">Aguardando</option>
+        </select>
+        <select id="rec-cat-filter" class="history-filter" aria-label="Filtrar receitas por categoria" onchange="setRecFilter('cat',this.value)">
+          <option value="all">Todas categorias</option>
+        </select>
+        <button id="rec-clear-filters" class="history-clear" type="button" onclick="clearRecFilters()" style="display:none">Limpar</button>
+      </div>
     </div>
     <div class="table-scroll">
       <table>

@@ -52,6 +52,29 @@ function applySortMobile(key){
 /* ══════ DESPESAS ══════ */
 /* FIX 2: Ordenação */
 let despSortKey='venc', despSortDir=1;
+let despFilterStatus='all', despFilterCat='all';
+
+function setDespFilter(type, value){
+  if(type==='status') despFilterStatus=value;
+  if(type==='cat') despFilterCat=value;
+  renderDespTable();
+}
+function clearDespFilters(){
+  despFilterStatus='all'; despFilterCat='all';
+  const search=document.getElementById('desp-search'); if(search) search.value='';
+  renderDespTable();
+}
+function updateDespCategoryFilter(){
+  const select=document.getElementById('desp-cat-filter');
+  if(!select) return;
+  const categories=[...new Set(DATA.despesas.map(d=>d.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  if(despFilterCat!=='all'&&!categories.includes(despFilterCat)) despFilterCat='all';
+  select.innerHTML=`<option value="all">Todas categorias</option>`+categories.map(cat=>`<option value="${cat}">${catLabel(cat)}</option>`).join('');
+  select.value=despFilterCat;
+  const status=document.getElementById('desp-status-filter'); if(status) status.value=despFilterStatus;
+  const clear=document.getElementById('desp-clear-filters');
+  if(clear) clear.style.display=(despFilterStatus!=='all'||despFilterCat!=='all'||document.getElementById('desp-search')?.value)?'inline-block':'none';
+}
 function sortDesp(key){
   if(despSortKey===key)despSortDir*=-1; else{despSortKey=key;despSortDir=key==='val'?-1:1;}
   document.querySelectorAll('[id^="sort-desp-"]').forEach(el=>{el.textContent='↕';el.parentElement.classList.remove('sorted');});
@@ -395,11 +418,14 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
   const m=despSelectedMonth;
   const searchEl=document.getElementById('desp-search');
   const q=(searchEl?searchEl.value:'').toLowerCase().trim();
+  updateDespCategoryFilter();
   let items=DATA.despesas.filter(d=>d.mes===m).filter(d=>
-    !q ||
-    (d.nome||'').toLowerCase().includes(q) ||
-    (d.cat||'').toLowerCase().includes(q) ||
-    (d.pag||'').toLowerCase().includes(q)
+    (despFilterStatus==='all'||d.status===despFilterStatus) &&
+    (despFilterCat==='all'||d.cat===despFilterCat) &&
+    (!q ||
+      (d.nome||'').toLowerCase().includes(q) ||
+      (d.cat||'').toLowerCase().includes(q) ||
+      (d.pag||'').toLowerCase().includes(q))
   );
   /* FIX 2: apply sort */
   items=[...items].sort((a,b)=>{

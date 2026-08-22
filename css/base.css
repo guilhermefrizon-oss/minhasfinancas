@@ -154,6 +154,10 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .rtx-date { font-size: 10px; color: var(--text3); margin-top: 3px; text-transform: capitalize; }
 .table-header { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.04); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 .table-title { font-family: var(--font-display); font-size: 19px; font-weight: 700; letter-spacing: -.3px; }
+.history-controls { display:flex; align-items:center; gap:8px; flex:1; min-width:180px; justify-content:flex-end; flex-wrap:wrap; }
+.history-filter { width:auto; min-width:132px; padding:6px 28px 6px 9px; font-size:12px; border-radius:var(--radius-sm); background:var(--surface2); color:var(--text2); cursor:pointer; }
+.history-clear { border:none; background:none; color:var(--text3); font:600 12px var(--font); cursor:pointer; padding:6px 2px; }
+.history-clear:hover { color:var(--text); }
 table { width: 100%; border-collapse: collapse; }
 th { text-align: left; font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.04); background: rgba(255,255,255,.02); cursor: pointer; user-select: none; white-space: nowrap; }
 th:hover { color: var(--text2); }
@@ -250,6 +254,10 @@ option { background: var(--surface2); }
 @media(max-width: 767px) {
   .table-scroll { display: none; }
   .mobile-card-list { display: flex; flex-direction: column; gap: 0; }
+  .history-controls { width:100%; justify-content:stretch; gap:6px; }
+  .history-controls > div { min-width:100%; max-width:none !important; }
+  .history-filter { flex:1; min-width:0; font-size:11px; }
+  .history-clear { padding:6px 4px; }
 
   /* Status bar on left edge */
   .mob-status-bar {

@@ -1,6 +1,29 @@
 /* ══════ RECEITAS ══════ */
 /* FIX 2: Ordenação */
 let recSortKey='val', recSortDir=-1;
+let recFilterStatus='all', recFilterCat='all';
+
+function setRecFilter(type, value){
+  if(type==='status') recFilterStatus=value;
+  if(type==='cat') recFilterCat=value;
+  renderRecTable();
+}
+function clearRecFilters(){
+  recFilterStatus='all'; recFilterCat='all';
+  const search=document.getElementById('rec-search'); if(search) search.value='';
+  renderRecTable();
+}
+function updateRecCategoryFilter(){
+  const select=document.getElementById('rec-cat-filter');
+  if(!select) return;
+  const categories=[...new Set(DATA.receitas.map(r=>r.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  if(recFilterCat!=='all'&&!categories.includes(recFilterCat)) recFilterCat='all';
+  select.innerHTML=`<option value="all">Todas categorias</option>`+categories.map(cat=>`<option value="${cat}">${cat}</option>`).join('');
+  select.value=recFilterCat;
+  const status=document.getElementById('rec-status-filter'); if(status) status.value=recFilterStatus;
+  const clear=document.getElementById('rec-clear-filters');
+  if(clear) clear.style.display=(recFilterStatus!=='all'||recFilterCat!=='all'||document.getElementById('rec-search')?.value)?'inline-block':'none';
+}
 function sortRec(key){
   if(recSortKey===key)recSortDir*=-1; else{recSortKey=key;recSortDir=key==='val'?-1:1;}
   document.querySelectorAll('[id^="sort-rec-"]').forEach(el=>{el.textContent='↕';el.parentElement.classList.remove('sorted');});
@@ -64,7 +87,13 @@ function stepRecMonth(delta){const months=allMonths();const idx=months.indexOf(r
 
 function renderRecTable(){
   const m=recSelectedMonth;
-  let items=DATA.receitas.filter(r=>r.mes===m);
+  const q=(document.getElementById('rec-search')?.value||'').toLowerCase().trim();
+  updateRecCategoryFilter();
+  let items=DATA.receitas.filter(r=>r.mes===m).filter(r=>
+    (recFilterStatus==='all'||(r.status||'Recebido')===recFilterStatus) &&
+    (recFilterCat==='all'||r.cat===recFilterCat) &&
+    (!q||(r.nome||'').toLowerCase().includes(q)||(r.cat||'').toLowerCase().includes(q))
+  );
   /* FIX 2: apply sort */
   items=[...items].sort((a,b)=>{
     let va,vb;

@@ -217,18 +217,21 @@ function renderOverview(){
       scales:{x:{ticks:{color:ax.tick,autoSkip:false,maxRotation:45,font:{size:ax.font}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}
     }
   });
-  document.getElementById('chartBar').addEventListener('mouseleave',()=>{tt.style.display='none';});
-  // Suporte a toque no mobile — simula hover ao tocar na barra
+  // Usa propriedades do elemento para substituir handlers antigos a cada renderização.
+  // Assim, alternar entre telas não acumula listeners de toque no mesmo canvas.
   const barCanvas=document.getElementById('chartBar');
-  barCanvas.addEventListener('touchstart',e=>{
+  barCanvas.onmouseleave=()=>{tt.style.display='none';};
+  // Suporte a toque no mobile — simula hover ao tocar na barra
+  barCanvas.ontouchstart=e=>{
     e.preventDefault();
     const touch=e.touches[0];
     const pts=barC.getElementsAtEventForMode(touch,'index',{intersect:false},true);
     if(!pts.length){tt.style.display='none';return;}
     const fakeEvt={native:touch};
     barC.options.onHover(fakeEvt,pts);
-  },{passive:false});
-  barCanvas.addEventListener('touchend',()=>{setTimeout(()=>{tt.style.display='none';},2000);});
+  };
+  barCanvas.ontouchend=()=>{setTimeout(()=>{tt.style.display='none';},2000);};
+  barCanvas.ontouchcancel=()=>{tt.style.display='none';};
   // Anima chart boxes
   document.querySelectorAll('#page-overview .chart-box').forEach((el,i)=>{
     el.classList.remove('anim-fade-up','anim-d1','anim-d2','anim-d3','anim-d4');
