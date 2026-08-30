@@ -68,7 +68,7 @@ function renderDonutChart(cm, desp){
       const pct = Math.round(val/total*100);
       const col = catColor(cat);
       return `<div class="cat-ring-row">
-        ${ringSVG(pct, col, 36)}
+        ${ringSVG(pct, col, 42)}
         <span class="cat-ring-name">${cat}</span>
         <span class="cat-ring-val">${fmt(val)}</span>
       </div>`;
@@ -242,6 +242,17 @@ function renderOverview(){
   saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:ax.tick,autoSkip:false,maxRotation:45,font:{size:ax.font}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}}});
   // Gráfico de evolução diária
   initDailyEvo();
+}
+
+/* No celular, os gráficos ficam disponíveis sob demanda para manter o resumo
+   financeiro e as categorias no primeiro trecho da tela. */
+function toggleOverviewAnalysis(){
+  const area = document.getElementById('overview-charts-area');
+  const button = document.getElementById('overview-analysis-toggle');
+  if(!area || !button) return;
+  const open = area.classList.toggle('analysis-open');
+  button.setAttribute('aria-expanded', String(open));
+  button.textContent = open ? 'Ocultar análises e gráficos' : 'Ver análises e gráficos';
 }
 
 /* ══════════════ DESTAQUE MÊS ATUAL ══════════════ */

@@ -73,7 +73,12 @@ function updateDespCategoryFilter(){
   select.value=despFilterCat;
   const status=document.getElementById('desp-status-filter'); if(status) status.value=despFilterStatus;
   const clear=document.getElementById('desp-clear-filters');
-  if(clear) clear.style.display=(despFilterStatus!=='all'||despFilterCat!=='all'||document.getElementById('desp-search')?.value)?'inline-block':'none';
+  const activeCount = Number(despFilterStatus!=='all') + Number(despFilterCat!=='all') + Number(!!document.getElementById('desp-search')?.value);
+  if(clear){
+    clear.style.display=activeCount?'inline-flex':'none';
+    clear.textContent=`Limpar filtros (${activeCount})`;
+    clear.setAttribute('aria-label', `Limpar ${activeCount} filtro${activeCount>1?'s':''} ativo${activeCount>1?'s':''}`);
+  }
 }
 function sortDesp(key){
   if(despSortKey===key)despSortDir*=-1; else{despSortKey=key;despSortDir=key==='val'?-1:1;}

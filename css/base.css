@@ -148,16 +148,16 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .rtx-icon-badge svg { width: 20px; height: 20px; }
 .rtx-main { flex: 1; min-width: 0; }
 .rtx-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.1px; }
-.rtx-meta { font-size: 11px; color: var(--text3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rtx-meta { font-size: 11px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rtx-right { text-align: right; flex-shrink: 0; padding-left: 8px; }
 .rtx-amount { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: -.2px; white-space: nowrap; }
-.rtx-date { font-size: 10px; color: var(--text3); margin-top: 3px; text-transform: capitalize; }
+.rtx-date { font-size: 10px; color: var(--text2); margin-top: 3px; text-transform: capitalize; }
 .table-header { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.04); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 .table-title { font-family: var(--font-display); font-size: 19px; font-weight: 700; letter-spacing: -.3px; }
 .history-controls { display:flex; align-items:center; gap:8px; flex:1; min-width:180px; justify-content:flex-end; flex-wrap:wrap; }
 .history-filter { width:auto; min-width:132px; padding:6px 28px 6px 9px; font-size:12px; border-radius:var(--radius-sm); background:var(--surface2); color:var(--text2); cursor:pointer; }
-.history-clear { border:none; background:none; color:var(--text3); font:600 12px var(--font); cursor:pointer; padding:6px 2px; }
-.history-clear:hover { color:var(--text); }
+.history-clear { border:1px solid var(--border); background:var(--surface2); color:var(--text2); border-radius:var(--radius-sm); font:700 12px var(--font); cursor:pointer; padding:7px 9px; align-items:center; white-space:nowrap; }
+.history-clear:hover { color:var(--text); border-color:var(--text3); }
 table { width: 100%; border-collapse: collapse; }
 th { text-align: left; font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.04); background: rgba(255,255,255,.02); cursor: pointer; user-select: none; white-space: nowrap; }
 th:hover { color: var(--text2); }
@@ -750,6 +750,32 @@ body.light #chartTooltip { background: #0a0a0a; }
 .cat-ring span { font-weight: 700; color: var(--text); }
 .cat-ring-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cat-ring-val { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+
+.overview-analysis-toggle { display:none; }
+
+@media (max-width: 767px) {
+  /* Mantém a primeira dobra dedicada ao que exige decisão imediata. */
+  #overview-charts-area:not(.analysis-open) .dash-card:not(#donut-box) { display:none; }
+  .overview-analysis-toggle {
+    display:flex; width:100%; align-items:center; justify-content:center;
+    margin:2px 0 14px; padding:11px 14px; border:1px solid var(--border);
+    border-radius:var(--radius-sm); background:var(--surface); color:var(--text2);
+    font:700 13px var(--font); cursor:pointer;
+  }
+  .overview-analysis-toggle::after { content:'⌄'; margin-left:7px; font-size:16px; line-height:1; }
+  #overview-charts-area.analysis-open .overview-analysis-toggle::after { transform:rotate(180deg); }
+  #overview-charts-area.analysis-open .overview-analysis-toggle { margin-bottom:14px; }
+  .chart-hint { font-size:10px; line-height:1.35; }
+  .dash-card:has(#chartSaldo) > div:last-child { height:128px !important; }
+  .dash-card:has(#chartDailyEvo) > div:last-child { height:145px !important; }
+  .dash-card:has(#chartBar) > div:last-child { height:180px !important; }
+  .donut-legend-list { gap:12px; }
+  .cat-ring-row { gap:11px; }
+  .cat-ring-name { font-size:14px; font-weight:700; color:var(--text); }
+  .cat-ring-val { font-size:14px; }
+  .rtx-meta { font-size:12px; }
+  .rtx-date { font-size:11px; }
+}
 
 /* Botão ordenar — só mobile */
 #desp-sort-btn { display: none; }

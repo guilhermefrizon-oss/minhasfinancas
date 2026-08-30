@@ -22,7 +22,12 @@ function updateRecCategoryFilter(){
   select.value=recFilterCat;
   const status=document.getElementById('rec-status-filter'); if(status) status.value=recFilterStatus;
   const clear=document.getElementById('rec-clear-filters');
-  if(clear) clear.style.display=(recFilterStatus!=='all'||recFilterCat!=='all'||document.getElementById('rec-search')?.value)?'inline-block':'none';
+  const activeCount = Number(recFilterStatus!=='all') + Number(recFilterCat!=='all') + Number(!!document.getElementById('rec-search')?.value);
+  if(clear){
+    clear.style.display=activeCount?'inline-flex':'none';
+    clear.textContent=`Limpar filtros (${activeCount})`;
+    clear.setAttribute('aria-label', `Limpar ${activeCount} filtro${activeCount>1?'s':''} ativo${activeCount>1?'s':''}`);
+  }
 }
 function sortRec(key){
   if(recSortKey===key)recSortDir*=-1; else{recSortKey=key;recSortDir=key==='val'?-1:1;}
