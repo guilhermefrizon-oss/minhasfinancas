@@ -282,7 +282,7 @@ function mobDespCard(d){
       <div class="mob-status-bar" style="background:${barCol}"></div>
       <div class="mob-card-icon">${itemIcon(d.nome,d.icon)}</div>
       <div class="mob-card-main">
-        <div class="mob-card-name" onclick="openItemDetail('${nomeSafe}',event)" style="cursor:pointer;display:flex;align-items:center;gap:5px">${d.nome}<span style="opacity:.35;display:inline-flex">${uiIcon('barChart',12)}</span></div>
+        <div class="mob-card-name">${d.nome}</div>
         <div class="mob-card-row1">
           <span class="mob-cat-badge" style="background:${catCol}18;color:${catCol}">${catLabel(d.cat)}</span>
         </div>
@@ -322,8 +322,9 @@ function mobDespCard(d){
       </div>
       <div class="mie-footer">
         <button class="mie-btn-save" onclick="event.stopPropagation();saveInlineEdit(${d.id})">Salvar</button>
-        <button class="mie-btn-full" onclick="event.stopPropagation();openParcela(${d.id})" title="Somar outro valor no mês (ex.: novo abastecimento)">＋ Somar</button>
-        <button class="mie-btn-full" onclick="event.stopPropagation();openModal(${d.id})">Editar tudo ›</button>
+        <button class="mie-btn-icon" onclick="event.stopPropagation();openParcela(${d.id})" title="Somar outro valor no mês" aria-label="Somar outro valor no mês">${uiIcon('plus',18)}</button>
+        <button class="mie-btn-icon" onclick="event.stopPropagation();openModal(${d.id})" title="Editar lançamento completo" aria-label="Editar lançamento completo">${uiIcon('edit',18)}</button>
+        <button class="mie-btn-history" onclick="event.stopPropagation();openItemDetail('${nomeSafe}',event)" title="Ver histórico" aria-label="Ver histórico">${uiIcon('barChart',18)}</button>
         <button class="mie-btn-del" onclick="event.stopPropagation();deleteDespEntry(${d.id})">${uiIcon('trash',18,'var(--red)')}</button>
       </div>
     </div>
@@ -473,12 +474,12 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
     const di=_rowIdx++;const dc=`anim-d${Math.min(di+1,10)}`;
     const nomeSafe=(d.nome||'').replace(/'/g,"\\'");
     return `<tr class="tr-anim ${dc}" style="${d.status==='Falta Pagar'?'background:rgba(240,96,96,0.03)':d.status==='Débito auto'?'background:rgba(123,140,255,0.03)':''}">
-        <td><div style="display:flex;align-items:center;gap:8px">${itemIcon(d.nome,d.icon)}<div><div class="entry-name" onclick="openItemDetail('${nomeSafe}',event)" style="cursor:pointer" title="Ver histórico">${d.nome}</div><div class="entry-cat">${d.pag||''}</div></div></div></td>
+        <td><div style="display:flex;align-items:center;gap:8px">${itemIcon(d.nome,d.icon)}<div><div class="entry-name">${d.nome}</div><div class="entry-cat">${d.pag||''}</div></div></div></td>
         <td><span class="cat-pill" style="background:${catColor(d.cat)}18;color:${catColor(d.cat)};opacity:.75">${catLabel(d.cat)}</span></td>
         <td>${valCell(d)}</td>
         <td>${vencBadge(d)}</td>
         <td><span class="badge ${bc[d.status]||'nd'}" style="cursor:pointer" onclick="togglePago(${d.id})">${d.status}</span></td>
-        <td style="white-space:nowrap"><button class="edit-btn" onclick="openParcela(${d.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Somar outro valor no mês">${uiIcon('plus',14)}</button><button class="edit-btn" onclick="openModal(${d.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Editar">${uiIcon('edit',14)}</button><button class="btn-del" onclick="deleteDespEntry(${d.id})" style="display:inline-flex;align-items:center" title="Excluir">${uiIcon('trash',14)}</button></td>
+        <td style="white-space:nowrap"><button class="edit-btn" onclick="openParcela(${d.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Somar outro valor no mês">${uiIcon('plus',14)}</button><button class="edit-btn" onclick="openModal(${d.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Editar">${uiIcon('edit',14)}</button><button class="edit-btn" onclick="openItemDetail('${nomeSafe}',event)" style="margin-right:4px;display:inline-flex;align-items:center" title="Ver histórico">${uiIcon('barChart',14)}</button><button class="btn-del" onclick="deleteDespEntry(${d.id})" style="display:inline-flex;align-items:center" title="Excluir">${uiIcon('trash',14)}</button></td>
       </tr>`;
   }
   function sectionHeader(label, subtotal){

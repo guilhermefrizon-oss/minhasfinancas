@@ -860,6 +860,13 @@ body.light #chartTooltip { background: #0a0a0a; }
   transition: color .15s;
 }
 .mie-btn-full:active { color: var(--purple); }
+.mie-btn-icon, .mie-btn-history {
+  width:42px; min-width:42px; min-height:42px; padding:0;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--surface); border:1px solid var(--border); border-radius:8px;
+  color:var(--text2); cursor:pointer; transition:color .15s, border-color .15s, background .15s;
+}
+.mie-btn-icon:hover, .mie-btn-icon:active, .mie-btn-history:hover, .mie-btn-history:active { color:var(--purple); border-color:var(--purple); background:var(--purple-bg); }
 .mie-btn-del {
   background: rgba(240,96,96,.1); border: 1px solid rgba(240,96,96,.2);
   border-radius: 8px; padding: 10px 12px;
