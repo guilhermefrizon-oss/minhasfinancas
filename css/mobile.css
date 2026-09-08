@@ -272,6 +272,9 @@
     padding: 2rem 2.5rem;
   }
 
+  /* A Visão Geral aproveita melhor a largura disponível no desktop */
+  #page-overview { max-width: 1280px; }
+
   /* Cards do overview em 4 colunas no desktop */
   .cards { grid-template-columns: repeat(4, 1fr); gap: 16px; }
 
@@ -320,3 +323,33 @@
 /* Light mode sidebar */
 body.light .desktop-sidebar { background: #fff; }
 body.light .sidebar-btn:hover { background: var(--surface2); }
+
+/* Resumo e próximas transações lado a lado quando há largura confortável */
+@media (min-width: 1180px) {
+  .overview-primary-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr);
+    gap: 1.25rem;
+    align-items: start;
+    margin-bottom: 1.25rem;
+  }
+  .overview-primary-grid .cur-month-block,
+  .overview-primary-grid #recent-tx-box {
+    margin-bottom: 0 !important;
+  }
+
+  /* Mantém as duas colunas com alturas próximas, evitando um vazio sob o resumo */
+  #recent-tx-box .rtx-item {
+    padding: .62rem .8rem;
+    margin-bottom: 7px;
+  }
+  #recent-tx-box .rtx-icon-badge {
+    width: 34px;
+    height: 34px;
+  }
+  #recent-tx-box .rtx-icon-badge svg { width: 18px; height: 18px; }
+  #recent-tx-box .rtx-name { font-size: 13px; }
+  #recent-tx-box .rtx-meta { font-size: 10px; }
+  #recent-tx-box .rtx-amount { font-size: 13px; }
+  #recent-tx-box .rtx-date { font-size: 9px; margin-top: 2px; }
+}

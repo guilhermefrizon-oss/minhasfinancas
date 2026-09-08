@@ -253,6 +253,9 @@
     <div id="overview-greeting-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;background:var(--text);color:var(--bg)"></div>
   </div>
 
+  <!-- RESUMO PRINCIPAL + PRÓXIMAS TRANSAÇÕES -->
+  <div class="overview-primary-grid">
+  <div class="overview-primary-summary">
   <!-- DESTAQUE MÊS ATUAL -->
   <div class="cur-month-block" id="cur-month-block">
     <div class="cur-month-header">
@@ -297,15 +300,17 @@
       Adicionar primeiro lançamento
     </button>
   </div>
+  </div><!-- /.overview-primary-summary -->
 
-  <!-- ÚLTIMAS TRANSAÇÕES -->
+  <!-- PRÓXIMAS TRANSAÇÕES -->
   <div id="recent-tx-box" style="margin-bottom:1.75rem">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
-      <div class="table-title">Últimas transações</div>
+      <div class="table-title">Próximas transações</div>
       <button onclick="goToDespesas()" style="background:none;border:none;color:var(--text3);font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer">Ver todas</button>
     </div>
     <div id="recent-tx-list"></div>
   </div>
+  </div><!-- /.overview-primary-grid -->
 
   <!-- ÁREA DE RESUMO + GRÁFICOS -->
   <div id="overview-charts-area">

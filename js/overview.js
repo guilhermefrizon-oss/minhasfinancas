@@ -95,35 +95,30 @@ function ringSVG(pct, color, size){
   </div>`;
 }
 
-/* ══════ ÚLTIMAS TRANSAÇÕES (lista da Home) ══════ */
-function renderRecentTransactions(){
+/* ══════ PRÓXIMAS TRANSAÇÕES PENDENTES (lista da Home) ══════ */
+function renderUpcomingTransactions(){
   const listEl = document.getElementById('recent-tx-list');
   if(!listEl) return;
   const cm = getCurMonth();
-  const desp = DATA.despesas.filter(d=>d.mes===cm).map(d=>Object.assign({},d,{_type:'desp'}));
-  const rec  = DATA.receitas.filter(r=>r.mes===cm).map(r=>Object.assign({},r,{_type:'rec'}));
-  let items = desp.concat(rec);
+  let items = DATA.despesas.filter(d=>d.mes===cm && d.status!=='Pago');
 
   items.sort((a,b)=>{
     const da = a.venc ? new Date(a.venc+'T00:00:00').getTime() : null;
     const db = b.venc ? new Date(b.venc+'T00:00:00').getTime() : null;
-    if(da!=null && db!=null) return db-da;
+    if(da!=null && db!=null) return da-db;
     if(da!=null) return -1;
     if(db!=null) return 1;
-    return (b.id||0)-(a.id||0);
+    return (a.id||0)-(b.id||0);
   });
-  items = items.slice(0,6);
+  items = items.slice(0,5);
 
   if(!items.length){
-    listEl.innerHTML = `<div style="padding:1.5rem 0;text-align:center;color:var(--text3);font-size:13px">Nenhuma transação neste mês ainda.</div>`;
+    listEl.innerHTML = `<div style="padding:1.5rem 0;text-align:center;color:var(--text3);font-size:13px">Nenhum pagamento pendente neste mês.</div>`;
     return;
   }
 
   listEl.innerHTML = items.map(it=>{
-    const isDesp = it._type==='desp';
-    const sign = isDesp ? '−' : '+';
-    const color = isDesp ? 'var(--red)' : 'var(--green)';
-    const badgeColor = isDesp ? catColor(it.cat) : '#1fa056';
+    const badgeColor = catColor(it.cat);
     const dateStr = it.venc
       ? new Date(it.venc+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
       : mesLabel(it.mes);
@@ -135,7 +130,7 @@ function renderRecentTransactions(){
         <div class="rtx-meta">${metaLine}</div>
       </div>
       <div class="rtx-right">
-        <div class="rtx-amount" style="color:${color}">${sign} ${fmt(it.val)}</div>
+        <div class="rtx-amount" style="color:var(--red)">− ${fmt(it.val)}</div>
         <div class="rtx-date">${dateStr}</div>
       </div>
     </div>`;
@@ -155,7 +150,7 @@ function renderOverview(){
     el.classList.add('anim-fade-up',`anim-d${i+1}`);
   });
   renderCurMonth();
-  renderRecentTransactions();
+  renderUpcomingTransactions();
   const months=filteredMonths();
   const rec=months.map(m=>DATA.receitas.filter(r=>r.mes===m).reduce((s,r)=>s+(r.val||0),0));
   const desp=months.map(m=>DATA.despesas.filter(d=>d.mes===m).reduce((s,d)=>s+(d.val||0),0));

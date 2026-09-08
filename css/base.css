@@ -129,7 +129,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
 .table-box { background: var(--surface); border: none; box-shadow: var(--shadow-card); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
 
-/* ── Últimas transações (lista da Home) — cartões separados ── */
+/* ── Próximas transações (lista da Home) — cartões separados ── */
+.overview-primary-grid {
+  display: flex;
+  flex-direction: column;
+}
+.overview-primary-summary { min-width: 0; }
 .rtx-item {
   display: flex;
   align-items: center;
