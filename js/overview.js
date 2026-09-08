@@ -126,7 +126,7 @@ function renderUpcomingTransactions(){
     return `<div class="rtx-item">
       <div class="rtx-icon-badge" style="background:${badgeColor}18">${itemIcon(it.nome, it.icon)}</div>
       <div class="rtx-main">
-        <div class="rtx-name">${it.nome}</div>
+        <div class="rtx-name">${it.nome}${it.parcelamentoId?`<span class="installment-badge">${it.parcelaAtual}/${it.parcelasTotal}</span>`:''}</div>
         <div class="rtx-meta">${metaLine}</div>
       </div>
       <div class="rtx-right">
@@ -528,8 +528,12 @@ const PAG_WORDS = {
 
 /* ── Modal de confirmação ── */
 let _confirmCallback = null;
-function showConfirm(msg, cb){
+function showConfirm(msg, cb, options={}){
   document.getElementById('confirm-msg').textContent = msg;
+  const sub=document.getElementById('confirm-sub'),ok=document.getElementById('confirm-ok'),icon=document.getElementById('confirm-icon');
+  if(sub)sub.textContent=options.sub||'Esta ação não pode ser desfeita.';
+  if(ok){ok.textContent=options.label||'Excluir';ok.className=options.tone==='neutral'?'modal-btn-primary':'modal-btn-danger';}
+  if(icon){icon.style.color=options.tone==='neutral'?'var(--text)':'var(--red)';icon.innerHTML=uiIcon(options.icon||'trash',30,'currentColor');}
   _confirmCallback = cb;
   document.getElementById('confirm-modal').classList.add('open');
 }

@@ -8,6 +8,7 @@ function setToggle(groupId, hiddenId, btn){
   btn.classList.add('active');
   document.getElementById(hiddenId).value = btn.dataset.val;
   if(typeof updateNewRecurringSummary==='function')updateNewRecurringSummary();
+  if(typeof updateNewInstallmentSummary==='function')updateNewInstallmentSummary();
 }
 
 /* ── Gerenciar recorrentes: modal próprio ── */
@@ -90,6 +91,7 @@ function ensureRecurringEntriesForMonth(month,persist=true){
   if(!Array.isArray(DATA.recorrentes))return false;
   let changed=false;
   DATA.recorrentes.filter(r=>r.ativo!==false&&(!r.inicio||r.inicio<=month)).forEach(r=>{
+    if((r.pularMeses||[]).includes(month))return;
     let existing=DATA.despesas.find(d=>d.mes===month&&(d.recorrenteId===r.id||(!d.recorrenteId&&d.nome===r.nome)));
     if(existing){if(!existing.recorrenteId){existing.recorrenteId=r.id;changed=true;}return;}
     const cfg=recurringConfigForMonth(r,month);
@@ -134,7 +136,7 @@ function refreshRecurringAdmin(){updateRecorrentesBadge();if(recorrentesOpen)ren
 function toggleRecurringAccount(id){const r=(DATA.recorrentes||[]).find(x=>x.id===id);if(!r)return;r.ativo=r.ativo===false;saveData();refreshRecurringAdmin();showToast(r.ativo?'Conta ativada!':'Conta pausada.');}
 function deleteRecurringAccount(id){
   const r=(DATA.recorrentes||[]).find(x=>x.id===id);if(!r)return;
-  showConfirm(`Excluir o cadastro recorrente de "${r.nome}"? Os lançamentos já criados serão preservados.`,()=>{DATA.recorrentes=DATA.recorrentes.filter(x=>x.id!==id);saveData();refreshRecurringAdmin();showToast('Cadastro recorrente excluído.');});
+  showConfirm(`Mover o cadastro recorrente de "${r.nome}" para a lixeira?`,()=>{moveToTrash('recorrente',r);DATA.recorrentes=DATA.recorrentes.filter(x=>x.id!==id);saveData();refreshRecurringAdmin();showToast('Cadastro movido para a lixeira.');},{label:'Mover',sub:'Você poderá restaurá-lo depois. Os lançamentos já criados serão preservados.',tone:'neutral',icon:'trash'});
 }
 
 let editingRecurringId=null,selectedRecurringIcon=null,editingRecurringMonth=null,editingRecurringMonths=new Set(),editingRecurringScope='from';
@@ -215,6 +217,20 @@ function updateNewRecurringSummary(){
   const cat=document.getElementById('in-cat').value,pag=document.getElementById('in-pag').value;
   el.innerHTML=`<div class="recurring-impact-top"><span class="recurring-impact-icon">${uiIcon('repeat',15)}</span><div><strong>${name}</strong><span>${month?`Começa em ${mesLabel(month)}`:'Escolha o mês de início'}</span></div></div><div class="recurring-impact-values"><div><small>VALOR MENSAL</small><b>${val==null?'Variável':fmt(val)}</b></div><div><small>PRÓXIMOS 3 MESES</small><b>${val==null?'A definir':fmt(val*3)}</b></div></div><div class="recurring-impact-foot">${cat||'Sem categoria'} <span>•</span> ${pag||'Sem pagamento'} <span>•</span> ${day?`Vence dia ${day}`:'Sem vencimento'} <span>•</span> ${status==='Débito auto'?'Débito automático':'Falta pagar'}</div>`;
 }
+function monthKeyOffset(month,offset){const[y,m]=month.split('-').map(Number),d=new Date(y,m-1+offset,1);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+function splitInstallmentValues(total,count){
+  if(total==null)return Array(count).fill(null);
+  const cents=Math.round(total*100),base=Math.floor(cents/count),remainder=cents-(base*count);
+  return Array.from({length:count},(_,i)=>(base+(i<remainder?1:0))/100);
+}
+function updateNewInstallmentSummary(){
+  const el=document.getElementById('new-installment-summary');if(!el)return;
+  const active=document.getElementById('in-recorr')?.value==='parcelada';el.style.display=active?'block':'none';if(!active)return;
+  const name=document.getElementById('in-desc').value.trim()||'Nova compra parcelada';
+  const start=document.getElementById('in-parcela-mes').value,count=Math.max(2,Math.min(60,Number(document.getElementById('in-parcelas-total').value)||2));
+  const total=readMoneyField('in-valor'),values=splitInstallmentValues(total,count),monthly=values[0],end=start?monthKeyOffset(start,count-1):null;
+  el.innerHTML=`<div class="recurring-impact-top"><span class="recurring-impact-icon">${uiIcon('card',15)}</span><div><strong>${name}</strong><span>${start?`${count} parcelas · ${mesLabel(start)} até ${mesLabel(end)}`:'Escolha o primeiro mês'}</span></div></div><div class="recurring-impact-values"><div><small>VALOR DA PARCELA</small><b>${monthly==null?'A definir':fmt(monthly)}</b></div><div><small>VALOR TOTAL</small><b>${total==null?'A definir':fmt(total)}</b></div></div><div class="recurring-impact-foot">Compromisso por ${count} meses${end?` <span>•</span> termina em ${mesLabel(end)}`:''}</div>`;
+}
 function openEditRecurringAccount(id){
   const r=(DATA.recorrentes||[]).find(x=>x.id===id);if(!r)return;
   editingRecurringId=id;editingRecurringScope='from';
@@ -255,14 +271,25 @@ function toggleMesRange(){
   const v=document.getElementById('in-recorr').value;
   document.getElementById('mes-unico-wrap').style.display=v==='unico'?'flex':'none';
   document.getElementById('mes-range-wrap').style.display=v==='recorrente'?'block':'none';
-  if(v==='recorrente'){
+  document.getElementById('parcela-range-wrap').style.display=v==='parcelada'?'block':'none';
+  if(v==='recorrente'||v==='parcelada'){
     document.getElementById('in-status').value='Falta Pagar';
     document.querySelectorAll('#status-toggle .toggle-opt').forEach(btn=>btn.classList.toggle('active',btn.dataset.val==='Falta Pagar'));
   }
+  document.getElementById('expense-value-label').textContent=v==='parcelada'?'Valor total':'Valor';
+  document.getElementById('expense-value-hint').textContent=v==='parcelada'?'(dividido automaticamente)':'(opcional — pode preencher depois)';
+  document.getElementById('add-expense-submit').textContent=v==='parcelada'?'+ Adicionar parcelamento':'+ Adicionar despesa';
   updateNewRecurringSummary();
+  updateNewInstallmentSummary();
 }
 function toggleRecMesRange(){const v=document.getElementById('in-rec-recorr').value;document.getElementById('rec-mes-unico-wrap').style.display=v==='unico'?'flex':'none';document.getElementById('rec-mes-range-wrap').style.display=v==='recorrente'?'block':'none';}
 function monthsBetween(ini,fim){const meses=[];let[y,m]=ini.split('-').map(Number);const[yf,mf]=fim.split('-').map(Number);while(y<yf||(y===yf&&m<=mf)){meses.push(`${y}-${String(m).padStart(2,'0')}`);m++;if(m>12){m=1;y++;}}return meses;}
+function normalizeEntryName(name){return(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+function duplicateMonthsFor(collection,name,months){const normalized=normalizeEntryName(name);return months.filter(month=>collection.some(item=>item.mes===month&&normalizeEntryName(item.nome)===normalized));}
+function warnPossibleDuplicate(kind,name,months,proceed){
+  const monthText=months.length===1?mesLabel(months[0]):`${months.length} meses selecionados`;
+  showConfirm(`Já existe ${kind} “${name}” em ${monthText}.`,proceed,{label:'Adicionar mesmo assim',sub:'Pode ser um lançamento duplicado. Continue somente se forem compromissos diferentes.',tone:'neutral',icon:'warning'});
+}
 
 /* ── Validação de formulários ── */
 function fieldError(id, msg) {
@@ -295,7 +322,7 @@ function clearFieldErrors(ids) {
   });
 }
 
-function addEntry(){
+function addEntry(forceDuplicate=false){
   const desc=document.getElementById('in-desc').value.trim();
   const cat=document.getElementById('in-cat').value;
   const pag=document.getElementById('in-pag').value;
@@ -305,21 +332,36 @@ function addEntry(){
   const diaVenc=diaVencRaw?parseInt(diaVencRaw):null;
   const status=document.getElementById('in-status').value;
   const recorr=document.getElementById('in-recorr').value;
-  clearFieldErrors(['in-desc','in-valor','in-mes','in-mes-ini']);
+  clearFieldErrors(['in-desc','in-valor','in-mes','in-mes-ini','in-parcela-mes','in-parcelas-total']);
   let hasError = false;
   if(!desc){ fieldError('in-desc','Nome obrigatório'); hasError=true; }
   if(val !== null && val < 0){ fieldError('in-valor','Digite um valor válido'); hasError=true; }
   let meses=[];
+  let installmentCount=0;
   if(recorr==='unico'){
     const mes=document.getElementById('in-mes').value;
     if(!mes){ fieldError('in-mes','Selecione o mês'); hasError=true; }
     else meses=[mes];
-  } else {
+  } else if(recorr==='recorrente') {
     const ini=document.getElementById('in-mes-ini').value;
     if(!ini){ fieldError('in-mes-ini','Selecione o mês inicial'); hasError=true; }
     if(!hasError) meses=[ini];
+  } else {
+    const ini=document.getElementById('in-parcela-mes').value;
+    installmentCount=Number(document.getElementById('in-parcelas-total').value);
+    if(!ini){fieldError('in-parcela-mes','Selecione o primeiro mês');hasError=true;}
+    if(!Number.isInteger(installmentCount)||installmentCount<2||installmentCount>60){fieldError('in-parcelas-total','Use entre 2 e 60 parcelas');hasError=true;}
+    if(val==null||val<=0){fieldError('in-valor','Informe o valor total da compra');hasError=true;}
+    if(!hasError)meses=Array.from({length:installmentCount},(_,i)=>monthKeyOffset(ini,i));
   }
   if(hasError) return;
+  if(recorr==='recorrente'){
+    const existingTemplate=(DATA.recorrentes||[]).find(r=>normalizeEntryName(r.nome)===normalizeEntryName(desc));
+    if(existingTemplate){showConfirm(`Já existe uma conta recorrente chamada “${desc}”.`,()=>{closeAddDesp();openEditRecurringAccount(existingTemplate.id);},{label:'Editar existente',sub:'Abra o cadastro atual para evitar duas cobranças recorrentes iguais.',tone:'neutral',icon:'edit'});return;}
+  }else if(!forceDuplicate){
+    const duplicateMonths=duplicateMonthsFor(DATA.despesas,desc,meses);
+    if(duplicateMonths.length){warnPossibleDuplicate('uma despesa',desc,duplicateMonths,()=>addEntry(true));return;}
+  }
   let recurringTemplate=null;
   if(recorr==='recorrente'){
     if(!Array.isArray(DATA.recorrentes))initializeRecurringAccounts(false);
@@ -328,11 +370,14 @@ function addEntry(){
     if(recurringTemplate)Object.assign(recurringTemplate,templateData);
     else{recurringTemplate={id:`rec-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`,cadastroManual:true,criadoEm:Date.now(),...templateData};DATA.recorrentes.push(recurringTemplate);}
   }
-  meses.forEach(mes=>{
+  const installmentId=recorr==='parcelada'?`parc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`:null;
+  const installmentValues=installmentId?splitInstallmentValues(val,installmentCount):[];
+  meses.forEach((mes,index)=>{
     let venc=null;
     if(diaVenc){const[y,mo]=mes.split('-');const maxDay=new Date(+y,+mo,0).getDate();const dd=String(Math.min(diaVenc,maxDay)).padStart(2,'0');venc=`${mes}-${dd}`;}
     const existing=recurringTemplate&&DATA.despesas.find(d=>d.mes===mes&&(d.recorrenteId===recurringTemplate.id||d.nome===desc));
-    if(!existing)DATA.despesas.push({id:Date.now()+Math.random(),recorrenteId:recurringTemplate?.id||null,origem:recurringTemplate?'recorrente':'manual',nome:desc,cat,pag,mes,val,status,venc,diaVenc,tipo:document.getElementById('in-tipo').value||guessTipo(cat),icon:selectedIcon||null,pagoEm: status==='Pago' ? (venc || new Date().toISOString().slice(0,10)) : null});
+    const entryStatus=installmentId&&index>0?(status==='Débito auto'?'Débito auto':'Falta Pagar'):status;
+    if(!existing)DATA.despesas.push({id:Date.now()+Math.random(),recorrenteId:recurringTemplate?.id||null,parcelamentoId:installmentId,parcelaAtual:installmentId?index+1:null,parcelasTotal:installmentId?installmentCount:null,valorTotal:installmentId?val:null,origem:recurringTemplate?'recorrente':installmentId?'parcelamento':'manual',nome:desc,cat,pag,mes,val:installmentId?installmentValues[index]:val,status:entryStatus,venc,diaVenc,tipo:document.getElementById('in-tipo').value||guessTipo(cat),icon:selectedIcon||null,pagoEm: entryStatus==='Pago' ? (venc || new Date().toISOString().slice(0,10)) : null});
   });
   saveData();
   document.getElementById('in-desc').value='';document.getElementById('in-valor').value='';document.getElementById('in-dia-venc').value='';
@@ -342,10 +387,10 @@ function addEntry(){
   const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   despSelectedMonth=allMonths().includes(cm)?cm:meses[meses.length-1];
   showPage('despesas');
-  showToast(recurringTemplate?'Conta recorrente cadastrada!':'Despesa adicionada!');if(typeof renderEmptyState==='function')renderEmptyState();
+  showToast(recurringTemplate?'Conta recorrente cadastrada!':installmentId?`Compra parcelada em ${installmentCount} vezes!`:'Despesa adicionada!');if(typeof renderEmptyState==='function')renderEmptyState();
 }
 
-function addReceita(){
+function addReceita(forceDuplicate=false){
   const desc=document.getElementById('in-rec-desc').value.trim();
   const val=readMoneyField('in-rec-valor');
   const valRaw=val===null?'':String(val);
@@ -368,6 +413,10 @@ function addReceita(){
     if(!hasErrorR) meses=monthsBetween(ini,fim);
   }
   if(hasErrorR) return;
+  if(!forceDuplicate){
+    const duplicateMonths=duplicateMonthsFor(DATA.receitas,desc,meses);
+    if(duplicateMonths.length){warnPossibleDuplicate('uma receita',desc,duplicateMonths,()=>addReceita(true));return;}
+  }
   meses.forEach(mes=>{DATA.receitas.push({id:Date.now()+Math.random(),nome:desc,cat:document.getElementById('in-rec-cat').value,mes,val,status:document.getElementById('in-rec-status').value});});
   saveData();
   document.getElementById('in-rec-desc').value='';document.getElementById('in-rec-valor').value='';
@@ -379,9 +428,12 @@ function deleteDespEntry(id){
   id=Number(id);
   const d=DATA.despesas.find(x=>x.id===id);
   if(!d)return;
-  showConfirm(`Excluir "${d.nome}"?`, ()=>{
+  showConfirm(`Mover "${d.nome}" para a lixeira?`, ()=>{
+    moveToTrash('despesa',d);
+    const recurring=(DATA.recorrentes||[]).find(r=>r.id===d.recorrenteId);
+    if(recurring&&d.mes)recurring.pularMeses=[...new Set([...(recurring.pularMeses||[]),d.mes])];
     DATA.despesas=DATA.despesas.filter(x=>x.id!==id);
-    saveData();renderDespTable();renderCurMonth();showToast('Removido!');
-  });
+    saveData();renderDespTable();renderCurMonth();showToast('Movido para a lixeira!');
+  },{label:'Mover',sub:'Você poderá restaurar este lançamento depois.',tone:'neutral'});
 }
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}

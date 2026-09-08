@@ -5,6 +5,7 @@
 
 /* ── Drawer ── */
 function openSettings() {
+  updateTrashBadge();
   document.getElementById('settings-overlay').classList.add('open');
   document.getElementById('settings-drawer').classList.add('open');
 }
@@ -22,6 +23,58 @@ function openSettingsScreen(id) {
 }
 function closeSettingsScreen(id) {
   document.getElementById(id).classList.remove('open');
+}
+
+/* ══════ LIXEIRA ══════ */
+function moveToTrash(tipo,item){
+  if(!item)return;
+  if(!Array.isArray(DATA.lixeira))DATA.lixeira=[];
+  DATA.lixeira.unshift({trashId:`trash-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`,tipo,item:JSON.parse(JSON.stringify(item)),excluidoEm:Date.now()});
+}
+function updateTrashBadge(){
+  const count=(DATA.lixeira||[]).length;
+  const badge=document.getElementById('settings-trash-count');
+  if(badge){badge.textContent=count||'';badge.style.display=count?'inline-flex':'none';}
+}
+function openTrashSettings(){renderTrash();openSettingsScreen('screen-trash');}
+function refreshAfterTrashChange(){
+  updateTrashBadge();renderTrash();
+  if(typeof renderOverview==='function')renderOverview();
+  if(typeof renderDespTable==='function'&&document.getElementById('page-despesas')?.classList.contains('active'))renderDespTable();
+  if(typeof renderRecTable==='function'&&document.getElementById('page-receitas')?.classList.contains('active'))renderRecTable();
+  if(typeof updateNotifBadge==='function')updateNotifBadge();
+}
+function renderTrash(){
+  const list=document.getElementById('trash-list');if(!list)return;
+  const entries=[...(DATA.lixeira||[])].sort((a,b)=>b.excluidoEm-a.excluidoEm);
+  document.getElementById('trash-empty-btn').style.display=entries.length?'inline-flex':'none';
+  if(!entries.length){list.innerHTML=`<div class="trash-empty"><span>${uiIcon('trash',28)}</span><strong>Lixeira vazia</strong><p>Itens excluídos aparecerão aqui e poderão ser restaurados.</p></div>`;return;}
+  const labels={despesa:'Despesa',receita:'Receita',recorrente:'Conta recorrente'};
+  list.innerHTML=entries.map(t=>{const item=t.item||{},date=new Date(t.excluidoEm).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});return `<article class="trash-card"><div class="trash-card-main">${itemIcon(item.nome,item.icon)}<div><strong>${item.nome||'Sem nome'}</strong><span>${labels[t.tipo]||'Item'}${item.mes?' · '+mesLabel(item.mes):''} · excluído em ${date}</span>${item.val!=null?`<b>${fmt(item.val)}</b>`:''}</div></div><div class="trash-actions"><button onclick="restoreTrashItem('${t.trashId}')">${uiIcon('rotateCcw',14)} Restaurar</button><button class="is-danger" onclick="deleteTrashPermanently('${t.trashId}')">${uiIcon('trash',14)} Excluir</button></div></article>`;}).join('');
+}
+function restoreTrashItem(trashId,forceDuplicate=false){
+  const trash=(DATA.lixeira||[]).find(t=>t.trashId===trashId);if(!trash)return;
+  const targets={despesa:'despesas',receita:'receitas',recorrente:'recorrentes'},key=targets[trash.tipo];if(!key)return;
+  if(DATA[key].some(x=>x.id===trash.item.id)){showToast('Esse item já existe novamente.');return;}
+  if(trash.tipo==='recorrente'&&DATA.recorrentes.some(r=>normalizeEntryName(r.nome)===normalizeEntryName(trash.item.nome))){showToast('Já existe uma conta recorrente com esse nome.');return;}
+  if(!forceDuplicate&&trash.tipo!=='recorrente'&&trash.item.mes){
+    const duplicate=duplicateMonthsFor(DATA[key],trash.item.nome,[trash.item.mes]);
+    if(duplicate.length){warnPossibleDuplicate(trash.tipo==='despesa'?'uma despesa':'uma receita',trash.item.nome,duplicate,()=>restoreTrashItem(trashId,true));return;}
+  }
+  if(trash.tipo==='despesa'&&trash.item.recorrenteId){
+    const recurring=(DATA.recorrentes||[]).find(r=>r.id===trash.item.recorrenteId);
+    if(recurring)recurring.pularMeses=(recurring.pularMeses||[]).filter(m=>m!==trash.item.mes);
+  }
+  DATA[key].push(trash.item);DATA.lixeira=DATA.lixeira.filter(t=>t.trashId!==trashId);
+  saveData();refreshAfterTrashChange();showToast('Item restaurado!');
+}
+function deleteTrashPermanently(trashId){
+  const trash=(DATA.lixeira||[]).find(t=>t.trashId===trashId);if(!trash)return;
+  showConfirm(`Excluir “${trash.item?.nome||'este item'}” permanentemente?`,()=>{DATA.lixeira=DATA.lixeira.filter(t=>t.trashId!==trashId);saveData();renderTrash();showToast('Item excluído permanentemente.');});
+}
+function emptyTrash(){
+  if(!(DATA.lixeira||[]).length)return;
+  showConfirm('Esvaziar a lixeira permanentemente?',()=>{DATA.lixeira=[];saveData();renderTrash();showToast('Lixeira esvaziada.');});
 }
 
 /* ══════ PERFIL ══════ */
@@ -173,6 +226,7 @@ function backupJSON() {
     receitas: DATA.receitas,
     recorrentes: DATA.recorrentes||[],
     recorrentesVersao: DATA.recorrentesVersao||2,
+    lixeira: DATA.lixeira||[],
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -190,6 +244,7 @@ function clearAllData() {
     DATA.receitas = [];
     DATA.recorrentes = [];
     DATA.recorrentesVersao = 2;
+    DATA.lixeira = [];
     saveData();
     renderOverview();
     closeSettingsScreen('screen-data');
@@ -202,4 +257,5 @@ function initSettings() {
   // Fecha drawer ao clicar no overlay
   const overlay = document.getElementById('settings-overlay');
   if (overlay) overlay.addEventListener('click', closeSettings);
+  updateTrashBadge();
 }

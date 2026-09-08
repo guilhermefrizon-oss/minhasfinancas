@@ -162,6 +162,22 @@
 .ss-btn-primary { background: var(--text); color: var(--bg); font-family: var(--font-display); }
 .ss-btn-secondary { background: var(--surface); border: none; color: var(--text); }
 .ss-btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+.settings-trash-count { display:none; min-width:20px; height:20px; padding:0 6px; align-items:center; justify-content:center; border-radius:20px; background:var(--red); color:#fff; font-size:9px; font-weight:800; }
+.trash-empty-btn { border:0; background:transparent; color:var(--red); font:700 11px var(--font); cursor:pointer; padding:7px; }
+.trash-intro { margin-bottom:16px; color:var(--text3); font-size:12px; line-height:1.5; }
+.trash-card { margin-bottom:10px; padding:14px; border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--shadow-card); }
+.trash-card-main { display:flex; align-items:center; gap:10px; min-width:0; }
+.trash-card-main>div:last-child { min-width:0; flex:1; }
+.trash-card-main strong { display:block; color:var(--text); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.trash-card-main span { display:block; margin-top:3px; color:var(--text3); font-size:9px; }
+.trash-card-main b { display:block; margin-top:5px; color:var(--text2); font-size:11px; }
+.trash-actions { display:flex; gap:7px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border); }
+.trash-actions button { display:inline-flex; align-items:center; justify-content:center; gap:5px; min-height:32px; padding:6px 10px; border:1px solid var(--border); border-radius:9px; background:var(--surface2); color:var(--text2); font:650 10px var(--font); cursor:pointer; }
+.trash-actions button.is-danger { margin-left:auto; border-color:rgba(240,96,96,.3); color:var(--red); background:var(--red-bg); }
+.trash-empty { padding:46px 20px; border:1px dashed var(--border); border-radius:16px; text-align:center; color:var(--text3); }
+.trash-empty>span { display:flex; justify-content:center; margin-bottom:10px; opacity:.55; }
+.trash-empty strong { display:block; color:var(--text2); font-size:14px; }
+.trash-empty p { margin:6px auto 0; max-width:280px; font-size:11px; line-height:1.5; }
 
 /* Indicador de meta na overview */
 .budget-warning {

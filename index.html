@@ -727,7 +727,7 @@
       </div>
 
       <!-- ── SEÇÃO: VALOR ── -->
-      <div class="form-section-label">Valor <span style="font-weight:400;color:var(--text3)">(opcional — pode preencher depois)</span></div>
+      <div class="form-section-label"><span id="expense-value-label">Valor</span> <span id="expense-value-hint" style="font-weight:400;color:var(--text3)">(opcional — pode preencher depois)</span></div>
       <div class="form-group" style="margin-bottom:20px">
         <input type="text" id="in-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off" style="font-size:22px;font-weight:700;letter-spacing:.01em;padding:12px 14px">
       </div>
@@ -774,6 +774,7 @@
         <div class="inline-toggle" id="recorr-toggle">
           <button class="toggle-opt active" data-val="unico" onclick="setToggle('recorr-toggle','in-recorr',this);toggleMesRange()">Mês único</button>
           <button class="toggle-opt" data-val="recorrente" onclick="setToggle('recorr-toggle','in-recorr',this);toggleMesRange()">Recorrente</button>
+          <button class="toggle-opt" data-val="parcelada" onclick="setToggle('recorr-toggle','in-recorr',this);toggleMesRange()">Parcelada</button>
         </div>
 
         <input type="hidden" id="in-recorr" value="unico">
@@ -787,10 +788,18 @@
         <div class="form-hint" style="margin-top:7px">A conta será criada automaticamente todos os meses. Você poderá pausá-la quando quiser.</div>
         <div id="new-recurring-summary" class="recurring-impact-card new-recurring-impact" style="display:none"></div>
       </div>
+      <div id="parcela-range-wrap" style="display:none;margin-bottom:20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group"><label>Primeira parcela</label><input type="month" id="in-parcela-mes"></div>
+          <div class="form-group"><label>Quantidade</label><input type="number" id="in-parcelas-total" min="2" max="60" value="2" inputmode="numeric"></div>
+        </div>
+        <div class="form-hint" style="margin-top:7px">O valor total será dividido automaticamente entre os meses.</div>
+        <div id="new-installment-summary" class="recurring-impact-card new-recurring-impact"></div>
+      </div>
 
       <!-- ── AÇÕES ── -->
       <div style="margin-top:4px">
-        <button class="modal-btn-primary" style="width:100%" onclick="addEntry()">+ Adicionar despesa</button>
+        <button id="add-expense-submit" class="modal-btn-primary" style="width:100%" onclick="addEntry()">+ Adicionar despesa</button>
         <button onclick="openManageRecorrentes()" style="width:100%;margin-top:10px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:12px;color:var(--text3);padding:6px;text-align:center;transition:color .15s" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text3)'">
           Gerenciar contas recorrentes →
         </button>
@@ -978,12 +987,12 @@
 <!-- MODAL CONFIRMAR EXCLUSÃO -->
 <div id="confirm-modal" class="modal-overlay" style="display:none;z-index:700">
   <div class="modal-box" style="width:min(340px,90vw);text-align:center">
-    <div style="margin-bottom:12px"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
+    <div id="confirm-icon" style="margin-bottom:12px;color:var(--red)"></div>
     <div style="font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text)" id="confirm-msg">Tem certeza?</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem">Esta ação não pode ser desfeita.</div>
+    <div id="confirm-sub" style="font-size:12px;color:var(--text3);margin-bottom:1.5rem">Esta ação não pode ser desfeita.</div>
     <div class="modal-actions">
       <button class="modal-btn-secondary" onclick="confirmCancel()">Cancelar</button>
-      <button class="modal-btn-danger" onclick="confirmOk()">Excluir</button>
+      <button id="confirm-ok" class="modal-btn-danger" onclick="confirmOk()">Excluir</button>
     </div>
   </div>
 </div>
@@ -1246,6 +1255,15 @@
       </div>
       <span class="sd-item-arrow">›</span>
     </button>
+    <button class="sd-item" onclick="openTrashSettings()">
+      <div class="sd-item-icon" style="background:var(--red-bg)"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
+      <div class="sd-item-text">
+        <div class="sd-item-label">Lixeira</div>
+        <div class="sd-item-desc">Recupere itens excluídos</div>
+      </div>
+      <span id="settings-trash-count" class="settings-trash-count"></span>
+      <span class="sd-item-arrow">›</span>
+    </button>
 
     <div class="sd-divider"></div>
     <button class="sd-item danger" onclick="closeSettings();setTimeout(deleteAccount,200)">
@@ -1286,6 +1304,19 @@
     <button class="ss-btn ss-btn-danger" onclick="clearAllData()" style="display:inline-flex;align-items:center;justify-content:center;gap:8px">
       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Apagar todos os lançamentos
     </button>
+  </div>
+</div>
+
+<!-- ══════ TELA: LIXEIRA ══════ -->
+<div id="screen-trash" class="settings-screen">
+  <div class="ss-topbar">
+    <button class="ss-back" onclick="closeSettingsScreen('screen-trash')">←</button>
+    <div class="ss-screen-title">Lixeira</div>
+    <button id="trash-empty-btn" onclick="emptyTrash()" class="trash-empty-btn" style="display:none">Esvaziar</button>
+  </div>
+  <div class="ss-body">
+    <div class="trash-intro">Itens excluídos ficam guardados aqui até você restaurá-los ou apagá-los permanentemente.</div>
+    <div id="trash-list"></div>
   </div>
 </div>
 

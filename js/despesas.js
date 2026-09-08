@@ -4,6 +4,8 @@ function guessTipo(cat){
   const main = (cat||'').split(' · ')[0];
   return CATS_FIXAS_DEFAULT.includes(main) ? 'fixa' : 'variavel';
 }
+function installmentBadge(d){return d.parcelamentoId&&d.parcelaAtual&&d.parcelasTotal?`<span class="installment-badge">${d.parcelaAtual}/${d.parcelasTotal}</span>`:'';}
+function mobileGestureHint(doneLabel){return`<div class="mobile-gesture-hint"><span>${uiIcon('arrowRight',13)} ${doneLabel}</span><span>Enviar à lixeira ${uiIcon('arrowLeft',13)}</span></div>`;}
 
 /* ── Painel de ordenação mobile ── */
 const SORT_OPTIONS = [
@@ -79,16 +81,20 @@ function handleCompactSearch(type){
 
 /* ══════ DESPESAS ══════ */
 /* FIX 2: Ordenação */
-let despSortKey='venc', despSortDir=1;
-let despFilterStatus='all', despFilterCat='all';
+let _despPrefs={};try{_despPrefs=JSON.parse(localStorage.getItem('gastos_view_desp')||'{}');}catch(e){}
+let despSortKey=_despPrefs.sortKey||'venc', despSortDir=_despPrefs.sortDir||1;
+let despFilterStatus=_despPrefs.status||'all', despFilterCat=_despPrefs.cat||'all';
+function saveDespViewPrefs(){localStorage.setItem('gastos_view_desp',JSON.stringify({sortKey:despSortKey,sortDir:despSortDir,status:despFilterStatus,cat:despFilterCat}));}
 
 function setDespFilter(type, value){
   if(type==='status') despFilterStatus=value;
   if(type==='cat') despFilterCat=value;
+  saveDespViewPrefs();
   renderDespTable();
 }
 function clearDespFilters(){
   despFilterStatus='all'; despFilterCat='all';
+  saveDespViewPrefs();
   const search=document.getElementById('desp-search'); if(search) search.value='';
   document.getElementById('desp-search-wrap')?.classList.remove('has-value','search-open');
   renderDespTable();
@@ -111,10 +117,14 @@ function updateDespCategoryFilter(){
 }
 function sortDesp(key){
   if(despSortKey===key)despSortDir*=-1; else{despSortKey=key;despSortDir=key==='val'?-1:1;}
-  document.querySelectorAll('[id^="sort-desp-"]').forEach(el=>{el.textContent='↕';el.parentElement.classList.remove('sorted');});
-  const el=document.getElementById('sort-desp-'+key);
-  if(el){el.textContent=despSortDir===1?'↑':'↓';el.parentElement.classList.add('sorted');}
+  syncDespSortIndicator();
+  saveDespViewPrefs();
   renderDespTable();
+}
+function syncDespSortIndicator(){
+  document.querySelectorAll('[id^="sort-desp-"]').forEach(el=>{el.textContent='↕';el.parentElement.classList.remove('sorted');});
+  const el=document.getElementById('sort-desp-'+despSortKey);
+  if(el){el.textContent=despSortDir===1?'↑':'↓';el.parentElement.classList.add('sorted');}
 }
 
 let despPickerYear=null;
@@ -206,16 +216,16 @@ function stepDespMonth(delta){const months=allMonths();const idx=months.indexOf(
 
 
 /* ── Toggle rápido para Pago ── */
-function initSwipeDelete(){
-  document.querySelectorAll('.swipe-wrapper').forEach(wrapper=>{
+function bindSwipeActions(wrapper,onRight,onLeft){
     const inner=wrapper.querySelector('.mob-card-inner');
-    const bg=wrapper.querySelector('.swipe-delete-bg');
-    if(!inner||!bg)return;
-    let startX=0,startY=0,curX=0,swiping=false,locked=false;
+    const deleteBg=wrapper.querySelector('.swipe-delete-bg'),paidBg=wrapper.querySelector('.swipe-paid-bg');
+    if(!inner||!deleteBg||!paidBg)return;
+    let startX=0,startY=0,curX=0,swiping=false,locked=false,buzzed=false,suppressClick=false;
     const THRESHOLD=80;
+    inner.addEventListener('click',e=>{if(suppressClick){e.preventDefault();e.stopImmediatePropagation();}},{capture:true});
     inner.addEventListener('touchstart',e=>{
       startX=e.touches[0].clientX;startY=e.touches[0].clientY;
-      curX=0;swiping=false;locked=false;
+      curX=0;swiping=false;locked=false;buzzed=false;
       inner.style.transition='none';
     },{passive:true});
     inner.addEventListener('touchmove',e=>{
@@ -227,24 +237,31 @@ function initSwipeDelete(){
       }
       if(!swiping||locked)return;
       e.preventDefault();
-      curX=Math.min(0,dx);
+      curX=Math.max(-120,Math.min(120,dx));
       inner.style.transform=`translateX(${curX}px)`;
       const ratio=Math.min(1,Math.abs(curX)/THRESHOLD);
-      bg.style.opacity=ratio;
+      deleteBg.style.opacity=curX<0?ratio:0;paidBg.style.opacity=curX>0?ratio:0;
+      if(ratio>=1&&!buzzed){buzzed=true;if(navigator.vibrate)navigator.vibrate(18);}
     },{passive:false});
     inner.addEventListener('touchend',()=>{
       inner.style.transition='transform .25s cubic-bezier(.4,0,.2,1)';
-      if(Math.abs(curX)>=THRESHOLD){
-        inner.style.transform='translateX(-100%)';
-        bg.style.opacity='1';
-        const id=Number(wrapper.dataset.id);
-        setTimeout(()=>deleteDespEntry(id),220);
-      } else {
-        inner.style.transform='';
-        bg.style.opacity='0';
-      }
+      const action=Math.abs(curX)>=THRESHOLD?(curX>0?'right':'left'):null;
+      suppressClick=!!action;inner.style.transform='';deleteBg.style.opacity='0';paidBg.style.opacity='0';
+      if(action)setTimeout(()=>{action==='right'?onRight():onLeft();},120);
+      setTimeout(()=>{suppressClick=false;},360);
     });
+}
+function initSwipeDelete(){
+  document.querySelectorAll('.swipe-wrapper[data-id]').forEach(wrapper=>{
+    const id=Number(wrapper.dataset.id);
+    bindSwipeActions(wrapper,()=>markExpensePaid(id),()=>deleteDespEntry(id));
   });
+}
+
+function markExpensePaid(id){
+  const d=DATA.despesas.find(x=>x.id===id);if(!d)return;
+  if(d.status==='Pago'){showToast('Essa despesa já está paga.');return;}
+  togglePago(id);
 }
 
 function togglePago(id){
@@ -308,12 +325,13 @@ function mobDespCard(d){
   const sid=mieId(d.id);
   const nomeSafe=(d.nome||'').replace(/'/g,"\\'");
   return `<div class="swipe-wrapper${isPago?' mob-card-pago':''}" data-id="${d.id}">
+    <div class="swipe-paid-bg">${uiIcon('check',22)}<span>Pago</span></div>
     <div class="swipe-delete-bg">${uiIcon('trash',22)}</div>
     <div class="mob-card-inner" onclick="toggleInlineEdit(${d.id},event)">
       <div class="mob-status-bar" style="background:${barCol}"></div>
       <div class="mob-card-icon">${itemIcon(d.nome,d.icon)}</div>
       <div class="mob-card-main">
-        <div class="mob-card-name">${d.nome}</div>
+        <div class="mob-card-name">${d.nome}${installmentBadge(d)}</div>
         <div class="mob-card-row1">
           <span class="mob-cat-badge" style="background:${catCol}18;color:${catCol}">${catLabel(d.cat)}</span>
         </div>
@@ -371,6 +389,7 @@ function mobRecCard(r, ri){
   const catCol='var(--green)';
   const sid=mieId(r.id);
   return `<div class="swipe-wrapper" data-rec-id="${r.id}">
+    <div class="swipe-paid-bg">${uiIcon('check',22)}<span>Recebido</span></div>
     <div class="swipe-delete-bg">${uiIcon('trash',22)}</div>
     <div class="mob-card-inner" onclick="toggleInlineEditRec(${r.id},event)">
       <div class="mob-status-bar" style="background:${barCol}"></div>
@@ -452,6 +471,7 @@ function renderDespByName(items){
 }
 
 function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRecorrentesList();
+  syncDespSortIndicator();
   const m=despSelectedMonth;
   const searchEl=document.getElementById('desp-search');
   const q=(searchEl?searchEl.value:'').toLowerCase().trim();
@@ -514,7 +534,7 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
     const di=_rowIdx++;const dc=`anim-d${Math.min(di+1,10)}`;
     const nomeSafe=(d.nome||'').replace(/'/g,"\\'");
     return `<tr class="tr-anim ${dc}" style="${d.status==='Falta Pagar'?'background:rgba(240,96,96,0.03)':d.status==='Débito auto'?'background:rgba(123,140,255,0.03)':''}">
-        <td><div style="display:flex;align-items:center;gap:8px">${itemIcon(d.nome,d.icon)}<div><div class="entry-name">${d.nome}</div><div class="entry-cat">${d.pag||''}</div></div></div></td>
+        <td><div style="display:flex;align-items:center;gap:8px">${itemIcon(d.nome,d.icon)}<div><div class="entry-name">${d.nome}${installmentBadge(d)}</div><div class="entry-cat">${d.pag||''}</div></div></div></td>
         <td><span class="cat-pill" style="background:${catColor(d.cat)}18;color:${catColor(d.cat)};opacity:.75">${catLabel(d.cat)}</span></td>
         <td>${valCell(d)}</td>
         <td>${vencBadge(d)}</td>
@@ -540,7 +560,7 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
       sectionHeader('Variáveis & Outros',totalVariaveis)+variaveis.map(rowHtml).join('')+
       `<tr class="total-row"><td colspan="2">Total</td><td>${fmt(total)}</td><td></td><td></td><td></td></tr>`;
     const ml=document.getElementById('desp-mobile-list');
-    if(ml) ml.innerHTML=
+    if(ml) ml.innerHTML=mobileGestureHint('Marcar como pago')+
       mobSectionHeader('Contas Fixas',totalFixas)+fixas.map(mobDespCard).join('')+
       mobSectionHeader('Variáveis & Outros',totalVariaveis)+variaveis.map(mobDespCard).join('')+
       `<div class="mob-total-row"><span>Total</span><span style="color:var(--red)">${fmt(total)}</span></div>`;
@@ -549,7 +569,7 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
       items.map(rowHtml).join('')+
       `<tr class="total-row"><td colspan="2">Total</td><td>${fmt(total)}</td><td></td><td></td><td></td></tr>`;
     const ml=document.getElementById('desp-mobile-list');
-    if(ml) ml.innerHTML=
+    if(ml) ml.innerHTML=mobileGestureHint('Marcar como pago')+
       items.map(mobDespCard).join('')+
       `<div class="mob-total-row"><span>Total</span><span style="color:var(--red)">${fmt(total)}</span></div>`;
   }

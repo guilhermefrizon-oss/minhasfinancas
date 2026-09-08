@@ -1,15 +1,19 @@
 /* ══════ RECEITAS ══════ */
 /* FIX 2: Ordenação */
-let recSortKey='val', recSortDir=-1;
-let recFilterStatus='all', recFilterCat='all';
+let _recPrefs={};try{_recPrefs=JSON.parse(localStorage.getItem('gastos_view_rec')||'{}');}catch(e){}
+let recSortKey=_recPrefs.sortKey||'val', recSortDir=_recPrefs.sortDir||-1;
+let recFilterStatus=_recPrefs.status||'all', recFilterCat=_recPrefs.cat||'all';
+function saveRecViewPrefs(){localStorage.setItem('gastos_view_rec',JSON.stringify({sortKey:recSortKey,sortDir:recSortDir,status:recFilterStatus,cat:recFilterCat}));}
 
 function setRecFilter(type, value){
   if(type==='status') recFilterStatus=value;
   if(type==='cat') recFilterCat=value;
+  saveRecViewPrefs();
   renderRecTable();
 }
 function clearRecFilters(){
   recFilterStatus='all'; recFilterCat='all';
+  saveRecViewPrefs();
   const search=document.getElementById('rec-search'); if(search) search.value='';
   document.getElementById('rec-search-wrap')?.classList.remove('has-value','search-open');
   renderRecTable();
@@ -32,10 +36,14 @@ function updateRecCategoryFilter(){
 }
 function sortRec(key){
   if(recSortKey===key)recSortDir*=-1; else{recSortKey=key;recSortDir=key==='val'?-1:1;}
-  document.querySelectorAll('[id^="sort-rec-"]').forEach(el=>{el.textContent='↕';el.parentElement.classList.remove('sorted');});
-  const el=document.getElementById('sort-rec-'+key);
-  if(el){el.textContent=recSortDir===1?'↑':'↓';el.parentElement.classList.add('sorted');}
+  syncRecSortIndicator();
+  saveRecViewPrefs();
   renderRecTable();
+}
+function syncRecSortIndicator(){
+  document.querySelectorAll('[id^="sort-rec-"]').forEach(el=>{el.textContent='↕';el.parentElement.classList.remove('sorted');});
+  const el=document.getElementById('sort-rec-'+recSortKey);
+  if(el){el.textContent=recSortDir===1?'↑':'↓';el.parentElement.classList.add('sorted');}
 }
 
 let recPickerYear=null,editingRecId=null;
@@ -92,6 +100,7 @@ function selectRecMonth(m){recSelectedMonth=m;updateRecMonthBtn();closeRecMonthP
 function stepRecMonth(delta){const months=allMonths();const idx=months.indexOf(recSelectedMonth)+delta;if(idx<0||idx>=months.length)return;recSelectedMonth=months[idx];updateRecMonthBtn();renderRecTable();}
 
 function renderRecTable(){
+  syncRecSortIndicator();
   const m=recSelectedMonth;
   const q=(document.getElementById('rec-search')?.value||'').toLowerCase().trim();
   updateRecCategoryFilter();
@@ -142,7 +151,7 @@ function renderRecTable(){
   const rml = document.getElementById('rec-mobile-list');
   if(rml){
     rml.innerHTML = items.length
-      ? items.map((r,ri)=>mobRecCard(r,ri)).join('')+
+      ? mobileGestureHint('Marcar como recebido')+items.map((r,ri)=>mobRecCard(r,ri)).join('')+
         `<div class="mob-total-row"><span>Total recebido</span><span style="color:var(--green)">${fmt(totalRecebido)}</span></div>`
       : `<div class="empty-msg">Nenhuma receita neste mês.</div>`;
     initSwipeDeleteRec();
@@ -192,34 +201,20 @@ function deleteRecEntry(id){
   id=Number(id);
   const r=DATA.receitas.find(x=>x.id===id);
   if(!r)return;
-  showConfirm(`Excluir "${r.nome}"?`, ()=>{
+  showConfirm(`Mover "${r.nome}" para a lixeira?`, ()=>{
+    moveToTrash('receita',r);
     DATA.receitas=DATA.receitas.filter(x=>x.id!==id);
-    saveData();renderReceitas();showToast('Removido!');
-  });
+    saveData();renderReceitas();showToast('Movido para a lixeira!');
+  },{label:'Mover',sub:'Você poderá restaurar este lançamento depois.',tone:'neutral'});
 }
 function initSwipeDeleteRec(){
   document.querySelectorAll('[data-rec-id]').forEach(wrapper=>{
-    const inner=wrapper.querySelector('.mob-card-inner');
-    const bg=wrapper.querySelector('.swipe-delete-bg');
-    if(!inner||!bg)return;
-    let startX=0,startY=0,curX=0,swiping=false,locked=false;
-    const THRESHOLD=80;
-    inner.addEventListener('touchstart',e=>{
-      startX=e.touches[0].clientX;startY=e.touches[0].clientY;
-      curX=0;swiping=false;locked=false;inner.style.transition='none';
-    },{passive:true});
-    inner.addEventListener('touchmove',e=>{
-      const dx=e.touches[0].clientX-startX;const dy=e.touches[0].clientY-startY;
-      if(!swiping&&!locked){if(Math.abs(dy)>Math.abs(dx)){locked=true;return;}if(Math.abs(dx)>5)swiping=true;}
-      if(!swiping||locked)return;
-      e.preventDefault();curX=Math.min(0,dx);inner.style.transform=`translateX(${curX}px)`;
-      bg.style.opacity=Math.min(1,Math.abs(curX)/THRESHOLD);
-    },{passive:false});
-    inner.addEventListener('touchend',()=>{
-      inner.style.transition='transform .25s cubic-bezier(.4,0,.2,1)';
-      if(Math.abs(curX)>=THRESHOLD){inner.style.transform='translateX(-100%)';bg.style.opacity='1';
-        const id=Number(wrapper.dataset.recId);setTimeout(()=>deleteRecEntry(id),220);
-      }else{inner.style.transform='';bg.style.opacity='0';}
-    });
+    const id=Number(wrapper.dataset.recId);
+    bindSwipeActions(wrapper,()=>markRevenueReceived(id),()=>deleteRecEntry(id));
   });
+}
+function markRevenueReceived(id){
+  const r=DATA.receitas.find(x=>x.id===id);if(!r)return;
+  if((r.status||'Recebido')==='Recebido'){showToast('Essa receita já foi recebida.');return;}
+  toggleRecStatus(id);
 }

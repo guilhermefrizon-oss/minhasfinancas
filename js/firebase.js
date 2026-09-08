@@ -140,13 +140,13 @@ async function loadDataFromCloud(uid){
           if(snap.exists()){
             const d = snap.data();
             console.log('[App] Dados carregados do servidor');
-            resolve({ despesas: d.despesas||[], receitas: d.receitas||[], recorrentes: Array.isArray(d.recorrentes)?d.recorrentes:null, recorrentesVersao:d.recorrentesVersao||null });
+            resolve({ despesas: d.despesas||[], receitas: d.receitas||[], recorrentes: Array.isArray(d.recorrentes)?d.recorrentes:null, recorrentesVersao:d.recorrentesVersao||null, lixeira:Array.isArray(d.lixeira)?d.lixeira:[] });
           } else {
             // Documento não existe — cria vazio e retorna limpo
-            fns.setDoc(docRef, { despesas:[], receitas:[], recorrentes:[], recorrentesVersao:2, _criado: Date.now() }, { merge: true })
+            fns.setDoc(docRef, { despesas:[], receitas:[], recorrentes:[], recorrentesVersao:2, lixeira:[], _criado: Date.now() }, { merge: true })
               .catch(e => console.warn('[App] Erro ao criar documento:', e));
             console.log('[App] Conta nova criada');
-            resolve({ despesas: [], receitas: [], recorrentes: [], recorrentesVersao:2 });
+            resolve({ despesas: [], receitas: [], recorrentes: [], recorrentesVersao:2, lixeira:[] });
           }
         }
       },
@@ -195,6 +195,8 @@ function saveData(){
   localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
   localStorage.setItem('gastos_cache_recorrentes', JSON.stringify(DATA.recorrentes||[]));
   localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||2));
+  localStorage.setItem('gastos_cache_lixeira', JSON.stringify(DATA.lixeira||[]));
+  if(typeof updateTrashBadge==='function')updateTrashBadge();
   _pendingSync=true;
   showSyncStatus('saving');
   // Sobe para o Firestore com debounce de 800ms
@@ -214,6 +216,7 @@ async function syncToFirestore(){
       receitas: DATA.receitas,
       recorrentes: DATA.recorrentes||[],
       recorrentesVersao: DATA.recorrentesVersao||2,
+      lixeira: DATA.lixeira||[],
       atualizadoEm: Date.now()
     });
     _pendingSync=false;
@@ -235,11 +238,13 @@ function loadData(){
   const r=localStorage.getItem('gastos_cache_rec');
   const rr=localStorage.getItem('gastos_cache_recorrentes');
   const rrv=localStorage.getItem('gastos_cache_recorrentes_versao');
+  const trash=localStorage.getItem('gastos_cache_lixeira');
   return{
     despesas: d?JSON.parse(d):[],
     receitas: r?JSON.parse(r):[],
     recorrentes: rr?JSON.parse(rr):null,
-    recorrentesVersao: rrv?Number(rrv):null
+    recorrentesVersao: rrv?Number(rrv):null,
+    lixeira: trash?JSON.parse(trash):[]
   };
 }
 
@@ -266,24 +271,28 @@ function startRealtimeSync(uid) {
       const newRec  = d.receitas  || [];
       const newRecurring = Array.isArray(d.recorrentes) ? d.recorrentes : null;
       const newRecurringVersion = d.recorrentesVersao || null;
+      const newTrash = Array.isArray(d.lixeira) ? d.lixeira : [];
 
       // Só atualiza se houver diferença real (evita re-render desnecessário)
       const changed =
         JSON.stringify(newDesp) !== JSON.stringify(DATA.despesas) ||
         JSON.stringify(newRec)  !== JSON.stringify(DATA.receitas) ||
         JSON.stringify(newRecurring) !== JSON.stringify(DATA.recorrentes) ||
-        newRecurringVersion !== DATA.recorrentesVersao;
+        newRecurringVersion !== DATA.recorrentesVersao ||
+        JSON.stringify(newTrash) !== JSON.stringify(DATA.lixeira||[]);
 
       if (changed) {
         DATA.despesas = newDesp;
         DATA.receitas = newRec;
         DATA.recorrentes = newRecurring;
         DATA.recorrentesVersao = newRecurringVersion;
+        DATA.lixeira = newTrash;
         if(typeof initializeRecurringAccounts === 'function') initializeRecurringAccounts();
         localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
         localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
         localStorage.setItem('gastos_cache_recorrentes', JSON.stringify(DATA.recorrentes||[]));
         localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||2));
+        localStorage.setItem('gastos_cache_lixeira', JSON.stringify(DATA.lixeira||[]));
         // Re-renderiza tudo silenciosamente
         renderOverview();
         if(typeof renderDespTable === 'function' && document.getElementById('page-despesas')?.classList.contains('active')) renderDespTable();
@@ -324,11 +333,13 @@ window._onFbLogin = async function(user){
     const localR = localStorage.getItem('gastos_cache_rec');
     const localRR = localStorage.getItem('gastos_cache_recorrentes');
     const localRRV = localStorage.getItem('gastos_cache_recorrentes_versao');
+    const localTrash = localStorage.getItem('gastos_cache_lixeira');
     if(localD || localR){
       DATA.despesas = localD ? JSON.parse(localD) : [];
       DATA.receitas = localR ? JSON.parse(localR) : [];
       DATA.recorrentes = localRR ? JSON.parse(localRR) : null;
       DATA.recorrentesVersao = localRRV ? Number(localRRV) : null;
+      DATA.lixeira = localTrash ? JSON.parse(localTrash) : [];
       if(typeof initializeRecurringAccounts === 'function') initializeRecurringAccounts();
       if(sk) sk.style.display = 'none';
       document.body.classList.add('app-ready');
@@ -347,17 +358,20 @@ window._onFbLogin = async function(user){
         JSON.stringify(cloud.despesas) !== JSON.stringify(DATA.despesas) ||
         JSON.stringify(cloud.receitas)  !== JSON.stringify(DATA.receitas) ||
         JSON.stringify(cloud.recorrentes) !== JSON.stringify(DATA.recorrentes) ||
-        cloud.recorrentesVersao !== DATA.recorrentesVersao;
+        cloud.recorrentesVersao !== DATA.recorrentesVersao ||
+        JSON.stringify(cloud.lixeira||[]) !== JSON.stringify(DATA.lixeira||[]);
       if(changed){
         DATA.despesas = cloud.despesas;
         DATA.receitas = cloud.receitas;
         DATA.recorrentes = cloud.recorrentes;
         DATA.recorrentesVersao = cloud.recorrentesVersao;
+        DATA.lixeira = cloud.lixeira||[];
         if(typeof initializeRecurringAccounts === 'function') initializeRecurringAccounts();
         localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
         localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
         localStorage.setItem('gastos_cache_recorrentes', JSON.stringify(DATA.recorrentes||[]));
         localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||2));
+        localStorage.setItem('gastos_cache_lixeira', JSON.stringify(DATA.lixeira||[]));
         renderOverview();
         updateNotifBadge();
       }
@@ -375,10 +389,12 @@ window._onFbLogin = async function(user){
     const localR = localStorage.getItem('gastos_cache_rec');
     const localRR = localStorage.getItem('gastos_cache_recorrentes');
     const localRRV = localStorage.getItem('gastos_cache_recorrentes_versao');
+    const localTrash = localStorage.getItem('gastos_cache_lixeira');
     DATA.despesas = localD ? JSON.parse(localD) : [];
     DATA.receitas = localR ? JSON.parse(localR) : [];
     DATA.recorrentes = localRR ? JSON.parse(localRR) : null;
     DATA.recorrentesVersao = localRRV ? Number(localRRV) : null;
+    DATA.lixeira = localTrash ? JSON.parse(localTrash) : [];
     if(typeof initializeRecurringAccounts === 'function') initializeRecurringAccounts();
     document.body.classList.add('app-ready');
   } finally {
@@ -401,7 +417,8 @@ window._onFbLogout = function(){
   localStorage.removeItem('gastos_cache_rec');
   localStorage.removeItem('gastos_cache_recorrentes');
   localStorage.removeItem('gastos_cache_recorrentes_versao');
-  DATA={despesas:[],receitas:[],recorrentes:[],recorrentesVersao:2};
+  localStorage.removeItem('gastos_cache_lixeira');
+  DATA={despesas:[],receitas:[],recorrentes:[],recorrentesVersao:2,lixeira:[]};
   // Pré-preenche email salvo
   const savedEmail = localStorage.getItem('gastos_saved_email');
   if(savedEmail){

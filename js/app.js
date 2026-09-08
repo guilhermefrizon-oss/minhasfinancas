@@ -7,6 +7,8 @@ function openAddForm(tipo){
   if(tipo==='despesa'){
     document.getElementById('in-mes').value=cm;
     document.getElementById('in-mes-ini').value=cm;
+    document.getElementById('in-parcela-mes').value=cm;
+    document.getElementById('in-parcelas-total').value='2';
     // Reset toggles para estado padrão
     document.getElementById('in-status').value='Pago';
     document.getElementById('in-tipo').value='fixa';
@@ -18,6 +20,10 @@ function openAddForm(tipo){
     });
     document.getElementById('mes-unico-wrap').style.display='flex';
     document.getElementById('mes-range-wrap').style.display='none';
+    document.getElementById('parcela-range-wrap').style.display='none';
+    document.getElementById('expense-value-label').textContent='Valor';
+    document.getElementById('expense-value-hint').textContent='(opcional — pode preencher depois)';
+    document.getElementById('add-expense-submit').textContent='+ Adicionar despesa';
     document.getElementById('add-desp-modal').classList.add('open');
   } else {
     document.getElementById('in-rec-mes').value=cm;
