@@ -140,13 +140,13 @@ async function loadDataFromCloud(uid){
           if(snap.exists()){
             const d = snap.data();
             console.log('[App] Dados carregados do servidor');
-            resolve({ despesas: d.despesas||[], receitas: d.receitas||[] });
+            resolve({ despesas: d.despesas||[], receitas: d.receitas||[], recorrentes: Array.isArray(d.recorrentes)?d.recorrentes:null, recorrentesVersao:d.recorrentesVersao||null });
           } else {
             // Documento não existe — cria vazio e retorna limpo
-            fns.setDoc(docRef, { despesas:[], receitas:[], _criado: Date.now() }, { merge: true })
+            fns.setDoc(docRef, { despesas:[], receitas:[], recorrentes:[], recorrentesVersao:2, _criado: Date.now() }, { merge: true })
               .catch(e => console.warn('[App] Erro ao criar documento:', e));
             console.log('[App] Conta nova criada');
-            resolve({ despesas: [], receitas: [] });
+            resolve({ despesas: [], receitas: [], recorrentes: [], recorrentesVersao:2 });
           }
         }
       },
@@ -193,6 +193,8 @@ function saveData(){
   // Salva localmente de imediato
   localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
   localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
+  localStorage.setItem('gastos_cache_recorrentes', JSON.stringify(DATA.recorrentes||[]));
+  localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||2));
   _pendingSync=true;
   showSyncStatus('saving');
   // Sobe para o Firestore com debounce de 800ms
@@ -210,6 +212,8 @@ async function syncToFirestore(){
     await fbFns().setDoc(fbFns().doc(fbDb(),'gastos',user.uid),{
       despesas: DATA.despesas,
       receitas: DATA.receitas,
+      recorrentes: DATA.recorrentes||[],
+      recorrentesVersao: DATA.recorrentesVersao||2,
       atualizadoEm: Date.now()
     });
     _pendingSync=false;
@@ -229,9 +233,13 @@ function loadData(){
   // Enquanto não tiver dados do Firebase, usa cache local
   const d=localStorage.getItem('gastos_cache_desp');
   const r=localStorage.getItem('gastos_cache_rec');
+  const rr=localStorage.getItem('gastos_cache_recorrentes');
+  const rrv=localStorage.getItem('gastos_cache_recorrentes_versao');
   return{
     despesas: d?JSON.parse(d):[],
-    receitas: r?JSON.parse(r):[]
+    receitas: r?JSON.parse(r):[],
+    recorrentes: rr?JSON.parse(rr):null,
+    recorrentesVersao: rrv?Number(rrv):null
   };
 }
 
@@ -256,17 +264,26 @@ function startRealtimeSync(uid) {
       const d = snap.data();
       const newDesp = d.despesas || [];
       const newRec  = d.receitas  || [];
+      const newRecurring = Array.isArray(d.recorrentes) ? d.recorrentes : null;
+      const newRecurringVersion = d.recorrentesVersao || null;
 
       // Só atualiza se houver diferença real (evita re-render desnecessário)
       const changed =
         JSON.stringify(newDesp) !== JSON.stringify(DATA.despesas) ||
-        JSON.stringify(newRec)  !== JSON.stringify(DATA.receitas);
+        JSON.stringify(newRec)  !== JSON.stringify(DATA.receitas) ||
+        JSON.stringify(newRecurring) !== JSON.stringify(DATA.recorrentes) ||
+        newRecurringVersion !== DATA.recorrentesVersao;
 
       if (changed) {
         DATA.despesas = newDesp;
         DATA.receitas = newRec;
+        DATA.recorrentes = newRecurring;
+        DATA.recorrentesVersao = newRecurringVersion;
+        if(typeof initializeRecurringAccounts === 'function') initializeRecurringAccounts();
         localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
         localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
+        localStorage.setItem('gastos_cache_recorrentes', JSON.stringify(DATA.recorrentes||[]));
+        localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||2));
         // Re-renderiza tudo silenciosamente
         renderOverview();
         if(typeof renderDespTable === 'function' && document.getElementById('page-despesas')?.classList.contains('active')) renderDespTable();
@@ -305,9 +322,14 @@ window._onFbLogin = async function(user){
     // 1. Mostra dados do cache local (localStorage) imediatamente — sem esperar rede
     const localD = localStorage.getItem('gastos_cache_desp');
     const localR = localStorage.getItem('gastos_cache_rec');
+    const localRR = localStorage.getItem('gastos_cache_recorrentes');
+    const localRRV = localStorage.getItem('gastos_cache_recorrentes_versao');
     if(localD || localR){
       DATA.despesas = localD ? JSON.parse(localD) : [];
       DATA.receitas = localR ? JSON.parse(localR) : [];
+      DATA.recorrentes = localRR ? JSON.parse(localRR) : null;
+      DATA.recorrentesVersao = localRRV ? Number(localRRV) : null;
+      if(typeof initializeRecurringAccounts === 'function') initializeRecurringAccounts();
       if(sk) sk.style.display = 'none';
       document.body.classList.add('app-ready');
       updateHeaderProfile(user);
@@ -323,12 +345,19 @@ window._onFbLogin = async function(user){
     if(cloud){
       const changed =
         JSON.stringify(cloud.despesas) !== JSON.stringify(DATA.despesas) ||
-        JSON.stringify(cloud.receitas)  !== JSON.stringify(DATA.receitas);
+        JSON.stringify(cloud.receitas)  !== JSON.stringify(DATA.receitas) ||
+        JSON.stringify(cloud.recorrentes) !== JSON.stringify(DATA.recorrentes) ||
+        cloud.recorrentesVersao !== DATA.recorrentesVersao;
       if(changed){
         DATA.despesas = cloud.despesas;
         DATA.receitas = cloud.receitas;
+        DATA.recorrentes = cloud.recorrentes;
+        DATA.recorrentesVersao = cloud.recorrentesVersao;
+        if(typeof initializeRecurringAccounts === 'function') initializeRecurringAccounts();
         localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
         localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
+        localStorage.setItem('gastos_cache_recorrentes', JSON.stringify(DATA.recorrentes||[]));
+        localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||2));
         renderOverview();
         updateNotifBadge();
       }
@@ -344,8 +373,13 @@ window._onFbLogin = async function(user){
     console.warn('Erro no login:', e);
     const localD = localStorage.getItem('gastos_cache_desp');
     const localR = localStorage.getItem('gastos_cache_rec');
+    const localRR = localStorage.getItem('gastos_cache_recorrentes');
+    const localRRV = localStorage.getItem('gastos_cache_recorrentes_versao');
     DATA.despesas = localD ? JSON.parse(localD) : [];
     DATA.receitas = localR ? JSON.parse(localR) : [];
+    DATA.recorrentes = localRR ? JSON.parse(localRR) : null;
+    DATA.recorrentesVersao = localRRV ? Number(localRRV) : null;
+    if(typeof initializeRecurringAccounts === 'function') initializeRecurringAccounts();
     document.body.classList.add('app-ready');
   } finally {
     if(sk) sk.style.display = 'none';
@@ -365,7 +399,9 @@ window._onFbLogout = function(){
   }
   localStorage.removeItem('gastos_cache_desp');
   localStorage.removeItem('gastos_cache_rec');
-  DATA={despesas:[],receitas:[]};
+  localStorage.removeItem('gastos_cache_recorrentes');
+  localStorage.removeItem('gastos_cache_recorrentes_versao');
+  DATA={despesas:[],receitas:[],recorrentes:[],recorrentesVersao:2};
   // Pré-preenche email salvo
   const savedEmail = localStorage.getItem('gastos_saved_email');
   if(savedEmail){

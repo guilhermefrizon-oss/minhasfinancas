@@ -7,7 +7,6 @@ function openAddForm(tipo){
   if(tipo==='despesa'){
     document.getElementById('in-mes').value=cm;
     document.getElementById('in-mes-ini').value=cm;
-    document.getElementById('in-mes-fim').value=cm;
     // Reset toggles para estado padrão
     document.getElementById('in-status').value='Pago';
     document.getElementById('in-tipo').value='fixa';
@@ -43,6 +42,7 @@ document.getElementById('add-popup').addEventListener('click',function(e){if(e.t
 document.getElementById('add-desp-modal').addEventListener('click',function(e){if(e.target===this)closeAddDesp();});
 document.getElementById('add-rec-modal').addEventListener('click',function(e){if(e.target===this)closeAddRec();});
 document.getElementById('manage-recorr-modal').addEventListener('click',function(e){if(e.target===this)closeManageRecorrentes();});
+document.getElementById('edit-recurring-modal').addEventListener('click',function(e){if(e.target===this)closeEditRecurringAccount();});
 
 /* ══════ SHOWPAGE — sem "mensal" (FIX 4) ══════ */
 function showPage(id){

@@ -19,4 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  ['in-desc','in-cat','in-pag','in-valor','in-dia-venc','in-mes-ini'].forEach(id=>{
+    const field=document.getElementById(id);
+    if(field){field.addEventListener('input',()=>requestAnimationFrame(updateNewRecurringSummary));field.addEventListener('change',updateNewRecurringSummary);}
+  });
 });

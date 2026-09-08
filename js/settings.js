@@ -171,6 +171,8 @@ function backupJSON() {
     exportadoEm: new Date().toISOString(),
     despesas: DATA.despesas,
     receitas: DATA.receitas,
+    recorrentes: DATA.recorrentes||[],
+    recorrentesVersao: DATA.recorrentesVersao||2,
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -186,6 +188,8 @@ function clearAllData() {
   showConfirm('Apagar TODOS os lançamentos? Esta ação não pode ser desfeita.', async () => {
     DATA.despesas = [];
     DATA.receitas = [];
+    DATA.recorrentes = [];
+    DATA.recorrentesVersao = 2;
     saveData();
     renderOverview();
     closeSettingsScreen('screen-data');

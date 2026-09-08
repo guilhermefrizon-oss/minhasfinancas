@@ -7,10 +7,12 @@ function setToggle(groupId, hiddenId, btn){
   document.querySelectorAll('#'+groupId+' .toggle-opt').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(hiddenId).value = btn.dataset.val;
+  if(typeof updateNewRecurringSummary==='function')updateNewRecurringSummary();
 }
 
 /* ── Gerenciar recorrentes: modal próprio ── */
 function openManageRecorrentes(){
+  initializeRecurringAccounts();
   renderManageList();
   document.getElementById('manage-recorr-modal').classList.add('open');
 }
@@ -34,84 +36,231 @@ function filterRecorrentes(f,el){
   el.classList.add("active");
   renderRecorrentesList();
 }
-function renderRecorrentesList(){
-  const grouped={};
-  DATA.despesas.forEach(d=>{
-    if(!grouped[d.nome])grouped[d.nome]={nome:d.nome,cat:d.cat,icon:d.icon,count:0,statuses:new Set()};
-    grouped[d.nome].count++;grouped[d.nome].statuses.add(d.status);
-    if(d.icon)grouped[d.nome].icon=d.icon;
-  });
-  let entries=Object.values(grouped).filter(e=>e.count>1).sort((a,b)=>a.nome.localeCompare(b.nome));
-  const badge=document.getElementById("recorrentes-count-badge");
-  const total=Object.values(grouped).filter(e=>e.count>1).length;
-  if(badge)badge.textContent=total?(total+" conta"+(total>1?"s":"")):" ";
-  if(recorrentesFilter!=="all")entries=entries.filter(e=>e.statuses.has(recorrentesFilter));
-  const el=document.getElementById("recorrentes-list");
-  if(!el)return;
-  if(!entries.length){el.innerHTML='<div class="empty-msg" style="padding:1rem 0">Nenhuma conta recorrente encontrada.</div>';return;}
-  el.innerHTML=entries.map(e=>{
-    const hasFalta=[...e.statuses].includes("Falta Pagar");
-    const hasDebito=[...e.statuses].includes("Débito auto");
-    const statusLabel=hasFalta?'<span class="badge falta" style="font-size:10px;padding:2px 7px">Falta Pagar</span>':hasDebito?'<span class="badge pago" style="font-size:10px;padding:2px 7px">Débito auto</span>':'<span class="badge pago" style="font-size:10px;padding:2px 7px">Pago</span>';
-    const nomeSafe=e.nome.replace(/'/g,"\\'");
-    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--border);flex-wrap:wrap"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">${itemIcon(e.nome,e.icon)}<div style="min-width:0"><div style="font-weight:600;font-size:13px">${e.nome}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px">${catLabel(e.cat)} · ${e.count} meses ${statusLabel}</div></div></div><div style="display:flex;gap:6px;flex-shrink:0"><button class="edit-btn" onclick="editAllByName('${nomeSafe}')" style="display:inline-flex;align-items:center;gap:5px">${uiIcon('edit',13)} Editar</button><button class="edit-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteAllByName('${nomeSafe}')">${uiIcon('trash',14)}</button></div></div>`;
-  }).join("");
+function recurringIdForName(nome){
+  let hash=0;for(const ch of (nome||'')){hash=((hash<<5)-hash)+ch.charCodeAt(0);hash|=0;}
+  return `rec-${Math.abs(hash).toString(36)}`;
 }
-function updateRecorrentesBadge(){
-  const grouped={};
-  (DATA.despesas||[]).forEach(d=>{if(!grouped[d.nome])grouped[d.nome]=0;grouped[d.nome]++;});
-  const count=Object.values(grouped).filter(c=>c>1).length;
-  const badge=document.getElementById("recorrentes-count-badge");
-  if(badge)badge.textContent=count?(count+" conta"+(count>1?"s":"")):" ";
-}
-function renderManageList(){
-  const grouped={};
-  DATA.despesas.forEach(d=>{
-    if(!grouped[d.nome])grouped[d.nome]={nome:d.nome,cat:d.cat,icon:d.icon,count:0,statuses:new Set()};
-    grouped[d.nome].count++;grouped[d.nome].statuses.add(d.status);
-    if(d.icon)grouped[d.nome].icon=d.icon;
-  });
-  let entries=Object.values(grouped).sort((a,b)=>a.nome.localeCompare(b.nome));
-  if(manageFilter!=='all')entries=entries.filter(e=>e.statuses.has(manageFilter));
-  const el=document.getElementById('manage-list');
-  if(!entries.length){el.innerHTML=`<div class="empty-msg" style="padding:1rem">Nenhuma conta encontrada.</div>`;return;}
-  el.innerHTML=entries.map(e=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--border);flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-        ${itemIcon(e.nome,e.icon)}
-        <div><div style="font-weight:600;font-size:13px">${e.nome}</div><div style="font-size:11px;color:var(--text3)">${catLabel(e.cat)} · ${e.count} mês(es)</div></div>
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        <button class="edit-btn" onclick="editAllByName('${e.nome.replace(/'/g,"\\'")}')" style="display:inline-flex;align-items:center" title="Editar">${uiIcon('edit',13)}</button>
-        <button class="edit-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteAllByName('${e.nome.replace(/'/g,"\\'")}')">${uiIcon('trash',14)}</button>
-      </div>
-    </div>`).join('');
-}
-function deleteAllByName(nome){
-  const count=DATA.despesas.filter(d=>d.nome===nome).length;
-  showConfirm(`Excluir todos os ${count} lançamentos de "${nome}"?`, ()=>{
-    DATA.despesas=DATA.despesas.filter(d=>d.nome!==nome);
-    saveData();showToast(`${count} lançamentos excluídos!`);renderManageList();
-  });
-}
-function editAllByName(nome){
-  const items=DATA.despesas.filter(d=>d.nome===nome);if(!items.length)return;
-  const d=items[0];
-  editingId=d.id;editingBulkName=nome;selectedIconEdit=d.icon||d.nome;
-  document.getElementById('modal-title').textContent=`Editar todos — "${nome}" (${items.length} meses)`;
-  document.getElementById('edit-nome').value=nome;
-  document.getElementById('edit-name-hint').textContent=`Renomear todos os ${items.length} lançamentos.`;
-  document.getElementById('edit-icon-preview').innerHTML=ICONS[selectedIconEdit]||DEFAULT_ICON;
-  document.getElementById('edit-status').value=d.status||'Falta Pagar';
-  document.getElementById('edit-venc').value='';
-  setMoneyField('edit-valor', d.val>0?d.val:null);
-  document.getElementById('edit-venc-scope-wrap').style.display='none';
-  // Garante que o modal de edição aparece por cima do modal de despesa
-  document.getElementById('add-desp-modal').classList.remove('open');
-  document.getElementById('edit-modal').classList.add('open');
+function currentMonthKey(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
+function recurringDueDate(month,day){if(!day)return null;const[y,m]=month.split('-').map(Number);const max=new Date(y,m,0).getDate();return `${month}-${String(Math.min(Number(day),max)).padStart(2,'0')}`;}
+function recurringConfigForMonth(r,month){
+  const cfg={...r};
+  (r.alteracoes||[]).filter(a=>a.from<=month).sort((a,b)=>a.from.localeCompare(b.from)).forEach(a=>Object.assign(cfg,a.data));
+  return cfg;
 }
 
-function toggleMesRange(){const v=document.getElementById('in-recorr').value;document.getElementById('mes-unico-wrap').style.display=v==='unico'?'flex':'none';document.getElementById('mes-range-wrap').style.display=v==='recorrente'?'block':'none';}
+function initializeRecurringAccounts(persist=true){
+  let changed=false;
+  if(!Array.isArray(DATA.recorrentes)){
+    DATA.recorrentes=[];
+    changed=true;
+  }
+  // Corrige a primeira versão da migração, que confundia compras repetidas no
+  // histórico (viagens, passeios etc.) com contas realmente recorrentes.
+  const inferredIds=new Set(DATA.recorrentes
+    .filter(r=>r.id===recurringIdForName(r.nome))
+    .map(r=>r.id));
+  if(inferredIds.size){
+    DATA.despesas=DATA.despesas.filter(d=>!(d.origem==='recorrente'&&inferredIds.has(d.recorrenteId)));
+    DATA.despesas.forEach(d=>{if(inferredIds.has(d.recorrenteId)){delete d.recorrenteId;delete d.origem;}});
+    DATA.recorrentes=DATA.recorrentes.filter(r=>!inferredIds.has(r.id));
+    changed=true;
+  }
+  // Recupera uma única vez apenas as contas que já estavam programadas para
+  // o mês atual ou para o futuro. Despesas encerradas no passado ficam fora.
+  if(DATA.recorrentesVersao!==2){
+    const cm=currentMonthKey(),groups={};
+    DATA.despesas.filter(d=>d.origem!=='recorrente').forEach(d=>{(groups[d.nome]||(groups[d.nome]=[])).push(d);});
+    Object.values(groups).filter(items=>items.length>1&&items.some(d=>(d.mes||'')>=cm)).forEach(items=>{
+      const sorted=[...items].sort((a,b)=>(a.mes||'').localeCompare(b.mes||''));
+      const latest=sorted[sorted.length-1];
+      if(DATA.recorrentes.some(r=>r.nome.toLowerCase()===latest.nome.toLowerCase()))return;
+      const id=`rec-v2-${recurringIdForName(latest.nome).slice(4)}`;
+      items.forEach(d=>{d.recorrenteId=id;});
+      DATA.recorrentes.push({id,nome:latest.nome,cat:latest.cat||'Outros',pag:latest.pag||'',val:latest.val??null,diaVenc:latest.diaVenc||(latest.venc?Number(latest.venc.slice(-2)):null),status:latest.status==='Débito auto'?'Débito auto':'Falta Pagar',tipo:latest.tipo||guessTipo(latest.cat),icon:latest.icon||null,ativo:true,inicio:sorted[0].mes||cm,migradoAtivo:true,criadoEm:Date.now()});
+    });
+    DATA.recorrentesVersao=2;
+    changed=true;
+  }
+  changed=ensureRecurringEntriesForMonth(currentMonthKey(),false)||changed;
+  if(changed&&persist&&typeof saveData==='function')saveData();
+  return changed;
+}
+
+function ensureRecurringEntriesForMonth(month,persist=true){
+  if(!Array.isArray(DATA.recorrentes))return false;
+  let changed=false;
+  DATA.recorrentes.filter(r=>r.ativo!==false&&(!r.inicio||r.inicio<=month)).forEach(r=>{
+    let existing=DATA.despesas.find(d=>d.mes===month&&(d.recorrenteId===r.id||(!d.recorrenteId&&d.nome===r.nome)));
+    if(existing){if(!existing.recorrenteId){existing.recorrenteId=r.id;changed=true;}return;}
+    const cfg=recurringConfigForMonth(r,month);
+    DATA.despesas.push({id:Date.now()+Math.random(),recorrenteId:r.id,origem:'recorrente',nome:cfg.nome,cat:cfg.cat,pag:cfg.pag,mes:month,val:cfg.val,status:cfg.status||'Falta Pagar',venc:recurringDueDate(month,cfg.diaVenc),diaVenc:cfg.diaVenc||null,tipo:cfg.tipo||guessTipo(cfg.cat),icon:cfg.icon||null,pagoEm:null});
+    changed=true;
+  });
+  if(changed&&persist)saveData();
+  return changed;
+}
+
+function recurringEntries(filter='all'){
+  initializeRecurringAccounts(false);
+  let entries=[...(DATA.recorrentes||[])];
+  if(filter==='active')entries=entries.filter(r=>r.ativo!==false);
+  if(filter==='paused')entries=entries.filter(r=>r.ativo===false);
+  return entries.sort((a,b)=>(a.diaVenc||99)-(b.diaVenc||99)||a.nome.localeCompare(b.nome,'pt-BR'));
+}
+function recurringCard(r){
+  r=recurringConfigForMonth(r,currentMonthKey());
+  const active=r.ativo!==false;
+  const value=r.val==null?'Valor variável':fmt(r.val);
+  const due=r.diaVenc?`Vence dia ${r.diaVenc}`:'Sem vencimento';
+  return `<article class="recurring-admin-card ${active?'':'is-paused'}">
+    <div class="recurring-admin-main">${itemIcon(r.nome,r.icon)}<div class="recurring-admin-copy"><div class="recurring-admin-title">${r.nome}</div><div class="recurring-admin-meta">${catLabel(r.cat)}${r.pag?' · '+r.pag:''}</div><div class="recurring-admin-details"><strong>${value}</strong><span>${due}</span></div></div></div>
+    <span class="recurring-state ${active?'is-active':'is-paused'}">${active?'Ativa':'Pausada'}</span>
+    <div class="recurring-admin-actions"><button type="button" class="recurring-action" onclick="toggleRecurringAccount('${r.id}')" title="${active?'Pausar':'Ativar'}">${uiIcon(active?'pause':'play',15)}<span>${active?'Pausar':'Ativar'}</span></button><button type="button" class="recurring-action" onclick="openEditRecurringAccount('${r.id}')" title="Editar">${uiIcon('edit',15)}<span>Editar</span></button><button type="button" class="recurring-action is-danger" onclick="deleteRecurringAccount('${r.id}')" title="Excluir">${uiIcon('trash',15)}<span>Excluir</span></button></div>
+  </article>`;
+}
+function renderRecurringCollection(elementId,filter){
+  const el=document.getElementById(elementId);if(!el)return;
+  const entries=recurringEntries(filter);
+  el.innerHTML=entries.length?entries.map(recurringCard).join(''):`<div class="recurring-empty">Nenhuma conta ${filter==='paused'?'pausada':filter==='active'?'ativa':'recorrente'}.</div>`;
+}
+function renderRecorrentesList(){renderRecurringCollection('recorrentes-list',recorrentesFilter);updateRecorrentesBadge();}
+function renderManageList(){renderRecurringCollection('manage-list',manageFilter);}
+function updateRecorrentesBadge(){
+  const list=Array.isArray(DATA.recorrentes)?DATA.recorrentes:[];
+  const active=list.filter(r=>r.ativo!==false).length;
+  const badge=document.getElementById('recorrentes-count-badge');if(badge)badge.textContent=active?`${active} ativa${active>1?'s':''}`:'Nenhuma ativa';
+}
+function refreshRecurringAdmin(){updateRecorrentesBadge();if(recorrentesOpen)renderRecorrentesList();renderManageList();if(typeof renderDespTable==='function')renderDespTable();if(typeof renderOverview==='function')renderOverview();}
+function toggleRecurringAccount(id){const r=(DATA.recorrentes||[]).find(x=>x.id===id);if(!r)return;r.ativo=r.ativo===false;saveData();refreshRecurringAdmin();showToast(r.ativo?'Conta ativada!':'Conta pausada.');}
+function deleteRecurringAccount(id){
+  const r=(DATA.recorrentes||[]).find(x=>x.id===id);if(!r)return;
+  showConfirm(`Excluir o cadastro recorrente de "${r.nome}"? Os lançamentos já criados serão preservados.`,()=>{DATA.recorrentes=DATA.recorrentes.filter(x=>x.id!==id);saveData();refreshRecurringAdmin();showToast('Cadastro recorrente excluído.');});
+}
+
+let editingRecurringId=null,selectedRecurringIcon=null,editingRecurringMonth=null,editingRecurringMonths=new Set(),editingRecurringScope='from';
+function recurringTimelineMonths(){
+  const now=new Date(),months=[];
+  for(let offset=-2;offset<=7;offset++){const d=new Date(now.getFullYear(),now.getMonth()+offset,1);months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}
+  return months;
+}
+function recurringMonthEntry(id,month){return DATA.despesas.find(d=>d.recorrenteId===id&&d.mes===month);}
+function recurringMonthLabel(month){const[y,m]=month.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');}
+function renderRecurringTimeline(){
+  const el=document.getElementById('recurring-timeline');if(!el)return;
+  const cm=currentMonthKey();
+  el.innerHTML=recurringTimelineMonths().map(month=>{
+    const entry=recurringMonthEntry(editingRecurringId,month),paid=entry?.status==='Pago',past=month<cm,disabled=past||paid;
+    const state=paid?'is-paid':entry?'is-generated':'is-future';
+    return `<button type="button" class="recurring-month ${state} ${editingRecurringMonths.has(month)?'is-selected':''}" ${disabled?'disabled':''} onclick="selectRecurringMonth('${month}')"><span>${recurringMonthLabel(month)}</span><small>${month.slice(0,4)}</small><i></i></button>`;
+  }).join('');
+  requestAnimationFrame(()=>el.querySelector('.is-selected')?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}));
+}
+function loadRecurringMonthForm(){
+  const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);if(!r)return;
+  const entry=recurringMonthEntry(r.id,editingRecurringMonth),cfg=entry||recurringConfigForMonth(r,editingRecurringMonth);
+  selectedRecurringIcon=cfg.icon||guessIconKey(cfg.nome)||null;
+  document.getElementById('recurring-edit-name').value=cfg.nome||'';
+  document.getElementById('recurring-edit-cat').value=cfg.cat||'';
+  document.getElementById('recurring-edit-pag').value=cfg.pag||'';
+  setMoneyField('recurring-edit-value',cfg.val);
+  document.getElementById('recurring-edit-day').value=cfg.diaVenc||'';
+  document.getElementById('recurring-edit-status').value=cfg.status==='Débito auto'?'Débito auto':'Falta Pagar';
+  document.getElementById('recurring-edit-icon-preview').innerHTML=iconContent(selectedRecurringIcon);
+  updateRecurringSaveLabel();
+}
+function selectRecurringMonth(month){
+  if(editingRecurringScope==='only'){
+    if(editingRecurringMonths.has(month)){if(editingRecurringMonths.size>1)editingRecurringMonths.delete(month);}
+    else editingRecurringMonths.add(month);
+    editingRecurringMonth=[...editingRecurringMonths].sort()[0];
+  }else{
+    editingRecurringMonths=new Set([month]);editingRecurringMonth=month;loadRecurringMonthForm();
+  }
+  renderRecurringTimeline();updateRecurringSaveLabel();
+}
+function setRecurringEditScope(scope,btn){
+  editingRecurringScope=scope;
+  if(scope==='from'){
+    const first=[...editingRecurringMonths].sort()[0]||editingRecurringMonth;
+    editingRecurringMonth=first;editingRecurringMonths=new Set([first]);loadRecurringMonthForm();
+  }
+  setToggle('recurring-scope-toggle','recurring-edit-scope',btn);renderRecurringTimeline();updateRecurringSaveLabel();
+}
+function updateRecurringSaveLabel(){
+  if(!editingRecurringMonth)return;
+  const btn=document.getElementById('recurring-save-btn');
+  const label=mesLabel(editingRecurringMonth);
+  const count=editingRecurringMonths.size;
+  if(btn)btn.textContent=editingRecurringScope==='only'?(count===1?`Salvar em ${label}`:`Salvar em ${count} meses`):`Salvar a partir de ${label}`;
+  updateRecurringChangeSummary();
+}
+function updateRecurringChangeSummary(){
+  const el=document.getElementById('recurring-change-summary');if(!el||!editingRecurringMonth)return;
+  const months=[...editingRecurringMonths].sort(),count=months.length,val=readMoneyField('recurring-edit-value');
+  const day=document.getElementById('recurring-edit-day').value,status=document.getElementById('recurring-edit-status').value;
+  const monthNames=months.map(m=>mesLabel(m).replace(' de ','/')).join(' · ');
+  const selected=editingRecurringScope==='only';
+  const title=selected?(count===1?'Alteração em 1 mês':`Alteração em ${count} meses`):'Alteração permanente';
+  const period=selected?monthNames:`A partir de ${mesLabel(editingRecurringMonth)}`;
+  const total=val==null?'A definir':selected?fmt(val*count):fmt(val);
+  el.innerHTML=`<div class="recurring-impact-top"><span class="recurring-impact-icon">${uiIcon('calendar',15)}</span><div><strong>${title}</strong><span>${period}</span></div></div><div class="recurring-impact-values"><div><small>${selected?'POR MÊS':'NOVO VALOR MENSAL'}</small><b>${val==null?'Variável':fmt(val)}</b></div>${selected?`<div><small>TOTAL PREVISTO</small><b>${total}</b></div>`:''}</div><div class="recurring-impact-foot">${day?`Vencimento dia ${day}`:'Sem vencimento'} <span>•</span> ${status==='Débito auto'?'Débito automático':'Falta pagar'}</div>`;
+}
+function updateNewRecurringSummary(){
+  const el=document.getElementById('new-recurring-summary');if(!el)return;
+  const recurring=document.getElementById('in-recorr')?.value==='recorrente';
+  el.style.display=recurring?'block':'none';if(!recurring)return;
+  const name=document.getElementById('in-desc').value.trim()||'Nova conta recorrente';
+  const month=document.getElementById('in-mes-ini').value,val=readMoneyField('in-valor');
+  const day=document.getElementById('in-dia-venc').value,status=document.getElementById('in-status').value;
+  const cat=document.getElementById('in-cat').value,pag=document.getElementById('in-pag').value;
+  el.innerHTML=`<div class="recurring-impact-top"><span class="recurring-impact-icon">${uiIcon('repeat',15)}</span><div><strong>${name}</strong><span>${month?`Começa em ${mesLabel(month)}`:'Escolha o mês de início'}</span></div></div><div class="recurring-impact-values"><div><small>VALOR MENSAL</small><b>${val==null?'Variável':fmt(val)}</b></div><div><small>PRÓXIMOS 3 MESES</small><b>${val==null?'A definir':fmt(val*3)}</b></div></div><div class="recurring-impact-foot">${cat||'Sem categoria'} <span>•</span> ${pag||'Sem pagamento'} <span>•</span> ${day?`Vence dia ${day}`:'Sem vencimento'} <span>•</span> ${status==='Débito auto'?'Débito automático':'Falta pagar'}</div>`;
+}
+function openEditRecurringAccount(id){
+  const r=(DATA.recorrentes||[]).find(x=>x.id===id);if(!r)return;
+  editingRecurringId=id;editingRecurringScope='from';
+  const cat=document.getElementById('recurring-edit-cat'),pag=document.getElementById('recurring-edit-pag');
+  if(!cat.options.length)cat.innerHTML=document.getElementById('in-cat').innerHTML;
+  if(!pag.options.length)pag.innerHTML=document.getElementById('in-pag').innerHTML;
+  const cm=currentMonthKey(),currentEntry=recurringMonthEntry(id,cm);
+  editingRecurringMonth=currentEntry?.status==='Pago'?recurringTimelineMonths().find(m=>m>cm):cm;
+  editingRecurringMonths=new Set([editingRecurringMonth]);
+  document.getElementById('recurring-edit-scope').value='from';
+  document.querySelectorAll('#recurring-scope-toggle .toggle-opt').forEach(btn=>btn.classList.toggle('active',btn.dataset.val==='from'));
+  loadRecurringMonthForm();renderRecurringTimeline();
+  document.getElementById('edit-recurring-modal').classList.add('open');
+}
+function closeEditRecurringAccount(){document.getElementById('edit-recurring-modal').classList.remove('open');editingRecurringId=null;selectedRecurringIcon=null;editingRecurringMonth=null;editingRecurringMonths=new Set();}
+function saveRecurringAccount(){
+  const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);if(!r)return;
+  const name=document.getElementById('recurring-edit-name').value.trim();if(!name){fieldError('recurring-edit-name','Nome obrigatório');return;}
+  const val=readMoneyField('recurring-edit-value'),dayRaw=document.getElementById('recurring-edit-day').value,day=dayRaw?Math.max(1,Math.min(31,Number(dayRaw))):null;
+  const data={nome:name,cat:document.getElementById('recurring-edit-cat').value,pag:document.getElementById('recurring-edit-pag').value,val,diaVenc:day,status:document.getElementById('recurring-edit-status').value,icon:selectedRecurringIcon||null};
+  data.tipo=guessTipo(data.cat);
+  if(editingRecurringScope==='only'){
+    [...editingRecurringMonths].sort().forEach(month=>{
+      let entry=recurringMonthEntry(r.id,month);
+      if(!entry){entry={id:Date.now()+Math.random(),recorrenteId:r.id,origem:'recorrente',mes:month,pagoEm:null};DATA.despesas.push(entry);}
+      if(entry.status!=='Pago')Object.assign(entry,data,{venc:recurringDueDate(month,day)});
+    });
+  }else{
+    r.alteracoes=(r.alteracoes||[]).filter(a=>a.from<editingRecurringMonth);
+    if(editingRecurringMonth===currentMonthKey())Object.assign(r,data);
+    else r.alteracoes.push({from:editingRecurringMonth,data});
+    DATA.despesas.filter(d=>d.recorrenteId===r.id&&d.mes>=editingRecurringMonth&&d.status!=='Pago').forEach(d=>Object.assign(d,data,{venc:recurringDueDate(d.mes,day)}));
+  }
+  saveData();closeEditRecurringAccount();refreshRecurringAdmin();showToast('Conta recorrente atualizada!');
+}
+
+function toggleMesRange(){
+  const v=document.getElementById('in-recorr').value;
+  document.getElementById('mes-unico-wrap').style.display=v==='unico'?'flex':'none';
+  document.getElementById('mes-range-wrap').style.display=v==='recorrente'?'block':'none';
+  if(v==='recorrente'){
+    document.getElementById('in-status').value='Falta Pagar';
+    document.querySelectorAll('#status-toggle .toggle-opt').forEach(btn=>btn.classList.toggle('active',btn.dataset.val==='Falta Pagar'));
+  }
+  updateNewRecurringSummary();
+}
 function toggleRecMesRange(){const v=document.getElementById('in-rec-recorr').value;document.getElementById('rec-mes-unico-wrap').style.display=v==='unico'?'flex':'none';document.getElementById('rec-mes-range-wrap').style.display=v==='recorrente'?'block':'none';}
 function monthsBetween(ini,fim){const meses=[];let[y,m]=ini.split('-').map(Number);const[yf,mf]=fim.split('-').map(Number);while(y<yf||(y===yf&&m<=mf)){meses.push(`${y}-${String(m).padStart(2,'0')}`);m++;if(m>12){m=1;y++;}}return meses;}
 
@@ -156,7 +305,7 @@ function addEntry(){
   const diaVenc=diaVencRaw?parseInt(diaVencRaw):null;
   const status=document.getElementById('in-status').value;
   const recorr=document.getElementById('in-recorr').value;
-  clearFieldErrors(['in-desc','in-valor','in-mes','in-mes-ini','in-mes-fim']);
+  clearFieldErrors(['in-desc','in-valor','in-mes','in-mes-ini']);
   let hasError = false;
   if(!desc){ fieldError('in-desc','Nome obrigatório'); hasError=true; }
   if(val !== null && val < 0){ fieldError('in-valor','Digite um valor válido'); hasError=true; }
@@ -167,17 +316,23 @@ function addEntry(){
     else meses=[mes];
   } else {
     const ini=document.getElementById('in-mes-ini').value;
-    const fim=document.getElementById('in-mes-fim').value;
     if(!ini){ fieldError('in-mes-ini','Selecione o mês inicial'); hasError=true; }
-    if(!fim){ fieldError('in-mes-fim','Selecione o mês final'); hasError=true; }
-    if(ini&&fim&&ini>fim){ fieldError('in-mes-fim','Mês final deve ser após o inicial'); hasError=true; }
-    if(!hasError) meses=monthsBetween(ini,fim);
+    if(!hasError) meses=[ini];
   }
   if(hasError) return;
+  let recurringTemplate=null;
+  if(recorr==='recorrente'){
+    if(!Array.isArray(DATA.recorrentes))initializeRecurringAccounts(false);
+    recurringTemplate=(DATA.recorrentes||[]).find(r=>r.nome.toLowerCase()===desc.toLowerCase());
+    const templateData={nome:desc,cat,pag,val,diaVenc,status:status==='Débito auto'?'Débito auto':'Falta Pagar',tipo:document.getElementById('in-tipo').value||guessTipo(cat),icon:selectedIcon||null,ativo:true,inicio:meses[0]};
+    if(recurringTemplate)Object.assign(recurringTemplate,templateData);
+    else{recurringTemplate={id:`rec-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`,cadastroManual:true,criadoEm:Date.now(),...templateData};DATA.recorrentes.push(recurringTemplate);}
+  }
   meses.forEach(mes=>{
     let venc=null;
     if(diaVenc){const[y,mo]=mes.split('-');const maxDay=new Date(+y,+mo,0).getDate();const dd=String(Math.min(diaVenc,maxDay)).padStart(2,'0');venc=`${mes}-${dd}`;}
-    DATA.despesas.push({id:Date.now()+Math.random(),nome:desc,cat,pag,mes,val,status,venc,diaVenc,icon:selectedIcon||null,pagoEm: status==='Pago' ? (venc || new Date().toISOString().slice(0,10)) : null});
+    const existing=recurringTemplate&&DATA.despesas.find(d=>d.mes===mes&&(d.recorrenteId===recurringTemplate.id||d.nome===desc));
+    if(!existing)DATA.despesas.push({id:Date.now()+Math.random(),recorrenteId:recurringTemplate?.id||null,origem:recurringTemplate?'recorrente':'manual',nome:desc,cat,pag,mes,val,status,venc,diaVenc,tipo:document.getElementById('in-tipo').value||guessTipo(cat),icon:selectedIcon||null,pagoEm: status==='Pago' ? (venc || new Date().toISOString().slice(0,10)) : null});
   });
   saveData();
   document.getElementById('in-desc').value='';document.getElementById('in-valor').value='';document.getElementById('in-dia-venc').value='';
@@ -187,7 +342,7 @@ function addEntry(){
   const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   despSelectedMonth=allMonths().includes(cm)?cm:meses[meses.length-1];
   showPage('despesas');
-  showToast(meses.length>1?`${meses.length} lançamentos adicionados!`:'Despesa adicionada!');if(typeof renderEmptyState==='function')renderEmptyState();
+  showToast(recurringTemplate?'Conta recorrente cadastrada!':'Despesa adicionada!');if(typeof renderEmptyState==='function')renderEmptyState();
 }
 
 function addReceita(){

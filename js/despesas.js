@@ -135,6 +135,8 @@ function tableSkeleton(rows=5, cols=6){
 }
 
 function renderDespesas(){
+  // Garante que os cadastros ativos já tenham o lançamento do mês atual.
+  if(typeof initializeRecurringAccounts==='function')initializeRecurringAccounts();
   // Mostra skeleton imediatamente
   const tbody = document.getElementById('desp-tbody');
   if(tbody && !tbody.children.length) tbody.innerHTML = tableSkeleton(5,6).replace('<tbody','<tbody id="desp-tbody"').replace('</tbody>','');
@@ -563,7 +565,7 @@ function openModal(id){
   document.getElementById('modal-title').textContent=`Editar — ${d.nome}`;
   document.getElementById('edit-nome').value=d.nome;
   document.getElementById('edit-name-hint').textContent='Alterar o nome atualizará só este lançamento.';
-  document.getElementById('edit-icon-preview').innerHTML=ICONS[selectedIconEdit]||DEFAULT_ICON;
+  document.getElementById('edit-icon-preview').innerHTML=iconContent(selectedIconEdit);
   document.getElementById('edit-status').value=d.status||'Falta Pagar';
   if(document.getElementById('edit-tipo')) document.getElementById('edit-tipo').value=d.tipo||guessTipo(d.cat);
   document.getElementById('edit-venc').value=d.venc||'';

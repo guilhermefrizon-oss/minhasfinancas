@@ -26,20 +26,30 @@ const BRAND_LOGOS = {
   'duolingo': { hex:'58CC02', path:'M14.484 18.213c1.142 1.033 2.657 1.662 4.316 1.662l.294-.001c1.985-.038 3.749-.976 4.905-2.422v1.98c0 2.522-2.043 4.568-4.567 4.568H4.569C2.045 23.998.002 21.954.002 19.43v-1.92c1.181 1.443 2.976 2.365 4.985 2.365l.35-.001c1.61-.027 3.076-.646 4.191-1.648.555.764 1.456 1.26 2.473 1.26 1.023 0 1.928-.502 2.483-1.273zm-5.349-.996c-.989 1.022-2.375 1.658-3.909 1.658h-.239c-2.229 0-4.146-1.343-4.987-3.262v-7.16c.281-.64.68-1.216 1.169-1.699-.035-.731.132-1.469.511-2.128.256-.44.867-.504 1.21-.124l.766.851c.007-.003.014-.003.021-.005-.098-.78.037-1.587.419-2.308.24-.45.757-.53 1.114-.164 0 0 3.939 3.979 4.035 4.084 1.542 1.348 4.066 1.287 5.686-.18.002-.003.007-.005.009-.007.042-.042 3.855-3.9 3.855-3.9.3361-.3451.8619-.3101 1.113.164.385.724.518 1.535.417 2.32.002.001.003.001.004.002l.007.002c.001 0 .002 0 .003.001l.776-.86c.342-.38.954-.316 1.207.124.387.673.553 1.427.509 2.173.496.501.897 1.099 1.169 1.762v6.941c-.816 1.978-2.761 3.373-5.032 3.373H18.8c-1.547 0-2.945-.648-3.936-1.686a.8386.8386 0 0 0-.009-.067c.313-.017.528-.162.688-.33.152-.16.299-.397.299-.776 0 0-.022-.312-.024-.324.693.767 1.696 1.249 2.811 1.249 2.092 0 3.787-1.696 3.787-3.787v-2.243c0-2.092-1.697-3.787-3.787-3.787-2.093 0-3.787 1.695-3.787 3.787v2.243c0 .266.027.526.079.776-.712-.784-1.744-1.278-2.842-1.278-1.239 0-2.339.523-3.064 1.355.063-.274.097-.56.097-.853v-2.243c0-2.092-1.697-3.787-3.788-3.787-2.09 0-3.787 1.695-3.787 3.787v2.243c0 2.093 1.697 3.787 3.787 3.787 1.151 0 2.182-.513 2.876-1.322-.008.035-.039.395-.039.395 0 .378.147.616.298.775.16.168.374.312.688.331a.7783.7783 0 0 0-.012.097zm.997.073c.729.131 1.733.305 1.792.305h.157c.059 0 1.789-.303 1.789-.303-.327.705-1.041 1.194-1.869 1.194-.829 0-1.543-.49-1.869-1.196zm-.971-1.379c.246-1.313 1.462-2.259 2.918-2.259 1.324 0 2.521.97 2.763 2.259v.105c0 .082-.029.115-.103.106l-2.658.473h-.157l-2.66-.476c-.075.01-.103-.023-.103-.105Zm8.023-6.392c.255-.14.549-.22.861-.22.992 0 1.798.804 1.798 1.798v1.919c0 .991-.804 1.797-1.798 1.797-.991 0-1.797-.803-1.797-1.797v-1.542c.034.003.068.005.103.005.64 0 1.16-.518 1.16-1.156 0-.312-.125-.596-.327-.804zM5.162 9.461c.227-.104.48-.162.746-.162.991 0 1.798.804 1.798 1.798v1.919c0 .991-.804 1.797-1.798 1.797-.991 0-1.797-.803-1.797-1.797v-1.571c.089.022.182.034.278.034.641 0 1.16-.518 1.16-1.156 0-.342-.149-.65-.387-.862ZM.002 6.554V4.568C.002 2.044 2.045 0 4.569 0h14.865c2.522 0 4.565 2.044 4.565 4.568v2.041a5.1847 5.1847 0 0 0-.164-.197 4.8592 4.8592 0 0 0-.646-2.284c-.433-.754-1.315-1.037-2.07-.786a4.785 4.785 0 0 0-.327-.774h-.001c-.287-.54-.758-.835-1.248-.908-.493-.073-1.033.072-1.464.515l-3.82 3.864c-1.226 1.11-3.127 1.199-4.313.205-.103-.109-4.025-4.071-4.025-4.071-.427-.438-.966-.584-1.46-.51-.489.073-.961.367-1.248.907v.002c-.133.25-.241.508-.327.771-.753-.252-1.635.029-2.071.782 0 0-.001.001-.001.002-.4.694-.613 1.459-.645 2.23-.057.065-.113.13-.167.197z' },
   'caixabank': { hex:'007EAE', path:'M4.938 16c.183 0 .315.13.487.1.239.09.212.383.462.455.19.384.312.797.419 1.21-.077.244.129.384.056.608l.072.04a1.8 1.8 0 0 1-.114.716c.038.426-.17.78-.353 1.14-.13.083-.19.314-.372.273-.323.102-.353.584-.748.524-.25.189-.596.083-.895.09-.176-.09-.419-.067-.536-.22a3.3 3.3 0 0 1-.84-.57c-.102-.22-.333-.318-.363-.57.09-.302-.1-.576-.02-.88l-.06-.504.19-.87c.326-.171.235-.561.558-.683.2-.467.683-.566 1.059-.797.14-.03.311.05.422-.08.205-.03.394.179.577.018m1.496-3.682c.202.14.19.422.372.566l.092.622-.456.669c-.573.303-1.431.433-1.967-.054-.304-.269-.383-.664-.304-1.059l.213-.573c.122-.084.28-.103.365-.243.28-.182.645-.14.967-.213.244.08.607-.05.718.282zm14.967-9.766c-.084 1.424-1.253 2.38-1.868 3.584-.266.714-.89 1.14-1.33 1.784-.405.418-.796.87-1.134 1.334.06.333.418.424.618.667.456.27.502.786.896 1.102.232 0 .232.341.487.3.535.577.967 1.173 1.412 1.795a1.3 1.3 0 0 0 .37.607c.355.514.647 1.064 1.01 1.584.055.585.549.979.7 1.526.22.292.312.635.513.926.316.684.524 1.406.9 2.062.069.152-.023.3-.103.41-.14.114-.25-.091-.414-.06a14 14 0 0 1-2.38-1.2c-.79-.638-1.656-1.09-2.43-1.758-.304-.076-.428-.433-.71-.574-.747-.462-1.344-1.131-2.1-1.563-.341-.266-.683-.518-1.028-.79-.266-.027-.354-.331-.607-.422-.563-.342-1.08-.82-1.656-1.14-.05.077 0 .203-.05.282-.383.373-.28.949-.554 1.364-.01.595-.425 1.028-.596 1.556-.475.846-.888 1.712-1.382 2.55-.657.87-1.01 1.919-1.937 2.614-.205.253-.436.383-.686.546-.114-.03-.274-.012-.304-.152-.114-.212.03-.532-.121-.725.132-.297.05-.627.113-.95l-.053-.14c.01-.444.23-.82.14-1.272a3 3 0 0 0 .206-.91 5 5 0 0 0 .303-1.212 1.5 1.5 0 0 0 .153-.836c.098-.265.117-.576.39-.77.039-.17 0-.342.03-.524.27-.827.608-1.625.817-2.471 0-.061-.06-.08-.103-.092-.596-.03-1.15.092-1.705-.06a14 14 0 0 1-2.695-.311c-.348-.07-.774-.027-1.097-.23-.209.009-.452.05-.653-.063-.418-.2-.919-.167-1.329-.391-.315.038-.54-.16-.82-.19-.274.019-.425-.212-.615-.364v-.092c.5-.683 1.31-.876 2.038-1.139.714-.224 1.511-.243 2.26-.395.475-.08.987.05 1.465-.03.858.02 1.682.16 2.532.182.282.038.544.172.828.16l-.01-.122-.8-1.09c-.302-.705-.857-1.302-1.046-2.05-.182-.219-.012-.553-.152-.796-.011-.11.075-.19.13-.282.17-.068.363.05.535-.06.515.12.986.303 1.503.405.53.21 1.078.422 1.556.776.593.425 1.31.698 1.773 1.351.125.114.316.133.475.091.14-.019.17-.19.303-.243.627-.39 1.334-.615 1.948-1.048.255-.25.657-.28.81-.627.189-.09.36-.212.565-.265.353-.247.707-.52 1.09-.72a1.1 1.1 0 0 0 .515-.244c.627-.342 1.284-.627 1.88-1.02.13-.355.524-.27.805-.355.14.034.334.012.395.19z' },
   'hbomax': { hex:'000000', path:'M3.784 8.716c-.655 0-1.32.29-2.173.946v-.78H0v6.236h1.715V11.24c.749-.592 1.091-.78 1.372-.78.333 0 .551.209.551.729v3.928h1.715V11.23c.748-.582 1.081-.769 1.372-.769.333 0 .55.208.55.728v3.928H8.99v-4.53c0-1.403-.8-1.871-1.57-1.871-.654 0-1.32.27-2.192.936-.28-.697-.894-.936-1.444-.936zm8.689 0c-1.705 0-3.118 1.466-3.118 3.284 0 1.82 1.413 3.285 3.118 3.285.842 0 1.57-.312 2.131-.988v.82h1.632V8.883h-1.632v.822c-.561-.676-1.29-.988-2.131-.988zm4.064.166c.707 1.102 1.507 2.09 2.443 3.077a26.593 26.593 0 0 0-2.443 3.16h2.069a13.603 13.603 0 0 1 1.673-2.183 14.067 14.067 0 0 1 1.632 2.182H24a25.142 25.142 0 0 0-2.432-3.16A23.918 23.918 0 0 0 24 8.883h-2.047a14.65 14.65 0 0 1-1.674 2.11 13.357 13.357 0 0 1-1.674-2.11zm-3.804 1.279c1.018 0 1.84.82 1.84 1.84a1.837 1.837 0 0 1-1.84 1.839c-1.019 0-1.84-.82-1.84-1.84 0-1.018.821-1.84 1.84-1.84zm0 .415c-.78 0-1.414.633-1.414 1.423s.634 1.424 1.413 1.424c.78 0 1.414-.634 1.414-1.424s-.634-1.424-1.414-1.424z' },
+  'xbox': { hex:'107C10', path:'M4.102 21.033A11.95 11.95 0 0 0 12 24a11.96 11.96 0 0 0 7.902-2.967c1.877-1.912-4.316-8.709-7.902-11.417-3.582 2.708-9.779 9.505-7.898 11.417m11.16-14.406c2.5 2.961 7.484 10.313 6.076 12.912A11.94 11.94 0 0 0 24 12.004a11.95 11.95 0 0 0-3.57-8.536s-.027-.022-.082-.042a.8.8 0 0 0-.281-.045c-.592 0-1.985.434-4.805 3.246M3.654 3.426c-.057.02-.082.041-.086.042A11.96 11.96 0 0 0 0 12.004c0 2.854.998 5.473 2.661 7.533-1.401-2.605 3.579-9.951 6.08-12.91-2.82-2.813-4.216-3.245-4.806-3.245a.7.7 0 0 0-.281.046zM12 3.551S9.055 1.828 6.755 1.746c-.903-.033-1.454.295-1.521.339C7.379.646 9.659 0 11.984 0H12c2.334 0 4.605.646 6.766 2.085-.068-.046-.615-.372-1.52-.339C14.946 1.828 12 3.545 12 3.545z' },
 };
 
-/* Renderiza o logo oficial (SVG monocromático) em um chip arredondado tingido */
+/* Renderiza o logo oficial sem fundo, no mesmo estilo leve dos ícones traçados. */
 function brandLogo(hex, path, size=28) {
-  const inner = Math.round(size * 0.62);
-  return `<div style="width:${size}px;height:${size}px;flex-shrink:0;border-radius:6px;background:#${hex}1f;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="${inner}" height="${inner}" fill="#${hex}" style="display:block"><path d="${path}"/></svg></div>`;
+  const inner = Math.round(size * 0.78);
+  const normalized = hex.replace('#','').toUpperCase();
+  const fill = ['000000','171A21','231F20','333333'].includes(normalized) ? 'currentColor' : `#${normalized}`;
+  return `<div style="width:${size}px;height:${size}px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg viewBox="0 0 24 24" width="${inner}" height="${inner}" fill="${fill}" style="display:block"><path d="${path}"/></svg></div>`;
 }
 
-/* Contraste automático: texto claro ou escuro conforme a cor de fundo */
-function _contrastText(hex) {
-  const h = hex.replace('#','');
-  const r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
-  // luminância percebida
-  return (0.299*r + 0.587*g + 0.114*b) > 150 ? '#1a1a1a' : '#ffffff';
+/* Alternativa para marcas sem SVG próprio: etiqueta traçada, sem bloco de fundo. */
+function outlinedBrandIcon(color='9896c0', size=28) {
+  const stroke = `#${color.replace('#','')}`;
+  return `<div style="width:${size}px;height:${size}px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 32 32" width="${size}" height="${size}" fill="none"><path d="M5.5 15.2 15.2 5.5h8.3a3 3 0 0 1 3 3v8.3l-9.7 9.7a2.8 2.8 0 0 1-4 0l-7.3-7.3a2.8 2.8 0 0 1 0-4Z" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="11" r="1.7" stroke="${stroke}" stroke-width="2"/></svg></div>`;
+}
+
+/* Marcas que precisam de mais de um traço/cor ou de uma versão compacta do símbolo. */
+function brandSvg(viewBox, body, size=28, color='currentColor') {
+  return `<div style="width:${size}px;height:${size}px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:${color}"><svg viewBox="${viewBox}" width="${size}" height="${size}" style="display:block;overflow:visible">${body}</svg></div>`;
+}
+
+function brandWordmark(text, color, size=28, fontSize=13) {
+  return brandSvg('0 0 32 32', `<text x="16" y="20.5" text-anchor="middle" font-size="${fontSize}" font-weight="850" font-family="Arial,Helvetica,sans-serif" fill="${color}">${text}</text>`, size);
 }
 
 /* Badge de marca 100% inline (sem CDN externo) — sempre renderiza offline.
@@ -47,20 +57,13 @@ function _contrastText(hex) {
 function brandImg(slug, color, size=28, label) {
   const _l = BRAND_LOGOS[slug];
   if (_l) return brandLogo(_l.hex, _l.path, size);
-  const txt = (label || slug.charAt(0)).toUpperCase();
-  const fg = _contrastText(color);
-  const len = txt.length;
-  const fs = len >= 5 ? 8 : len >= 3 ? 10 : len === 2 ? 13 : 15;
-  // contorno sutil para marcas muito claras (ex.: branco) não sumirem no fundo
-  const stroke = (0.299*parseInt(color.substr(0,2),16) + 0.587*parseInt(color.substr(2,2),16) + 0.114*parseInt(color.substr(4,2),16)) > 225
-    ? '<rect x="0.75" y="0.75" width="30.5" height="30.5" rx="5.5" fill="none" stroke="#e2e2e2" stroke-width="1.5"/>' : '';
-  return `<div style="width:${size}px;height:${size}px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#${color}"/>${stroke}<text x="16" y="21" text-anchor="middle" font-size="${fs}" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="${fg}">${txt}</text></svg></div>`;
+  return outlinedBrandIcon(color, size);
 }
 
 /* SVGs genéricos para categorias sem marca */
 const SVG = {
   home:      `<svg viewBox="0 0 32 32" fill="none"><path d="M6 28V14L16 6L26 14V28" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="11" y="19" width="10" height="9" rx="2" stroke="#4f46e5" stroke-width="2.2"/></svg>`,
-  building:  `<svg viewBox="0 0 32 32" fill="none"><rect x="4" y="10" width="24" height="18" rx="2" stroke="#4f46e5" stroke-width="2.2"/><path d="M10 28V20h12v8" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round"/><path d="M4 14L16 4L28 14" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+  building:  `<svg viewBox="0 0 32 32" fill="none"><rect x="7" y="3" width="18" height="26" rx="2.5" stroke="#4f46e5" stroke-width="2.2"/><path d="M11 8h3M18 8h3M11 13h3M18 13h3M11 18h3M18 18h3M4 29h24" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/><path d="M13 29v-6h6v6" stroke="#4f46e5" stroke-width="2.2" stroke-linejoin="round"/></svg>`,
   bolt:      `<svg viewBox="0 0 32 32" fill="none"><path d="M16 4v2M16 26v2M4 16H6M26 16H28M7.5 7.5l1.4 1.4M23.1 23.1l1.4 1.4M7.5 24.5l1.4-1.4M23.1 8.9l1.4-1.4" stroke="#f5c542" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="16" r="5" stroke="#f5c542" stroke-width="2.2"/></svg>`,
   flame:     `<svg viewBox="0 0 32 32" fill="none"><ellipse cx="16" cy="20" rx="8" ry="9" stroke="#fb923c" stroke-width="2.2"/><path d="M12 11V8a4 4 0 018 0v3" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round"/><path d="M13 20.5c0-1.7 3-4 3-4s3 2.3 3 4a3 3 0 01-6 0z" stroke="#fb923c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   drop:      `<svg viewBox="0 0 32 32" fill="none"><path d="M16 5C16 5 8 14 8 20a8 8 0 0016 0C24 14 16 5 16 5z" stroke="#38bdf8" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 22a4 4 0 004 3" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/></svg>`,
@@ -79,7 +82,7 @@ const SVG = {
   savings:   `<svg viewBox="0 0 32 32" fill="none"><path d="M6 16c0-6.6 4.5-10 10-10 4 0 7.5 2 9 5h2a2 2 0 010 4h-2c0 1-.3 2-.7 2.8L26 22v3h-3l-1-1.5A10 10 0 0116 26c-5.5 0-10-4.5-10-10z" stroke="#fb923c" stroke-width="2" stroke-linejoin="round"/></svg>`,
   chart:     `<svg viewBox="0 0 32 32" fill="none"><polyline points="4,24 10,16 16,20 22,10 28,8" stroke="#34d27a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 8h4v4" stroke="#34d27a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   debt:      `<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="12" stroke="#f06060" stroke-width="2.2"/><path d="M11 16h10M16 11v10" stroke="#f06060" stroke-width="2.2" stroke-linecap="round"/></svg>`,
-  plane:     `<svg viewBox="0 0 32 32" fill="none"><path d="M6 25h20M16 5l3 8h-6l3-8z" stroke="#e879f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 13l-3 9h4l2-4h8l2 4h4l-3-9" stroke="#e879f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  plane:     `<svg viewBox="0 0 32 32" fill="none"><path d="M16 3c-1.3 0-2 1.5-2 3v6L5 17.5V21l9-3v6.5l-3 2V29l5-1.5 5 1.5v-2.5l-3-2V18l9 3v-3.5L18 12V6c0-1.5-.7-3-2-3Z" stroke="#e879f9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   theater:   `<svg viewBox="0 0 32 32" fill="none"><rect x="4" y="8" width="24" height="18" rx="2" stroke="#e879f9" stroke-width="2.2"/><path d="M4 14h24M4 20h24M10 8v4M22 8v4M10 20v6M22 20v6" stroke="#e879f9" stroke-width="1.8" stroke-linecap="round"/></svg>`,
   gift:      `<svg viewBox="0 0 32 32" fill="none"><rect x="4" y="13" width="24" height="15" rx="2" stroke="#06b6d4" stroke-width="2.2"/><path d="M4 17h24M16 13v15" stroke="#06b6d4" stroke-width="2.2"/><path d="M16 13c0-3 3-5 5-3s1 5-5 3zM16 13c0-3-3-5-5-3s-1 5 5 3z" stroke="#06b6d4" stroke-width="2" stroke-linecap="round"/></svg>`,
   pet:       `<svg viewBox="0 0 32 32" fill="none"><circle cx="11" cy="11" r="3" stroke="#06b6d4" stroke-width="2"/><circle cx="21" cy="11" r="3" stroke="#06b6d4" stroke-width="2"/><circle cx="7" cy="17" r="2.5" stroke="#06b6d4" stroke-width="2"/><circle cx="25" cy="17" r="2.5" stroke="#06b6d4" stroke-width="2"/><path d="M10 20c0 0 2 6 6 6s6-6 6-6l-2-4h-8l-2 4z" stroke="#06b6d4" stroke-width="2" stroke-linejoin="round"/></svg>`,
@@ -118,12 +121,13 @@ const ICONS = {
   'YouTube':         brandImg('youtube',       'FF0000', 28, 'YT'),
   'YouTube Premium': brandImg('youtube',       'FF0000', 28, 'YT'),
   'Netflix':         brandImg('netflix',       'E50914'),
-  'Amazon Prime':    brandImg('amazonprime',  '00A8E1', 28, 'aP'),
-  'Amazon':          brandImg('amazon',        'FF9900'),
+  'Amazon Prime':    brandSvg('0 0 32 32', `<path d="M7 19.5c5.6 3.5 12.4 3.5 18 0" fill="none" stroke="#00A8E1" stroke-width="2.2" stroke-linecap="round"/><path d="M21.5 18.7l3.8.1-1.2 3.4" fill="none" stroke="#00A8E1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><text x="15" y="16" text-anchor="middle" font-size="15" font-weight="800" font-family="Arial,Helvetica,sans-serif" fill="var(--text)">a</text>`),
+  'Amazon':          brandSvg('0 0 32 32', `<path d="M7 19.5c5.6 3.5 12.4 3.5 18 0" fill="none" stroke="#FF9900" stroke-width="2.2" stroke-linecap="round"/><path d="M21.5 18.7l3.8.1-1.2 3.4" fill="none" stroke="#FF9900" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><text x="15" y="16" text-anchor="middle" font-size="15" font-weight="800" font-family="Arial,Helvetica,sans-serif" fill="var(--text)">a</text>`),
+  'Apple':           brandImg('apple',         '000000'),
   'Apple TV':        brandImg('appletv',      '333333', 28, 'tv'),
   'Apple Music':     brandImg('applemusic',   'FC3C44'),
-  'Globoplay':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#F5423C"/><text x="16" y="21" text-anchor="middle" font-size="14" font-weight="900" font-family="Arial" fill="white">G</text></svg></div>`,
-  'Disney+':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#113CCF"/><text x="16" y="22" text-anchor="middle" font-size="11" font-weight="900" font-family="Arial" fill="white">D+</text></svg></div>`,
+  'Globoplay':       brandSvg('0 0 32 32', `<circle cx="16" cy="16" r="11" fill="none" stroke="#F5423C" stroke-width="2.4"/><path d="m14 11 7 5-7 5Z" fill="#F5423C"/><path d="M6.5 11.5h4M6.5 20.5h4" stroke="#F5423C" stroke-width="2" stroke-linecap="round"/>`),
+  'Disney+':         brandSvg('0 0 32 32', `<path d="M6 12c5-6 14-7 20-3" fill="none" stroke="#113CCF" stroke-width="1.8" stroke-linecap="round"/><path d="M8 11v12h4.5c5 0 7.5-2.3 7.5-6s-2.5-6-7.5-6Z" fill="none" stroke="#113CCF" stroke-width="2.2" stroke-linejoin="round"/><path d="M24 14v7M20.5 17.5h7" stroke="#113CCF" stroke-width="2" stroke-linecap="round"/>`),
   'HBO Max':         brandImg('hbomax',        '000000', 28, 'Max'),
   'Paramount+':      brandImg('paramountplus','0064FF', 28, 'P+'),
   'Deezer':          brandImg('deezer',        'FEAA2D'),
@@ -135,31 +139,45 @@ const ICONS = {
   'Uber':            brandImg('uber',          '000000'),
   '99':              brandImg('99taxi',       'F4C72F', 28, '99'),
   'iFood':           brandImg('ifood',         'EA1D2C'),
-  'Rappi':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#FF441F"/><text x="16" y="22" text-anchor="middle" font-size="13" font-weight="900" font-family="Arial" fill="white">R</text></svg></div>`,
+  'Rappi':           brandSvg('0 0 48 48', `<path d="M18.54 18.25a4.8 4.8 0 0 0-2.12.41c-4.82 2.18-5.8 7.34-11.87 3.12 2.64 9.09 10.45 7.94 12.62 7.87a9.75 9.75 0 0 0 6.88-3.4 9.75 9.75 0 0 0 6.88 3.4c2.21.07 10 1.22 12.62-7.87-6.1 4.26-7.07-.94-11.87-3.12-2.62-1.18-6 .36-7.59 2.47a7.57 7.57 0 0 0-5.48-2.88Z" fill="none" stroke="#FF441F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`),
   'Nubank':          brandImg('nubank',        '8A05BE'),
   'Nubank Ultravioleta': brandImg('nubank',    '8A05BE'),
-  'Inter':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#FF7A00"/><text x="16" y="22" text-anchor="middle" font-size="11" font-weight="900" font-family="Arial" fill="white">inter</text></svg></div>`,
-  'Itaú':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#EC7000"/><text x="16" y="22" text-anchor="middle" font-size="11" font-weight="900" font-family="Arial" fill="white">itaú</text></svg></div>`,
-  'Bradesco':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#CC092F"/><text x="16" y="22" text-anchor="middle" font-size="13" font-weight="900" font-family="Arial" fill="white">B</text></svg></div>`,
-  'Santander':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#EC0000"/><path d="M8 16c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M10 20c1.3 2.4 3.9 4 6.8 4 2.9 0 5.4-1.6 6.8-4" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></div>`,
+  'Inter':           brandSvg('0 0 48 48', `<path d="M42.5 38.5c0 2.2-1.8 4-4 4h-33v-33c0-2.2 1.8-4 4-4h33Z" fill="none" stroke="#FF7A00" stroke-width="2.3" stroke-linejoin="round"/><path d="m35.1 11.05-22.2 3.7v22.2l22.2-3.7Z" fill="none" stroke="#FF7A00" stroke-width="2.3" stroke-linejoin="round"/>`),
+  'Itaú':            brandWordmark('itaú', '#EC7000', 28, 14),
+  'Bradesco':        brandSvg('0 0 32 32', `<path d="M7 10c5-5 13-5 18 0M5 15c7-5 15-5 22 0M9 20c4-3 10-3 14 0" fill="none" stroke="#CC092F" stroke-width="2.4" stroke-linecap="round"/><path d="M16 20v6" stroke="#CC092F" stroke-width="2.4" stroke-linecap="round"/>`),
+  'Santander':       brandSvg('0 0 32 32', `<path d="M17 4c-1 4 1 6 3.2 8.7 2 2.5 2.8 4.5 1.8 7.3M13 8c-1 3.5.8 5.3 2.8 7.8 1.7 2.1 2.2 4 .8 6.2M10.5 15c-4.5 1.2-7.5 3.5-7.5 6 0 3.9 5.8 7 13 7s13-3.1 13-7c0-2.7-3.2-5.1-8-6.2" fill="none" stroke="#EC0000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`),
   'Caixa':           brandImg('caixabank',    '006BB8'),
-  'Banco do Brasil':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#FABC01"/><text x="16" y="22" text-anchor="middle" font-size="13" font-weight="900" font-family="Arial" fill="#003882">BB</text></svg></div>`,
-  'C6 Bank':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#231F20"/><text x="16" y="22" text-anchor="middle" font-size="11" font-weight="900" font-family="Arial" fill="#E0D5C5">C6</text></svg></div>`,
+  'Banco do Brasil': brandSvg('0 0 32 32', `<path d="m6 9 5-4 5 4-5 4Zm10 14 5-4 5 4-5 4ZM11 13l10 6M21 13l-10 6" fill="none" stroke="#F4C300" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`),
+  'C6 Bank':         brandSvg('0 0 48 48', `<path d="M22.1 26.6v.1a5.3 5.3 0 0 1-5.3 5.3 5.3 5.3 0 0 1-5.3-5.3v-5.4a5.3 5.3 0 0 1 5.3-5.3 5.3 5.3 0 0 1 5.3 5.3v.1M36 18c-.9-1.2-2.2-2-4.5-2h-.4a5.3 5.3 0 0 0-5.3 5.3v5.4m10.7 0a5.3 5.3 0 1 1-10.6 0 5.3 5.3 0 0 1 10.6 0Z" fill="none" stroke="#636366" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`),
   'PicPay':          brandImg('picpay',        '21C25E'),
   'Mercado Pago':    brandImg('mercadopago',  '00B1EA', 28, 'MP'),
   'PayPal':          brandImg('paypal',        '00457C', 28, 'PP'),
-  'Mercado Livre':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#FFE600"/><text x="16" y="22" text-anchor="middle" font-size="9" font-weight="900" font-family="Arial" fill="#333">ML</text></svg></div>`,
+  'Mercado Livre':   brandSvg('0 0 32 32', `<path d="m4 14 5-4 5 2 4-2 5 4-7 7a2.4 2.4 0 0 1-3.4 0Z" fill="none" stroke="#D4B800" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 10-3-2-4 5 4 4M23 14l3-4 4 4-5 5M11 15l3 3M15 13l4 4" fill="none" stroke="#D4B800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`),
   'Shopee':          brandImg('shopee',        'EE4D2D'),
-  'Shein':         `<div style="width:28px;height:28px;flex-shrink:0"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#E84393"/><text x="16" y="22" text-anchor="middle" font-size="10" font-weight="900" font-family="Arial" fill="white">SHEIN</text></svg></div>`,
-  'AliExpress':      brandImg('aliexpress',   'FF4747'),
+  'Shein':           brandSvg('0 0 48 48', `<path d="M11.6 39.1c2.4 2.9 5.4 4.4 9.7 4.4h5.9c5.4 0 9.8-4.4 9.8-9.8S32.5 24 27.2 24h-6.4c-5.4 0-9.8-4.4-9.8-9.8s4.4-9.8 9.8-9.8h5.9c4.4 0 7.3 1 9.8 4.4" fill="none" stroke="#E84393" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`),
+  'AliExpress':      brandSvg('0 0 32 32', `<path d="M7 9v14a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V9" fill="none" stroke="#E62E04" stroke-width="2.2" stroke-linejoin="round"/><path d="M11 11V8a5 5 0 0 1 10 0v3M10 17c1 4 3.2 6 6 6s5-2 6-6" fill="none" stroke="#E62E04" stroke-width="2.2" stroke-linecap="round"/>`),
   'Udemy':           brandImg('udemy',         'A435F0'),
   'Coursera':        brandImg('coursera',      '0056D2'),
   'Duolingo':        brandImg('duolingo',      '58CC02'),
 };
 
-const DEFAULT_ICON = `<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" stroke="#9896c0" stroke-width="2.2"/><path d="M13 13c0-1.7 1.3-3 3-3s3 1.3 3 3c0 1.5-1 2.5-2.5 3v1.5" stroke="#9896c0" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="22" r="1.2" fill="#9896c0"/></svg>`;
+const DEFAULT_ICON = outlinedBrandIcon('9896c0', 28);
 
 const ALL_ICONS_LIST = Object.keys(ICONS).map(k => ({ key: k, label: k }));
+const HIDDEN_ICONS_KEY = 'gastos_hidden_icons';
+
+function hiddenIconKeys() {
+  try { return new Set(JSON.parse(localStorage.getItem(HIDDEN_ICONS_KEY) || '[]')); }
+  catch (_) { return new Set(); }
+}
+
+function isIconHidden(key) {
+  return !!key && hiddenIconKeys().has(key);
+}
+
+function iconContent(key) {
+  return key && !isIconHidden(key) ? (ICONS[key] || DEFAULT_ICON) : DEFAULT_ICON;
+}
 
 /* ── Auto-seleção por nome digitado ─── */
 const ICON_KEYWORDS = {
@@ -169,7 +187,7 @@ const ICON_KEYWORDS = {
   'disney':'Disney+','hbo':'HBO Max','max':'HBO Max',
   'paramount':'Paramount+','deezer':'Deezer','crunchyroll':'Crunchyroll',
   'twitch':'Twitch','xbox':'Xbox','playstation':'PlayStation','steam':'Steam',
-  'apple tv':'Apple TV','apple music':'Apple Music','apple':'Apple TV',
+  'apple tv':'Apple TV','apple music':'Apple Music','apple':'Apple',
   'uber':'Uber','99':'99','ifood':'iFood','rappi':'Rappi',
   'nubank':'Nubank','ultravioleta':'Nubank Ultravioleta',
   'inter':'Inter','itaú':'Itaú','itau':'Itaú',
@@ -218,35 +236,101 @@ function guessIconKey(nome) {
 }
 
 function itemIcon(nome, icon) {
-  const key = icon || nome;
-  const content = ICONS[key] || DEFAULT_ICON;
+  const key = (icon && ICONS[icon]) ? icon : (ICONS[nome] ? nome : guessIconKey(nome));
+  const content = iconContent(key);
   return `<div style="width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${content}</div>`;
 }
 
 /* ══════ ICON PICKER ══════ */
-let selectedIcon = null, selectedIconEdit = null, iconPickerTarget = null;
+let selectedIcon = null, selectedIconEdit = null, iconPickerTarget = null, iconManageMode = false;
 
-function openIconPicker() { iconPickerTarget='new'; renderIconGrid(selectedIcon); document.getElementById('icon-modal').classList.add('open'); document.getElementById('icon-search').value=''; filterIcons(); }
-function openIconPickerEdit() { iconPickerTarget='edit'; renderIconGrid(selectedIconEdit); document.getElementById('icon-modal').classList.add('open'); document.getElementById('icon-search').value=''; filterIcons(); }
+function openIconPicker() { iconPickerTarget='new'; iconManageMode=false; syncIconManagerUi(); document.getElementById('icon-modal').classList.add('open'); document.getElementById('icon-search').value=''; filterIcons(); }
+function openIconPickerEdit() { iconPickerTarget='edit'; iconManageMode=false; syncIconManagerUi(); document.getElementById('icon-modal').classList.add('open'); document.getElementById('icon-search').value=''; filterIcons(); }
+function openIconPickerRecurring() { iconPickerTarget='recurring'; iconManageMode=false; syncIconManagerUi(); document.getElementById('icon-modal').classList.add('open'); document.getElementById('icon-search').value=''; filterIcons(); }
 function closeIconModal() { document.getElementById('icon-modal').classList.remove('open'); }
 function filterIcons() {
   const q = document.getElementById('icon-search').value.toLowerCase();
-  const filtered = ALL_ICONS_LIST.filter(i => i.label.toLowerCase().includes(q));
-  renderIconGrid(iconPickerTarget === 'edit' ? selectedIconEdit : selectedIcon, filtered);
+  const hidden = hiddenIconKeys();
+  const filtered = ALL_ICONS_LIST.filter(i => !hidden.has(i.key) && i.label.toLowerCase().includes(q));
+  const active=iconPickerTarget==='edit'?selectedIconEdit:iconPickerTarget==='recurring'?selectedRecurringIcon:selectedIcon;
+  renderIconGrid(active, filtered);
 }
 function renderIconGrid(active, list = ALL_ICONS_LIST) {
   document.getElementById('icon-grid').innerHTML = list.map(i => `
-    <div onclick="selectIcon('${i.key.replace(/'/g,"\\'")}') " title="${i.label}"
-      style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:var(--radius-sm);cursor:pointer;border:2px solid ${active===i.key?'var(--purple)':'transparent'};background:${active===i.key?'var(--surface2)':'transparent'};transition:all .15s"
-      onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='${active===i.key?'var(--surface2)':'transparent'}'">
-      <div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center">${ICONS[i.key]||DEFAULT_ICON}</div>
+    <div class="icon-picker-item ${active===i.key?'is-active':''} ${iconManageMode?'is-managing':''}"
+      ${iconManageMode?'':`onclick="selectIcon('${i.key.replace(/'/g,"\\'")}')"`} title="${i.label}">
+      ${iconManageMode ? `<button type="button" class="icon-delete-btn" aria-label="Excluir ícone ${i.label}" title="Excluir ícone" onclick="deleteIconOption('${i.key.replace(/'/g,"\\'")}')">${uiIcon('trash',13)}</button>` : ''}
+      <div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center">${iconContent(i.key)}</div>
       <div style="font-size:9px;color:var(--text3);text-align:center;line-height:1.2;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.label}</div>
     </div>`).join('');
 }
 function selectIcon(key) {
-  if (iconPickerTarget==='edit') { selectedIconEdit=key; document.getElementById('edit-icon-preview').innerHTML=ICONS[key]||DEFAULT_ICON; }
-  else { selectedIcon=key; document.getElementById('icon-picker-preview').innerHTML=ICONS[key]||DEFAULT_ICON; }
+  if (isIconHidden(key)) return;
+  if (iconPickerTarget==='edit') { selectedIconEdit=key; document.getElementById('edit-icon-preview').innerHTML=iconContent(key); }
+  else if (iconPickerTarget==='recurring') { selectedRecurringIcon=key; document.getElementById('recurring-edit-icon-preview').innerHTML=iconContent(key); }
+  else { selectedIcon=key; document.getElementById('icon-picker-preview').innerHTML=iconContent(key); }
   closeIconModal();
+}
+
+function toggleIconManager() {
+  iconManageMode = !iconManageMode;
+  syncIconManagerUi();
+  filterIcons();
+}
+
+function syncIconManagerUi() {
+  const title = document.getElementById('icon-modal-title');
+  const hint = document.getElementById('icon-manage-hint');
+  const toggle = document.getElementById('icon-manage-toggle');
+  const restore = document.getElementById('icon-restore-btn');
+  if (title) title.textContent = iconManageMode ? 'Editar ícones' : 'Escolher ícone';
+  if (hint) hint.style.display = iconManageMode ? 'block' : 'none';
+  if (toggle) {
+    toggle.innerHTML = iconManageMode ? `${uiIcon('check',15)} Concluir` : `${uiIcon('edit',15)} Editar ícones`;
+    toggle.classList.toggle('is-active', iconManageMode);
+  }
+  if (restore) restore.style.display = hiddenIconKeys().size ? 'inline-flex' : 'none';
+}
+
+function deleteIconOption(key) {
+  if (!ICONS[key]) return;
+  const hidden = hiddenIconKeys();
+  hidden.add(key);
+  localStorage.setItem(HIDDEN_ICONS_KEY, JSON.stringify([...hidden]));
+  if (selectedIcon === key) {
+    selectedIcon = null;
+    const preview = document.getElementById('icon-picker-preview');
+    if (preview) preview.innerHTML = DEFAULT_ICON;
+  }
+  if (selectedIconEdit === key) {
+    selectedIconEdit = null;
+    const preview = document.getElementById('edit-icon-preview');
+    if (preview) preview.innerHTML = DEFAULT_ICON;
+  }
+  if (typeof selectedRecurringIcon!=='undefined' && selectedRecurringIcon === key) {
+    selectedRecurringIcon = null;
+    const preview = document.getElementById('recurring-edit-icon-preview');
+    if (preview) preview.innerHTML = DEFAULT_ICON;
+  }
+  syncIconManagerUi();
+  filterIcons();
+  refreshIconConsumers();
+  if (typeof showToast === 'function') showToast(`Ícone “${key}” removido`);
+}
+
+function restoreDeletedIcons() {
+  localStorage.removeItem(HIDDEN_ICONS_KEY);
+  syncIconManagerUi();
+  filterIcons();
+  refreshIconConsumers();
+  if (typeof showToast === 'function') showToast('Ícones restaurados!');
+}
+
+function refreshIconConsumers() {
+  if (typeof renderOverview === 'function') renderOverview();
+  if (typeof renderDespTable === 'function' && document.getElementById('page-despesas')?.classList.contains('active')) renderDespTable();
+  if (typeof renderReceitas === 'function' && document.getElementById('page-receitas')?.classList.contains('active')) renderReceitas();
+  if (typeof renderNotif === 'function' && document.getElementById('page-notif')?.classList.contains('active')) renderNotif();
 }
 
 /* Auto-seleção ao digitar */
@@ -258,11 +342,11 @@ function _autoIconListener(inputId, previewId, isEdit) {
     const current = isEdit ? selectedIconEdit : selectedIcon;
     if (current) return;
     const key = guessIconKey(input.value);
-    if (!key) return;
+    if (!key || isIconHidden(key)) return;
     if (isEdit) { selectedIconEdit = key; }
     else { selectedIcon = key; }
     const el = document.getElementById(previewId);
-    if (el) el.innerHTML = ICONS[key] || DEFAULT_ICON;
+    if (el) el.innerHTML = iconContent(key);
   });
 }
 
@@ -285,6 +369,8 @@ const UI_PATHS = {
   barChart:   `<path d="M3 20h18"/><path d="M7 20v-5M12 20V8M17 20v-8"/>`,
   download:   `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>`,
   repeat:     `<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>`,
+  pause:      `<path d="M9 5v14M15 5v14"/>`,
+  play:       `<path d="m8 5 11 7-11 7Z"/>`,
   user:       `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
   sun:        `<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>`,
   moon:       `<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/>`,

@@ -138,6 +138,8 @@ function renderUpcomingTransactions(){
 }
 
 function renderOverview(){
+  // Contas recorrentes são cadastros mestres; o lançamento do mês nasce ao abrir o app.
+  if(typeof initializeRecurringAccounts==='function')initializeRecurringAccounts();
   // Empty state — esconde gráficos se não há dados
   if (typeof renderEmptyState === 'function') renderEmptyState();
   // Alertas de meta por categoria

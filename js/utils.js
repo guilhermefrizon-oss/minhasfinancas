@@ -80,7 +80,7 @@ function setMoneyField(id, val) {
 }
 
 function initMoneyFields() {
-  ['in-valor', 'in-rec-valor', 'edit-valor', 'edit-rec-valor'].forEach(id => {
+  ['in-valor', 'in-rec-valor', 'edit-valor', 'edit-rec-valor', 'recurring-edit-value'].forEach(id => {
     const el = document.getElementById(id);
     if (el) applyMoneyMask(el);
   });
