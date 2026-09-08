@@ -14,15 +14,26 @@ const SORT_OPTIONS = [
   { key:'status', label:'Status',      icon:'check' },
   { key:'tipo',   label:'Tipo (Fixa/Variável)', icon:'pin' },
 ];
+const REC_SORT_OPTIONS = [
+  { key:'val',    label:'Valor',     icon:'wallet' },
+  { key:'nome',   label:'Nome',      icon:'type' },
+  { key:'cat',    label:'Categoria', icon:'tag' },
+  { key:'status', label:'Status',    icon:'check' },
+];
+let mobileSortType='desp';
 
-function openSortPanel(){
+function openSortPanel(type='desp'){
   const overlay = document.getElementById('sort-panel-overlay');
   const panel   = document.getElementById('sort-panel');
   if(!overlay||!panel) return;
+  mobileSortType=type;
+  const options=type==='rec'?REC_SORT_OPTIONS:SORT_OPTIONS;
+  const activeKey=type==='rec'?recSortKey:despSortKey;
+  const activeDir=type==='rec'?recSortDir:despSortDir;
   // Monta opções
-  document.getElementById('sort-options').innerHTML = SORT_OPTIONS.map(o => {
-    const active = despSortKey === o.key;
-    const dir = active ? (despSortDir === 1 ? ' ↑' : ' ↓') : '';
+  document.getElementById('sort-options').innerHTML = options.map(o => {
+    const active = activeKey === o.key;
+    const dir = active ? (activeDir === 1 ? ' ↑' : ' ↓') : '';
     return `<button onclick="applySortMobile('${o.key}')"
       style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid ${active?'var(--purple)':'var(--border)'};background:${active?'var(--surface3)':'var(--surface2)'};font-family:var(--font);font-size:14px;font-weight:${active?700:500};color:${active?'var(--purple)':'var(--text)'};cursor:pointer;text-align:left;width:100%;transition:all .15s">
       <span style="display:inline-flex">${uiIcon(o.icon,16)}</span>
@@ -41,12 +52,29 @@ function closeSortPanel(){
 }
 
 function applySortMobile(key){
-  sortDesp(key);
-  // Atualiza label do botão
-  const opt = SORT_OPTIONS.find(o=>o.key===key);
-  const lbl = document.getElementById('sort-label-mobile');
-  if(lbl && opt) lbl.textContent = opt.label + (despSortDir===1?' ↑':' ↓');
+  if(mobileSortType==='rec') sortRec(key); else sortDesp(key);
   closeSortPanel();
+}
+
+function toggleCompactSearch(type){
+  const wrap=document.getElementById(type+'-search-wrap');
+  const input=document.getElementById(type+'-search');
+  if(!wrap||!input) return;
+  const willOpen=!wrap.classList.contains('search-open');
+  document.querySelectorAll('.history-search.search-open').forEach(el=>el.classList.remove('search-open'));
+  if(willOpen){
+    wrap.classList.add('search-open');
+    requestAnimationFrame(()=>input.focus());
+  }
+}
+function closeCompactSearch(type){
+  setTimeout(()=>document.getElementById(type+'-search-wrap')?.classList.remove('search-open'),120);
+}
+function handleCompactSearch(type){
+  const wrap=document.getElementById(type+'-search-wrap');
+  const input=document.getElementById(type+'-search');
+  wrap?.classList.toggle('has-value',!!input?.value.trim());
+  if(type==='rec') renderRecTable(); else renderDespTable();
 }
 
 /* ══════ DESPESAS ══════ */
@@ -62,6 +90,7 @@ function setDespFilter(type, value){
 function clearDespFilters(){
   despFilterStatus='all'; despFilterCat='all';
   const search=document.getElementById('desp-search'); if(search) search.value='';
+  document.getElementById('desp-search-wrap')?.classList.remove('has-value','search-open');
   renderDespTable();
 }
 function updateDespCategoryFilter(){
@@ -448,9 +477,18 @@ function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRec
   const pago=items.filter(d=>d.status==='Pago').reduce((s,d)=>s+(d.val||0),0);
   const aPagar=items.filter(d=>d.status==='Falta Pagar'||d.status==='Débito auto').reduce((s,d)=>s+(d.val||0),0);
   document.getElementById('cards-desp').innerHTML=`
-    <div class="card anim-fade-up anim-d1"><div class="card-stripe" style="background:var(--red)"></div><div class="card-label">Total</div><div class="card-value red">${fmt(total)}</div></div>
-    <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">A pagar</div><div class="card-value ${aPagar>0?'amber':''}">${fmt(aPagar)}</div></div>
-    <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Pago</div><div class="card-value green">${fmt(pago)}</div></div>`;
+    <div class="finance-summary-card anim-fade-up anim-d1">
+      <div class="finance-summary-heading"><span class="finance-summary-dot" style="background:var(--red)"></span>Resumo do mês</div>
+      <div class="cmv-hero">
+        <div class="cmv-hero-label">Total de despesas</div>
+        <div class="cmv-hero-val" style="color:var(--red)">${fmt(total)}</div>
+      </div>
+      <div class="cmv-sub-row">
+        <div class="cmv-sub-item"><span class="cmv-sub-label">A pagar</span><span class="cmv-sub-val" style="color:var(--amber)">${fmt(aPagar)}</span></div>
+        <div class="cmv-sub-sep"></div>
+        <div class="cmv-sub-item cmv-sub-desp"><span class="cmv-sub-label">Pago</span><span class="cmv-sub-val" style="color:var(--green)">${fmt(pago)}</span></div>
+      </div>
+    </div>`;
   renderDespByName(items);
   // título e badge removidos (info já aparece nos cards acima)
   const bc={Pago:'pago','Falta Pagar':'falta','Débito auto':'auto'};

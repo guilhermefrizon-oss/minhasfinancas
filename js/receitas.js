@@ -11,6 +11,7 @@ function setRecFilter(type, value){
 function clearRecFilters(){
   recFilterStatus='all'; recFilterCat='all';
   const search=document.getElementById('rec-search'); if(search) search.value='';
+  document.getElementById('rec-search-wrap')?.classList.remove('has-value','search-open');
   renderRecTable();
 }
 function updateRecCategoryFilter(){
@@ -112,9 +113,18 @@ function renderRecTable(){
   const totalAguardando=items.filter(r=>r.status==='Aguardando').reduce((s,r)=>s+(r.val||0),0);
   const totalRec=totalRecebido+totalAguardando;
   document.getElementById('cards-rec').innerHTML=`
-    <div class="card anim-fade-up anim-d1"><div class="card-stripe" style="background:var(--green)"></div><div class="card-label">Recebido</div><div class="card-value green">${fmt(totalRecebido)}</div></div>
-    <div class="card anim-fade-up anim-d2"><div class="card-stripe" style="background:var(--amber)"></div><div class="card-label">Aguardando</div><div class="card-value ${totalAguardando>0?'amber':''}">${fmt(totalAguardando)}</div></div>
-    <div class="card anim-fade-up anim-d3"><div class="card-stripe" style="background:var(--purple)"></div><div class="card-label">Total</div><div class="card-value purple">${fmt(totalRec)}</div></div>`;
+    <div class="finance-summary-card anim-fade-up anim-d1">
+      <div class="finance-summary-heading"><span class="finance-summary-dot" style="background:var(--green)"></span>Resumo do mês</div>
+      <div class="cmv-hero">
+        <div class="cmv-hero-label">Total de receitas</div>
+        <div class="cmv-hero-val" style="color:var(--green)">${fmt(totalRec)}</div>
+      </div>
+      <div class="cmv-sub-row">
+        <div class="cmv-sub-item"><span class="cmv-sub-label">Recebido</span><span class="cmv-sub-val" style="color:var(--green)">${fmt(totalRecebido)}</span></div>
+        <div class="cmv-sub-sep"></div>
+        <div class="cmv-sub-item cmv-sub-desp"><span class="cmv-sub-label">Aguardando</span><span class="cmv-sub-val" style="color:var(--amber)">${fmt(totalAguardando)}</span></div>
+      </div>
+    </div>`;
   // título e badge removidos (info já aparece nos cards acima)
   const recRows = items.length
     ?items.map((r,ri)=>{const aguard=(r.status||'Recebido')==='Aguardando';const rd=`anim-d${Math.min(ri+1,10)}`;return`<tr class="tr-anim ${rd}" style="${aguard?'background:rgba(245,197,66,0.03)':''}">
