@@ -575,36 +575,11 @@ option { background: var(--surface2); }
   align-items: center;
   gap: 7px;
 }
-.cur-month-pulse {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #30d158;
-  box-shadow: 0 0 0 0 rgba(48,209,88,.6);
-  animation: pulse-ring 2s infinite;
-  flex-shrink: 0;
-}
-@keyframes pulse-ring {
-  0%   { box-shadow: 0 0 0 0 rgba(48,209,88,.55); }
-  70%  { box-shadow: 0 0 0 7px rgba(48,209,88,0); }
-  100% { box-shadow: 0 0 0 0 rgba(48,209,88,0); }
-}
 /* Dentro do cartão preto de destaque, o nome do mês e o chevron ficam sempre claros,
    independente do tema (o cartão é sempre escuro) */
 .cur-month-block #cur-month-name,
 .cur-month-block .cur-month-title { color: #ffffff !important; }
 .cur-month-block #cur-month-chevron path { stroke: #ffffff !important; }
-.cur-month-details-btn {
-  background: none;
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 8px;
-  padding: 4px 12px;
-  color: #b8b8bf;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font);
-  cursor: pointer;
-  transition: all .15s;
-}
-.cur-month-details-btn:hover { border-color: #fff; color: #fff; }
 .cur-month-progress-wrap {
   margin-top: .85rem;
 }

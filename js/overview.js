@@ -265,9 +265,6 @@ function getCurMonth(){
 function renderCurMonth(){
   const cm = getCurMonth();
   if(typeof ensureRecurringEntriesForMonth==='function')ensureRecurringEntriesForMonth(cm);
-  const now = new Date();
-  const realCm = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const isRealNow = cm === realCm;
 
   const [y,mo] = cm.split('-');
   const monthName = new Date(+y,+mo-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
@@ -310,9 +307,6 @@ function renderCurMonth(){
   // Progress bar
   const pct = totalRec>0?Math.min(100,Math.round((totalDesp/totalRec)*100)):(totalDesp>0?100:0);
   const barColor = pct>=90?'var(--red)':pct>=70?'var(--amber)':'var(--green)';
-
-  // Pulse: só pisca no mês real atual
-  document.getElementById('cur-month-pulse').style.display = isRealNow ? 'block' : 'none';
 
   // Nome do mês no botão
   document.getElementById('cur-month-name').textContent =
