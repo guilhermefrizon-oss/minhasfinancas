@@ -578,14 +578,16 @@ body.finance-modal-open { overflow:hidden; }
 .finance-modal [id$="icon-preview"]>svg,#icon-picker-preview>svg { width:28px; height:28px; display:block; }
 .finance-month-nav { display:grid; grid-template-columns:44px minmax(0,1fr) 44px; align-items:center; gap:6px; margin:0 0 16px; width:100%; max-width:430px; }
 .finance-month-nav button { min-height:44px; border:1px solid var(--border); border-radius:12px; background:var(--surface2); color:var(--text); font-family:var(--font); cursor:pointer; }
-.finance-month-arrow { width:44px; font-size:24px; }
+.finance-month-arrow { display:flex; align-items:center; justify-content:center; width:44px; padding:0; line-height:1; }
+.finance-nav-icon { display:block; width:20px; height:20px; flex-shrink:0; }
+.finance-nav-chevron { width:16px; height:16px; }
 .finance-month-select { display:flex; align-items:center; justify-content:center; gap:8px; padding:8px; min-width:0; font-size:13px; font-weight:700; }
 .finance-month-select span:first-child { min-width:0; overflow-wrap:anywhere; }
 .finance-month-nav button:disabled,.finance-picker-months button:disabled,.finance-year-nav button:disabled { opacity:.4; cursor:default; }
 .cur-month-title { min-width:0; flex:1; }
 .cur-month-header .finance-month-nav { margin:0; }
 .finance-year-nav { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
-.finance-year-nav button { width:44px; height:44px; border:1px solid var(--border); border-radius:12px; background:var(--surface2); color:var(--text); font-size:24px; cursor:pointer; }
+.finance-year-nav button { display:flex; align-items:center; justify-content:center; padding:0; line-height:1; width:44px; height:44px; border:1px solid var(--border); border-radius:12px; background:var(--surface2); color:var(--text); font-size:24px; cursor:pointer; }
 .finance-picker-months { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
 .finance-picker-months button { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:4px; min-height:60px; min-width:0; padding:10px; border:1px solid var(--border); border-radius:12px; background:var(--surface2); color:var(--text); font:600 13px var(--font); text-transform:capitalize; cursor:pointer; }
 .finance-picker-months button.is-selected { background:var(--text); color:var(--surface); border-color:var(--text); }
