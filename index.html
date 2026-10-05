@@ -306,12 +306,12 @@
     <!-- COLUNA ESQUERDA -->
     <div class="dash-col-left">
 
-      <!-- GASTOS POR CATEGORIA (sem gráfico de pizza — só o total + anéis) -->
+      <!-- GASTOS POR CATEGORIA — barras com valor e percentual -->
       <div class="chart-box anim-fade-up anim-d3 dash-card" id="donut-box">
         <div class="chart-header">
           <div>
             <div class="chart-title" id="donut-title">Gastos de <span id="donut-month-label" style="color:var(--purple)">—</span></div>
-            <div class="chart-hint">Por categoria</div>
+            <div class="chart-hint">Do maior para o menor · participação no total do mês</div>
           </div>
           <div class="legend" id="legend-donut"></div>
         </div>
@@ -329,7 +329,7 @@
 
       <!-- SALDO MENSAL -->
       <div class="chart-box dash-card">
-        <div class="chart-header"><div class="chart-title">Saldo mensal (Receita − Despesa)</div></div>
+        <div class="chart-header"><div><div class="chart-title">Saldo mensal</div><div class="chart-hint">Receita − Despesa · <span data-chart-range></span></div></div><div class="chart-period-controls" role="group" aria-label="Período dos gráficos mensais"><button type="button" data-chart-period="6" class="active" aria-pressed="true" onclick="setChartPeriod(6)">6 meses</button><button type="button" data-chart-period="12" aria-pressed="false" onclick="setChartPeriod(12)">12 meses</button></div></div>
         <div style="position:relative;width:100%;height:160px"><canvas id="chartSaldo"></canvas></div>
       </div>
 
@@ -363,9 +363,9 @@
         <div class="chart-header">
           <div>
             <div class="chart-title">Receita vs Despesas por categoria</div>
-            <div class="chart-hint">Passe o mouse para ver detalhes · Clique para filtrar o mês</div>
+            <div class="chart-hint"><span data-chart-range></span> · Toque nas barras para ver detalhes</div>
           </div>
-          <div class="legend" id="legend-bar"></div>
+          <div class="chart-period-controls" role="group" aria-label="Período dos gráficos mensais"><button type="button" data-chart-period="6" class="active" aria-pressed="true" onclick="setChartPeriod(6)">6 meses</button><button type="button" data-chart-period="12" aria-pressed="false" onclick="setChartPeriod(12)">12 meses</button></div><div class="legend" id="legend-bar"></div>
         </div>
         <div style="position:relative;width:100%;height:260px"><canvas id="chartBar"></canvas></div>
       </div>
@@ -577,7 +577,7 @@
   </div>
   <div class="chart-box" style="margin-top:1.25rem">
     <div class="chart-header">
-      <div class="chart-title">Histórico de receitas</div>
+      <div><div class="chart-title">Histórico de receitas</div><div class="chart-hint" data-chart-range></div></div><div class="chart-period-controls" role="group" aria-label="Período dos gráficos mensais"><button type="button" data-chart-period="6" class="active" aria-pressed="true" onclick="setChartPeriod(6)">6 meses</button><button type="button" data-chart-period="12" aria-pressed="false" onclick="setChartPeriod(12)">12 meses</button></div>
       <div class="legend">
         <div class="legend-item"><div class="ldot" style="background:var(--green)"></div>Recebido</div>
         <div class="legend-item"><div class="ldot" style="background:var(--amber)"></div>Aguardando</div>
