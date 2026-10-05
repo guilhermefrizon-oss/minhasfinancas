@@ -143,10 +143,10 @@ async function loadDataFromCloud(uid){
             resolve({ despesas: d.despesas||[], receitas: d.receitas||[], recorrentes: Array.isArray(d.recorrentes)?d.recorrentes:null, recorrentesVersao:d.recorrentesVersao||null, lixeira:Array.isArray(d.lixeira)?d.lixeira:[] });
           } else {
             // Documento não existe — cria vazio e retorna limpo
-            fns.setDoc(docRef, { despesas:[], receitas:[], recorrentes:[], recorrentesVersao:2, lixeira:[], _criado: Date.now() }, { merge: true })
+            fns.setDoc(docRef, { despesas:[], receitas:[], recorrentes:[], recorrentesVersao:3, lixeira:[], _criado: Date.now() }, { merge: true })
               .catch(e => console.warn('[App] Erro ao criar documento:', e));
             console.log('[App] Conta nova criada');
-            resolve({ despesas: [], receitas: [], recorrentes: [], recorrentesVersao:2, lixeira:[] });
+            resolve({ despesas: [], receitas: [], recorrentes: [], recorrentesVersao:3, lixeira:[] });
           }
         }
       },
@@ -194,7 +194,7 @@ function saveData(){
   localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
   localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
   localStorage.setItem('gastos_cache_recorrentes', JSON.stringify(DATA.recorrentes||[]));
-  localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||2));
+  localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||3));
   localStorage.setItem('gastos_cache_lixeira', JSON.stringify(DATA.lixeira||[]));
   if(typeof updateTrashBadge==='function')updateTrashBadge();
   _pendingSync=true;
@@ -215,7 +215,7 @@ async function syncToFirestore(){
       despesas: DATA.despesas,
       receitas: DATA.receitas,
       recorrentes: DATA.recorrentes||[],
-      recorrentesVersao: DATA.recorrentesVersao||2,
+      recorrentesVersao: DATA.recorrentesVersao||3,
       lixeira: DATA.lixeira||[],
       atualizadoEm: Date.now()
     });
@@ -291,7 +291,7 @@ function startRealtimeSync(uid) {
         localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
         localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
         localStorage.setItem('gastos_cache_recorrentes', JSON.stringify(DATA.recorrentes||[]));
-        localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||2));
+        localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||3));
         localStorage.setItem('gastos_cache_lixeira', JSON.stringify(DATA.lixeira||[]));
         // Re-renderiza tudo silenciosamente
         renderOverview();
@@ -370,7 +370,7 @@ window._onFbLogin = async function(user){
         localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
         localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
         localStorage.setItem('gastos_cache_recorrentes', JSON.stringify(DATA.recorrentes||[]));
-        localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||2));
+        localStorage.setItem('gastos_cache_recorrentes_versao', String(DATA.recorrentesVersao||3));
         localStorage.setItem('gastos_cache_lixeira', JSON.stringify(DATA.lixeira||[]));
         renderOverview();
         updateNotifBadge();
@@ -418,7 +418,7 @@ window._onFbLogout = function(){
   localStorage.removeItem('gastos_cache_recorrentes');
   localStorage.removeItem('gastos_cache_recorrentes_versao');
   localStorage.removeItem('gastos_cache_lixeira');
-  DATA={despesas:[],receitas:[],recorrentes:[],recorrentesVersao:2,lixeira:[]};
+  DATA={despesas:[],receitas:[],recorrentes:[],recorrentesVersao:3,lixeira:[]};
   // Pré-preenche email salvo
   const savedEmail = localStorage.getItem('gastos_saved_email');
   if(savedEmail){
