@@ -8,7 +8,7 @@ function app(){
  function field(id){if(fields[id])return fields[id];const classes=new Set();let value='';return fields[id]={id,get value(){return value;},set value(v){value=String(v);},textContent:'',innerHTML:'',style:{},dataset:{},children:[{}],isConnected:true,checked:false,disabled:false,hidden:false,scrollTop:20,offsetWidth:0,options:[],focus(){ctx.document.activeElement=this;},addEventListener(){},setAttribute(){},scrollTo(){},querySelector(sel){return field(sel.includes('body')?id+'-body':id+'-close');},classList:{add:n=>classes.add(n),remove:n=>classes.delete(n),contains:n=>classes.has(n),toggle(n,on){if(on===undefined)on=!classes.has(n);on?classes.add(n):classes.delete(n);}}};}
  const pages=['overview','despesas','receitas','notif'].map(id=>field('page-'+id));pages[0].classList.add('active');
  const nav=pages.map((_,i)=>field('nav-'+i));
- const ctx=vm.createContext({DATA:{despesas:[],receitas:[],recorrentes:[],recorrentesVersao:3},Date:class extends Date{constructor(...args){super(...(args.length?args:['2026-10-05T15:00:00Z']));}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},window:{innerWidth:375,scrollTo(){}},navigator:{},selectedIcon:null,DEFAULT_ICON:'',uiIcon:()=>'',itemIcon:()=>'',iconContent:()=>'',guessIconKey:()=>null,requestAnimationFrame:f=>f(),setTimeout:f=>{},getComputedStyle:el=>({zIndex:el.style.zIndex||510}),document:{activeElement:null,body:field('body'),getElementById:field,addEventListener(){},querySelector(sel){if(sel.includes('venc-scope'))return field(sel.includes('value="only"')?'scope-only':'scope-checked');if(sel==='.page.active')return pages.find(p=>p.classList.contains('active'));if(sel.includes('modal.open'))return Object.values(fields).find(p=>p.classList.contains('open'));return null;},querySelectorAll(sel){if(sel==='.page')return pages;if(sel==='.nav-btn')return nav;if(sel==='[data-finance-step]')return [field('prev'),field('next')];if(sel==='.finance-month-current')return [field('current')];return [];}}});
+ const ctx=vm.createContext({DATA:{despesas:[],receitas:[],recorrentes:[],recorrentesVersao:3},Date:class extends Date{constructor(...args){super(...(args.length?args:['2026-10-05T15:00:00Z']));}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},window:{innerWidth:375,scrollTo(){}},navigator:{},selectedIcon:null,DEFAULT_ICON:'',uiIcon:()=>'',itemIcon:()=>'',iconContent:()=>'',guessIconKey:()=>null,requestAnimationFrame:f=>f(),setTimeout:f=>{},getComputedStyle:el=>({zIndex:el.style.zIndex||510}),document:{activeElement:null,body:field('body'),getElementById:field,addEventListener(){},querySelector(sel){if(sel.includes('venc-scope'))return field(sel.includes('value="only"')?'scope-only':'scope-checked');if(sel==='.page.active')return pages.find(p=>p.classList.contains('active'));if(sel.includes('modal.open'))return Object.values(fields).find(p=>p.classList.contains('open'));return null;},querySelectorAll(sel){if(sel==='.page')return pages;if(sel==='.nav-btn')return nav;if(sel==='[data-finance-step]')return [field('prev'),field('next')];return [];}}});
  field('prev').dataset.financeStep='-1';field('next').dataset.financeStep='1';
  for(const name of ['utils','overview','despesas','receitas','lancamentos','finance-ui','app'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',name+'.js'),'utf8'),ctx);
  for(const fn of ['renderDespTable','renderRecTable','renderRecCharts','renderOverview','renderCurMonth','renderUpcomingTransactions','renderDonutChart','renderManageList'])ctx[fn]=()=>{counts[fn]=(counts[fn]||0)+1;};
@@ -28,7 +28,7 @@ test('setas respeitam limites e retorno ao mês atual sincroniza as telas',()=>{
  a.ctx.setFinanceMonth('2026-09',false);assert.equal(a.fields.prev.disabled,true);a.ctx.stepFinanceMonth(-1);assert.equal(a.ctx.getCurMonth(),'2026-09');
  a.ctx.stepFinanceMonth(1);assert.equal(a.ctx.getCurMonth(),'2026-10');
  a.ctx.setFinanceMonth('2026-12',false);assert.equal(a.fields.next.disabled,true);a.ctx.stepFinanceMonth(1);assert.equal(a.ctx.getCurMonth(),'2026-12');
- a.ctx.goToCurrentFinanceMonth();assert.equal(a.ctx.getCurMonth(),'2026-10');assert.equal(a.fields.current.hidden,true);
+ a.ctx.goToCurrentFinanceMonth();assert.equal(a.ctx.getCurMonth(),'2026-10');
 });
 test('seletor compartilhado abre no ano escolhido e não modifica cobranças',()=>{
  const a=app();a.ctx.DATA.despesas=[{id:1,nome:'Conta',mes:'2027-02',val:20}];
@@ -65,4 +65,13 @@ test('fechar formulário mantém lançamentos e libera rolagem',()=>{
  const a=app();a.ctx.DATA.despesas=[{id:1,nome:'Conta',mes:'2026-10',val:10,status:'Pago'}];const before=JSON.stringify(a.ctx.DATA);
  a.ctx.openModal(1);assert.equal(a.fields.body.classList.contains('finance-modal-open'),true);a.fields['edit-valor'].value='99';a.ctx.closeModal();
  assert.equal(a.fields.body.classList.contains('finance-modal-open'),false);assert.equal(JSON.stringify(a.ctx.DATA),before);
+});
+test('navegação visível tem somente duas setas e não exibe atalho solto',()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+ assert.equal((html.match(/class="finance-month-current"/g)||[]).length,0);
+ assert.equal((html.match(/id="cur-month-pulse"/g)||[]).length,0);
+ assert.equal((html.match(/class="cur-month-details-btn"/g)||[]).length,0);
+ const navs=[...html.matchAll(/<div class="finance-month-nav"[\s\S]*?<\/div>/g)];
+ assert.equal(navs.length,3);
+ navs.forEach(nav=>assert.equal((nav[0].match(/data-finance-step=/g)||[]).length,2));
 });

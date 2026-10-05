@@ -16,7 +16,6 @@ function updateFinanceMonthControls(){
   const month=getCurMonth(),[year,number]=month.split('-'),label=new Date(Number(year),Number(number)-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}),months=financeMonths(),idx=months.indexOf(month);
   ['cur-month-name','desp-month-btn-label','rec-month-btn-label'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=label.charAt(0).toUpperCase()+label.slice(1);});
   document.querySelectorAll('[data-finance-step]').forEach(btn=>{btn.disabled=Number(btn.dataset.financeStep)<0?idx<=0:idx>=months.length-1;});
-  document.querySelectorAll('.finance-month-current').forEach(btn=>{btn.hidden=month===financeCurrentMonth();});
 }
 function renderFinanceMonth(){
   const page=document.querySelector('.page.active')?.id;

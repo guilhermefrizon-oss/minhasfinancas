@@ -581,8 +581,6 @@ body.finance-modal-open { overflow:hidden; }
 .finance-month-arrow { width:44px; font-size:24px; }
 .finance-month-select { display:flex; align-items:center; justify-content:center; gap:8px; padding:8px; min-width:0; font-size:13px; font-weight:700; }
 .finance-month-select span:first-child { min-width:0; overflow-wrap:anywhere; }
-.finance-month-current { grid-column:1/-1; justify-self:center; min-height:36px!important; padding:6px 12px; font-size:12px; }
-.finance-month-current[hidden] { display:none; }
 .finance-month-nav button:disabled,.finance-picker-months button:disabled,.finance-year-nav button:disabled { opacity:.4; cursor:default; }
 .cur-month-title { min-width:0; flex:1; }
 .cur-month-header .finance-month-nav { margin:0; }
