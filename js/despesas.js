@@ -5,7 +5,49 @@ function guessTipo(cat){
   return CATS_FIXAS_DEFAULT.includes(main) ? 'fixa' : 'variavel';
 }
 function installmentBadge(d){return d.parcelamentoId&&d.parcelaAtual&&d.parcelasTotal?`<span class="installment-badge">${d.parcelaAtual}/${d.parcelasTotal}</span>`:'';}
-function mobileGestureHint(doneLabel){return`<div class="mobile-gesture-hint"><span>${uiIcon('arrowRight',13)} ${doneLabel}</span><span>Enviar à lixeira ${uiIcon('arrowLeft',13)}</span></div>`;}
+function mobileGestureHint(doneLabel){return`<div class="mobile-gesture-hint"><span>Toque no lançamento para edição rápida.</span><span>Deslize → para ${doneLabel.toLowerCase()} · ← para enviar à lixeira.</span></div>`;}
+
+
+/* Shared feedback for filters in both lists. Values are escaped before rendering. */
+function historyEscape(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function historyActiveFilters(type){
+  const status=type==='rec'?recFilterStatus:despFilterStatus;
+  const cat=type==='rec'?recFilterCat:despFilterCat;
+  const search=document.getElementById(type+'-search')?.value.trim()||'';
+  const filters=[];
+  if(status!=='all')filters.push({key:'status',label:'Status: '+status});
+  if(cat!=='all')filters.push({key:'cat',label:'Categoria: '+(type==='rec'?cat:catLabel(cat))});
+  if(search)filters.push({key:'search',label:'Busca: '+search});
+  return filters;
+}
+function removeHistoryFilter(type,key){
+  if(key==='search'){
+    const input=document.getElementById(type+'-search');if(input)input.value='';
+    document.getElementById(type+'-search-wrap')?.classList.remove('has-value','search-open');
+    if(type==='rec')renderRecTable();else renderDespTable();
+  }else if(type==='rec')setRecFilter(key,'all');else setDespFilter(key,'all');
+}
+function updateHistoryFilterSummary(type,shown,total){
+  const filters=historyActiveFilters(type);
+  const box=document.getElementById(type+'-filter-summary');
+  const clear=document.getElementById(type+'-clear-filters');
+  if(clear){clear.style.display=filters.length?'inline-flex':'none';clear.textContent='Limpar filtros';}
+  if(box)box.innerHTML=`<p class="history-result-count" aria-live="polite">${shown} de ${total} ${type==='rec'?'receitas':'despesas'} neste mês${filters.length?' · filtros ativos':''}</p>`+
+    (filters.length?`<div class="history-active-filters">${filters.map(f=>`<button type="button" class="history-filter-chip" onclick="removeHistoryFilter('${type}','${f.key}')" aria-label="${historyEscape('Remover '+f.label)}">${historyEscape(f.label)}<span aria-hidden="true">×</span></button>`).join('')}</div>`:'');
+  return filters.length>0;
+}
+function historyEmptyState(type,total){
+  const filtered=total>0&&historyActiveFilters(type).length>0;
+  return `<div class="history-empty"><strong>${filtered?'Nenhum lançamento corresponde aos filtros.':`Nenhuma ${type==='rec'?'receita':'despesa'} neste mês.`}</strong>`+
+    (filtered?`<p>Há ${total} ${type==='rec'?'receitas':'despesas'} neste mês. Limpe os filtros para ver todas.</p><button type="button" class="history-empty-clear" onclick="${type==='rec'?'clearRecFilters':'clearDespFilters'}()">Limpar filtros</button>`:'')+'</div>';
+}
+function mobileEntryActions(type,id,done){
+  const isRec=type==='rec';
+  const paidLabel=isRec?'Recebido':'Pago';
+  return `<div class="entry-mobile-actions">`+
+    (done?`<span class="entry-done">${uiIcon('check',16)}${paidLabel}</span>`:`<button type="button" class="entry-pay" onclick="${isRec?'markRevenueReceived':'markExpensePaid'}(${id})" aria-label="${isRec?'Marcar como recebido':'Marcar como pago'}">${uiIcon('check',16)}${isRec?'Receber':'Pagar'}</button>`)+
+    `<button type="button" onclick="${isRec?'openRecModal':'openModal'}(${id})">${uiIcon('edit',16)}Editar</button><button type="button" class="entry-trash" onclick="${isRec?'deleteRecEntry':'deleteDespEntry'}(${id})" aria-label="Enviar lançamento à lixeira">${uiIcon('trash',16)}Lixeira</button></div>`;
+}
 
 /* ── Painel de ordenação mobile ── */
 const SORT_OPTIONS = [
@@ -104,16 +146,10 @@ function updateDespCategoryFilter(){
   if(!select) return;
   const categories=[...new Set(DATA.despesas.map(d=>d.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   if(despFilterCat!=='all'&&!categories.includes(despFilterCat)) despFilterCat='all';
-  select.innerHTML=`<option value="all">Categoria</option>`+categories.map(cat=>`<option value="${cat}">${catLabel(cat)}</option>`).join('');
+  select.innerHTML=`<option value="all">Categoria</option>`+categories.map(cat=>`<option value="${historyEscape(cat)}">${historyEscape(catLabel(cat))}</option>`).join('');
   select.value=despFilterCat;
   const status=document.getElementById('desp-status-filter'); if(status) status.value=despFilterStatus;
-  const clear=document.getElementById('desp-clear-filters');
-  const activeCount = Number(despFilterStatus!=='all') + Number(despFilterCat!=='all') + Number(!!document.getElementById('desp-search')?.value);
-  if(clear){
-    clear.style.display=activeCount?'inline-flex':'none';
-    clear.textContent=`Limpar filtros (${activeCount})`;
-    clear.setAttribute('aria-label', `Limpar ${activeCount} filtro${activeCount>1?'s':''} ativo${activeCount>1?'s':''}`);
-  }
+
 }
 function sortDesp(key){
   if(despSortKey===key)despSortDir*=-1; else{despSortKey=key;despSortDir=key==='val'?-1:1;}
@@ -251,11 +287,6 @@ function mobDespCard(d){
 
   const catCol=catColor(d.cat);
 
-  // Toggle button: check verde = pago, círculo = não pago (igual pra débito e falta pagar)
-  const toggleClass=isPago?'pago':isDebito?'debito':'';
-  const toggleIcon=isPago?uiIcon('check',16):uiIcon('circle',16);
-  const toggleTitle=isPago?'Pago':'Marcar como pago';
-
   // Meta line: pagamento + vencimento — sempre na segunda linha, sem quebrar
   const metaParts = [
     d.pag || null,
@@ -283,11 +314,10 @@ function mobDespCard(d){
       </div>
       <div class="mob-card-right">
         <span class="mob-card-val" style="color:${isPago?'var(--text3)':d.val>0?'var(--text)':'var(--text3)'}">${d.val>0?fmt(d.val):'—'}</span>
-        <div class="mob-card-actions">
-          <button class="mob-toggle-btn ${toggleClass}" onclick="event.stopPropagation();togglePago(${d.id})" title="${toggleTitle}">${toggleIcon}</button>
-        </div>
+
       </div>
     </div>
+    ${mobileEntryActions('desp',d.id,isPago)}
     <div class="mob-inline-edit" id="inline-edit-${sid}" style="display:none">
       <div class="mie-body">
         <p class="finance-inline-scope">Altera somente este lançamento de ${mesLabel(d.mes)}.</p>
@@ -319,7 +349,7 @@ function mobDespCard(d){
         <button class="mie-btn-icon" onclick="event.stopPropagation();openParcela(${d.id})" title="Somar outro valor no mês" aria-label="Somar outro valor no mês">${uiIcon('plus',18)}</button>
         <button class="mie-btn-icon" onclick="event.stopPropagation();openModal(${d.id})" title="Editar lançamento completo" aria-label="Editar lançamento completo">${uiIcon('edit',18)}</button>
         <button class="mie-btn-history" onclick="event.stopPropagation();openItemDetail('${nomeSafe}',event)" title="Ver histórico" aria-label="Ver histórico">${uiIcon('barChart',18)}</button>
-        <button class="mie-btn-del" onclick="event.stopPropagation();deleteDespEntry(${d.id})">${uiIcon('trash',18,'var(--red)')}</button>
+        <button class="mie-btn-del" aria-label="Enviar lançamento à lixeira" title="Enviar à lixeira" onclick="event.stopPropagation();deleteDespEntry(${d.id})">${uiIcon('trash',18,'var(--red)')}</button>
       </div>
     </div>
   </div>`;
@@ -328,10 +358,6 @@ function mobDespCard(d){
 function mobRecCard(r, ri){
   const aguard=(r.status||'Recebido')==='Aguardando';
   const barCol=aguard?'var(--amber)':'var(--green)';
-  const toggleClass=aguard?'':'pago';
-  const toggleIcon=aguard?uiIcon('circle',16):uiIcon('check',16);
-  const toggleTitle=aguard?'Marcar como recebido':'Recebido';
-  const catCol='var(--green)';
   const sid=mieId(r.id);
   return `<div class="swipe-wrapper" data-rec-id="${r.id}">
     <div class="swipe-paid-bg">${uiIcon('check',22)}<span>Recebido</span></div>
@@ -346,11 +372,10 @@ function mobRecCard(r, ri){
       </div>
       <div class="mob-card-right">
         <span class="mob-card-val" style="color:${aguard?'var(--amber)':'var(--green)'}">${r.val>0?fmt(r.val):'—'}</span>
-        <div class="mob-card-actions">
-          <button class="mob-toggle-btn ${toggleClass}" onclick="event.stopPropagation();toggleRecStatus(${r.id})" title="${toggleTitle}">${toggleIcon}</button>
-        </div>
+
       </div>
     </div>
+    ${mobileEntryActions('rec',r.id,!aguard)}
     <div class="mob-inline-edit" id="rec-inline-edit-${sid}" style="display:none">
       <div class="mie-body">
         <div class="mie-field">
@@ -368,7 +393,7 @@ function mobRecCard(r, ri){
       <div class="mie-footer">
         <button class="mie-btn-save" onclick="event.stopPropagation();saveInlineEditRec(${r.id})">Salvar</button>
         <button class="mie-btn-full" onclick="event.stopPropagation();openRecModal(${r.id})">Editar tudo ›</button>
-        <button class="mie-btn-del" onclick="event.stopPropagation();deleteRecEntry(${r.id})">${uiIcon('trash',18,'var(--red)')}</button>
+        <button class="mie-btn-del" aria-label="Enviar lançamento à lixeira" title="Enviar à lixeira" onclick="event.stopPropagation();deleteRecEntry(${r.id})">${uiIcon('trash',18,'var(--red)')}</button>
       </div>
     </div>
   </div>`;
@@ -443,12 +468,15 @@ function renderDespTable(){
     if(despSortKey==='tipo'){va=(a.tipo||guessTipo(a.cat));vb=(b.tipo||guessTipo(b.cat));return despSortDir*(va<vb?-1:va>vb?1:0);}
     return 0;
   });
+  const monthTotal=DATA.despesas.filter(d=>d.mes===m).length;
+  const filtersActive=updateHistoryFilterSummary('desp',items.length,monthTotal);
+  const emptyState=historyEmptyState('desp',monthTotal);
   const total=items.reduce((s,d)=>s+(d.val||0),0);
   const pago=items.filter(d=>d.status==='Pago').reduce((s,d)=>s+(d.val||0),0);
   const aPagar=items.filter(d=>d.status==='Falta Pagar'||d.status==='Débito auto').reduce((s,d)=>s+(d.val||0),0);
   document.getElementById('cards-desp').innerHTML=`
     <div class="finance-summary-card anim-fade-up anim-d1">
-      <div class="finance-summary-heading"><span class="finance-summary-dot" style="background:var(--red)"></span>Resumo do mês</div>
+      <div class="finance-summary-heading"><span class="finance-summary-dot" style="background:var(--red)"></span>${filtersActive?'Resumo filtrado':'Resumo do mês'}</div>
       <div class="cmv-hero">
         <div class="cmv-hero-label">Total de despesas</div>
         <div class="cmv-hero-val" style="color:var(--red)">${fmt(total)}</div>
@@ -486,8 +514,8 @@ function renderDespTable(){
         <td><span class="cat-pill" style="background:${catColor(d.cat)}18;color:${catColor(d.cat)};opacity:.75">${catLabel(d.cat)}</span></td>
         <td>${valCell(d)}</td>
         <td>${vencBadge(d)}</td>
-        <td><span class="badge ${bc[d.status]||'nd'}" style="cursor:pointer" onclick="togglePago(${d.id})">${d.status}</span></td>
-        <td style="white-space:nowrap"><button class="edit-btn" onclick="openParcela(${d.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Somar outro valor no mês">${uiIcon('plus',14)}</button><button class="edit-btn" onclick="openModal(${d.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Editar">${uiIcon('edit',14)}</button><button class="edit-btn" onclick="openItemDetail('${nomeSafe}',event)" style="margin-right:4px;display:inline-flex;align-items:center" title="Ver histórico">${uiIcon('barChart',14)}</button><button class="btn-del" onclick="deleteDespEntry(${d.id})" style="display:inline-flex;align-items:center" title="Excluir">${uiIcon('trash',14)}</button></td>
+        <td><span class="badge ${bc[d.status]||'nd'}">${d.status}</span>${d.status!=='Pago'?`<button type="button" class="entry-table-pay" onclick="markExpensePaid(${d.id})">Pagar</button>`:''}</td>
+        <td style="white-space:nowrap"><button class="edit-btn" onclick="openParcela(${d.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Somar outro valor no mês">${uiIcon('plus',14)}</button><button class="edit-btn" onclick="openModal(${d.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Editar lançamento" aria-label="Editar lançamento">${uiIcon('edit',14)} Editar</button><button class="edit-btn" onclick="openItemDetail('${nomeSafe}',event)" style="margin-right:4px;display:inline-flex;align-items:center" title="Ver histórico">${uiIcon('barChart',14)}</button><button class="btn-del" onclick="deleteDespEntry(${d.id})" style="display:inline-flex;align-items:center" title="Enviar à lixeira" aria-label="Enviar lançamento à lixeira">${uiIcon('trash',14)} Lixeira</button></td>
       </tr>`;
   }
   function sectionHeader(label, subtotal){
@@ -497,9 +525,9 @@ function renderDespTable(){
   }
   _rowIdx=0;
   if(!items.length){
-    document.getElementById('desp-tbody').innerHTML=`<tr><td colspan="6" class="empty-msg">Nenhuma despesa neste mês.</td></tr>`;
+    document.getElementById('desp-tbody').innerHTML=`<tr><td colspan="6" class="empty-msg">${emptyState}</td></tr>`;
     const ml=document.getElementById('desp-mobile-list');
-    if(ml) ml.innerHTML=`<div class="empty-msg">Nenhuma despesa neste mês.</div>`;
+    if(ml) ml.innerHTML=`<div class="empty-msg">${emptyState}</div>`;
   } else if(fixas.length && variaveis.length){
     const totalFixas=fixas.reduce((s,d)=>s+(d.val||0),0);
     const totalVariaveis=variaveis.reduce((s,d)=>s+(d.val||0),0);

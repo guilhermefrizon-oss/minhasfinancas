@@ -396,7 +396,7 @@
             <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="7.5" cy="7.5" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M11.2 11.2L16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           </button>
           <svg class="history-search-input-icon" width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <input type="text" id="desp-search" placeholder="Buscar despesa..." oninput="handleCompactSearch('desp')" onblur="closeCompactSearch('desp')" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s">
+          <input type="text" id="desp-search" aria-label="Buscar despesas" placeholder="Buscar despesa..." oninput="handleCompactSearch('desp')" onblur="closeCompactSearch('desp')" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s">
         </div>
         <select id="desp-status-filter" class="history-filter" aria-label="Filtrar despesas por status" onchange="setDespFilter('status',this.value)">
           <option value="all">Status</option>
@@ -407,13 +407,13 @@
         <select id="desp-cat-filter" class="history-filter" aria-label="Filtrar despesas por categoria" onchange="setDespFilter('cat',this.value)">
           <option value="all">Categoria</option>
         </select>
-        <button id="desp-clear-filters" class="history-clear" type="button" onclick="clearDespFilters()" style="display:none">Limpar</button>
         <!-- Ordenar: visível só no mobile -->
         <button onclick="openSortPanel('desp')" id="desp-sort-btn" class="history-sort-btn" aria-label="Ordenar despesas" title="Ordenar" style="display:none">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </button>
       </div>
     </div>
+    <div class="history-filter-feedback"><div id="desp-filter-summary" class="history-filter-summary"></div><button id="desp-clear-filters" class="history-clear" type="button" onclick="clearDespFilters()" style="display:none">Limpar filtros</button></div>
     <div class="table-scroll">
       <table>
         <thead>
@@ -423,7 +423,7 @@
             <th onclick="sortDesp('val')">Valor <span class="sort-arrow" id="sort-desp-val">↕</span></th>
             <th onclick="sortDesp('venc')">Vencimento <span class="sort-arrow" id="sort-desp-venc">↕</span></th>
             <th onclick="sortDesp('status')">Status <span class="sort-arrow" id="sort-desp-status">↕</span></th>
-            <th></th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody id="desp-tbody"></tbody>
@@ -543,7 +543,7 @@
             <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="7.5" cy="7.5" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M11.2 11.2L16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           </button>
           <svg class="history-search-input-icon" width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <input type="text" id="rec-search" placeholder="Buscar receita..." oninput="handleCompactSearch('rec')" onblur="closeCompactSearch('rec')" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s">
+          <input type="text" id="rec-search" aria-label="Buscar receitas" placeholder="Buscar receita..." oninput="handleCompactSearch('rec')" onblur="closeCompactSearch('rec')" style="width:100%;padding:6px 10px 6px 28px;font-size:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s">
         </div>
         <select id="rec-status-filter" class="history-filter" aria-label="Filtrar receitas por status" onchange="setRecFilter('status',this.value)">
           <option value="all">Status</option>
@@ -553,12 +553,12 @@
         <select id="rec-cat-filter" class="history-filter" aria-label="Filtrar receitas por categoria" onchange="setRecFilter('cat',this.value)">
           <option value="all">Categoria</option>
         </select>
-        <button id="rec-clear-filters" class="history-clear" type="button" onclick="clearRecFilters()" style="display:none">Limpar</button>
         <button onclick="openSortPanel('rec')" id="rec-sort-btn" class="history-sort-btn" aria-label="Ordenar receitas" title="Ordenar" style="display:none">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </button>
       </div>
     </div>
+    <div class="history-filter-feedback"><div id="rec-filter-summary" class="history-filter-summary"></div><button id="rec-clear-filters" class="history-clear" type="button" onclick="clearRecFilters()" style="display:none">Limpar filtros</button></div>
     <div class="table-scroll">
       <table>
         <thead>
@@ -567,7 +567,7 @@
             <th onclick="sortRec('cat')">Categoria <span class="sort-arrow" id="sort-rec-cat">↕</span></th>
             <th onclick="sortRec('val')">Valor <span class="sort-arrow" id="sort-rec-val">↕</span></th>
             <th onclick="sortRec('status')">Status <span class="sort-arrow" id="sort-rec-status">↕</span></th>
-            <th></th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody id="rec-tbody"></tbody>
