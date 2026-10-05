@@ -1,0 +1,132 @@
+/* Shared visual scale. Loaded after component styles, for light and dark themes. */
+:root {
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --control-height:44px;
+  --control-radius:12px;
+  --action-icon-size:20px;
+}
+button { font-family:var(--font); line-height:1.35; }
+button svg { display:block; flex-shrink:0; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline:2px solid var(--text2); outline-offset:3px;
+}
+/* Controls share their touch area; category and preview illustrations retain their sizes. */
+.header-icon-btn,.header-menu-btn,.sd-close,.ss-back,.profile-back,
+.modal-btn-icon,.mob-edit-btn,.mie-btn-icon,.mie-btn-history {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:var(--control-height); height:var(--control-height);
+  min-width:var(--control-height); padding:0; border-radius:var(--control-radius);
+  flex-shrink:0; line-height:1;
+}
+.header-icon-btn,.header-menu-btn { margin-left:0; }
+.header-icon-btn>svg,.header-menu-btn>svg,.sd-close>svg,.ss-back>svg,
+.profile-back>svg,.modal-btn-icon>svg,.mob-edit-btn>svg,.edit-btn>svg,
+.recurring-action>svg,.trash-actions button>svg,.mie-btn-icon>svg,.mie-btn-history>svg {
+  width:var(--action-icon-size); height:var(--action-icon-size);
+}
+.modal-btn-primary,.modal-btn-secondary,.modal-btn-danger,.ss-btn,.btn-add,
+.edit-btn,.btn-del,.ap-cancel,.pfchip,.sidebar-btn,.sidebar-add-btn,
+.dash-add-btn,.overview-analysis-toggle,.trash-empty-btn,.gs-cancel,
+.trash-actions button,.mie-btn-save,.mie-btn-full,.mie-btn-del,.login-btn,.login-tab {
+  min-height:var(--control-height); border-radius:var(--control-radius);
+}
+.edit-btn,.btn-del { display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); }
+.edit-btn { background:var(--surface2); padding:var(--space-2) var(--space-3); }
+.btn-del { min-width:var(--control-height); }
+.pfchip { padding:var(--space-2) var(--space-3); font-size:12px; line-height:1.35; border-radius:24px; }
+.recurring-filters { gap:var(--space-2); }
+.recurring-filters .pfchip { min-height:var(--control-height); font-size:12px; }
+.modal-btn-primary,.modal-btn-secondary,.modal-btn-danger,.ss-btn { font-size:14px; font-weight:650; }
+.modal-actions { gap:var(--space-2); }
+.modal-actions>button { min-width:0; overflow-wrap:anywhere; }
+/* Consistent section rhythm and card insets. */
+.table-box,.form-box,.finance-summary-card,.cur-month-block { margin-bottom:var(--space-6); }
+.table-header { padding:var(--space-5); gap:var(--space-3); }
+.table-title,.recurring-section-heading,.modal-title,.ap-title { font-size:20px; line-height:1.35; }
+.recurring-section-header { padding:var(--space-5); }
+.recurring-section-body { padding:0 var(--space-5) var(--space-3); }
+.recurring-admin-card,.trash-card { padding:var(--space-4); border-radius:16px; margin-bottom:var(--space-3); }
+.form-grid { gap:var(--space-3); }
+.form-group { min-width:0; gap:var(--space-2); }
+.finance-modal-header,.recurring-modal-header { align-items:center; padding:var(--space-5); }
+.finance-modal-header .modal-title { font-size:20px; }
+.finance-modal-body,.recurring-modal-body { padding:var(--space-5); }
+.finance-modal-footer { padding:var(--space-4) var(--space-5); }
+.finance-modal-footer button { min-height:var(--control-height); font-size:14px; }
+.history-filter,.history-sort-btn,.history-search-trigger,.history-clear { min-height:var(--control-height); border-radius:var(--control-radius); }
+.history-search input { min-height:var(--control-height); }
+.history-sort-btn { width:var(--control-height); height:var(--control-height); }
+.history-sort-btn svg,.history-search-trigger svg { width:20px; height:20px; }
+.rtx-item { gap:var(--space-3); padding:var(--space-4); }
+.rtx-icon-badge { width:40px; height:40px; }
+.rtx-icon-badge svg { width:20px; height:20px; display:block; }
+.rtx-name,.mob-card-name,.recurring-admin-title { line-height:1.4; }
+.rtx-meta,.mob-card-meta,.recurring-admin-meta { line-height:1.5; }
+.mob-card-val,.rtx-amount,.card-value,.cat-ring-val { font-variant-numeric:tabular-nums; }
+.sd-item-text,.ss-screen-title,.ss-field-label,.ss-field-value,.budget-cat-name { min-width:0; overflow-wrap:anywhere; }
+.ss-field-row { gap:var(--space-3); padding:var(--space-4); }
+.ss-body { padding:var(--space-5); padding-bottom:calc(var(--space-5) + env(safe-area-inset-bottom,0px)); }
+.sd-item { min-height:60px; }
+.sd-item-icon svg { width:20px; height:20px; display:block; }
+.budget-cat-input { min-height:var(--control-height); border-radius:var(--control-radius); }
+.gs-input-wrap,#gs-input { min-width:0; }
+.gs-header { padding-top:calc(var(--space-5) + env(safe-area-inset-top,0px)); }
+.toast { max-width:calc(100vw - 32px); white-space:normal; text-align:center; line-height:1.5; }
+/* Tablets need flexible columns, rather than the fixed 420px desktop column. */
+@media(min-width:768px) and (max-width:1179px) {
+  .page { padding:var(--space-6); }
+  .dash-grid { display:flex; flex-direction:column; }
+  .dash-col-left { position:static; }
+  .dash-col-left,.dash-col-right { min-width:0; }
+  .cards { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:767px) {
+  .header { gap:var(--space-1); padding-left:calc(var(--space-3) + env(safe-area-inset-left,0px)); padding-right:calc(var(--space-3) + env(safe-area-inset-right,0px)); }
+  .header>div:nth-child(2) { min-width:0; }
+  .header-title { font-size:16px; line-height:1.2; }
+  .page { padding:var(--space-5) var(--space-4) calc(96px + env(safe-area-inset-bottom,0px)); }
+  .table-header { gap:var(--space-4); padding:var(--space-4); }
+  .history-controls { gap:var(--space-2); min-width:0; }
+  .history-search { flex-basis:44px; min-width:44px; max-width:44px !important; }
+  .history-search-trigger { width:44px; height:44px; }
+  .history-filter { height:44px; font-size:12px; }
+  .history-search.search-open input { top:52px; height:44px; }
+  .history-search.search-open .history-search-input-icon { top:74px; }
+  .history-clear { top:52px; }
+  .mob-card-inner { padding:var(--space-4); gap:var(--space-3); }
+  .mob-toggle-btn { width:44px; height:44px; }
+  .mob-toggle-btn svg { width:20px; height:20px; }
+  .mob-cat-badge { max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+  .mob-card-meta { font-size:12px; }
+  .mob-total-row { padding:var(--space-4); }
+  .mobile-gesture-hint { padding:var(--space-3) var(--space-4); flex-wrap:wrap; }
+  .bn-item { min-height:44px; }
+  .bn-item svg { width:24px; height:24px; }
+  .modal-overlay:not(.finance-modal):not(.recurring-modal) { padding:var(--space-3); }
+  .modal-box { max-width:100%; }
+  .modal-box:not(.finance-modal-box):not(.recurring-modal-box) { padding:var(--space-5); }
+  .ap-card { padding:var(--space-5); }
+  .ap-btn { padding:var(--space-4); }
+  .trash-actions { flex-wrap:wrap; }
+  .mie-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .mie-field { min-width:0; }
+  .mie-input,.mie-select { min-height:44px; font-size:16px; }
+  .mie-opt { min-height:44px; }
+  .mob-inline-edit.mie-open { max-height:480px; }
+}
+@media(max-width:359px) {
+  .header-title { font-size:14px; }
+  .header-icon { width:32px; height:32px; }
+  .recurring-section-heading,.table-title { font-size:18px; }
+  .recurring-section-header,.recurring-section-body { padding-left:var(--space-4); padding-right:var(--space-4); }
+  .recurring-admin-card { padding:var(--space-3); }
+  .mob-card-inner { gap:var(--space-2); padding:var(--space-3); }
+  .mob-card-val { font-size:14px; }
+  .rtx-item { gap:var(--space-2); padding:var(--space-3); }
+  .rtx-amount { font-size:12px; }
+}

@@ -1,4 +1,4 @@
-const CACHE = 'meus-gastos-v64';
+const CACHE = 'meus-gastos-v65';
 const ASSETS = [
   './',
   './index.html',
@@ -8,6 +8,8 @@ const ASSETS = [
   './css/modals.css',
   './css/search.css',
   './css/auth.css',
+  './css/settings.css',
+  './css/interface.css',
   './js/data.js',
   './js/firebase-init.js',
   './js/firebase.js',
