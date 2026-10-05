@@ -118,12 +118,13 @@ function recurringEntries(filter='all'){
   return entries.sort((a,b)=>(a.diaVenc||99)-(b.diaVenc||99)||a.nome.localeCompare(b.nome,'pt-BR'));
 }
 function recurringCard(r){
-  r=recurringConfigForMonth(r,currentMonthKey());
+  const month=recurringReferenceMonth(r);
+  r=recurringFormConfig(r,month);
   const active=recurringIsActive(r),ended=recurringIsEnded(r);
   const value=r.val==null?'Valor variável':fmt(r.val);
   const due=r.diaVenc?`Vence dia ${r.diaVenc}`:'Sem vencimento';
   return `<article class="recurring-admin-card">
-    <div class="recurring-admin-main">${itemIcon(r.nome,r.icon)}<div class="recurring-admin-copy"><div class="recurring-admin-title">${r.nome}</div><div class="recurring-admin-meta">${catLabel(r.cat)}${r.pag?' · '+r.pag:''}</div><div class="recurring-admin-details"><strong>${value}</strong><span>${due}${r.fim?' · Até '+mesLabel(r.fim):''}</span></div></div></div>
+    <div class="recurring-admin-main">${itemIcon(r.nome,r.icon)}<div class="recurring-admin-copy"><div class="recurring-admin-title">${r.nome}</div><div class="recurring-admin-meta">${catLabel(r.cat)}${r.pag?' · '+r.pag:''}</div><div class="recurring-admin-details"><strong>${value}</strong><span>Referência: ${mesLabel(month)}</span><span>${due}${r.fim?' · Até '+mesLabel(r.fim):''}</span></div></div></div>
     <span class="recurring-state ${ended?'is-ended':active?'is-active':'is-paused'}">${ended?'Encerrada':active?'Ativa':'Pausada'}</span>
     <div class="recurring-admin-actions ${ended?'is-ended':''}">${ended?'':`<button type="button" class="recurring-action" onclick="toggleRecurringAccount('${r.id}')">${uiIcon(active?'pause':'play',15)}<span>${active?'Pausar':'Ativar'}</span></button>`}<button type="button" class="recurring-action" onclick="openEditRecurringAccount('${r.id}')">${uiIcon(ended?'eye':'edit',15)}<span>${ended?'Consultar':'Editar'}</span></button><button type="button" class="recurring-action is-danger" onclick="deleteRecurringAccount('${r.id}')">${uiIcon('trash',15)}<span>Excluir</span></button></div>
   </article>`;
@@ -152,14 +153,15 @@ let editingRecurringId=null,selectedRecurringIcon=null,editingRecurringMonth=nul
 function syncRecurringModalScroll(){document.body.classList.toggle('recurring-modal-open',!!document.querySelector('.recurring-modal.open'));}
 function recurringMonthEditable(r,month){const entry=recurringMonthEntry(r.id,month);return !!month&&month>=currentMonthKey()&&(!r.inicio||month>=r.inicio)&&(!r.fim||month<=r.fim)&&!(r.pularMeses||[]).includes(month)&&entry?.status!=='Pago'&&!entry?.pagoEm;}
 function scrollRecurringTimeline(direction){const el=document.getElementById('recurring-timeline');el.scrollBy({left:direction*el.clientWidth*.8,behavior:'smooth'});}
-function recurringTimelineMonths(){
+function recurringTimelineMonths(r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId)){
   const now=new Date(),months=[];
   for(let offset=-2;offset<=7;offset++){const d=new Date(now.getFullYear(),now.getMonth()+offset,1);months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}
-  const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);
   if(r?.inicio&&r.inicio>months.at(-1))months.push(r.inicio);
   return months;
 }
 function recurringMonthEntry(id,month){return DATA.despesas.find(d=>d.recorrenteId===id&&d.mes===month);}
+function recurringReferenceMonth(r){return recurringTimelineMonths(r).find(month=>recurringMonthEditable(r,month))||(r.fim&&r.fim<currentMonthKey()?r.fim:currentMonthKey());}
+function recurringFormConfig(r,month){return {...recurringConfigForMonth(r,month),...(recurringMonthEntry(r.id,month)||{}),id:r.id};}
 function recurringMonthLabel(month){const[y,m]=month.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');}
 function renderRecurringTimeline(){
   const el=document.getElementById('recurring-timeline');if(!el)return;
@@ -173,7 +175,7 @@ function renderRecurringTimeline(){
 }
 function loadRecurringMonthForm(){
   const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);if(!r)return;
-  const entry=recurringMonthEntry(r.id,editingRecurringMonth),cfg=entry||recurringConfigForMonth(r,editingRecurringMonth);
+  const cfg=recurringFormConfig(r,editingRecurringMonth);
   selectedRecurringIcon=cfg.icon||guessIconKey(cfg.nome)||null;
   document.getElementById('recurring-edit-name').value=cfg.nome||'';
   document.getElementById('recurring-edit-cat').value=cfg.cat||'';
@@ -260,7 +262,7 @@ function openEditRecurringAccount(id){
   if(!pag.options.length)pag.innerHTML=document.getElementById('in-pag').innerHTML;
   const available=recurringTimelineMonths().filter(month=>recurringMonthEditable(r,month));
   recurringReadOnly=recurringIsEnded(r)||!available.length;
-  editingRecurringMonth=recurringReadOnly?(r.fim||currentMonthKey()):available[0];
+  editingRecurringMonth=recurringReferenceMonth(r);
   editingRecurringMonths=new Set(recurringReadOnly?[]:[editingRecurringMonth]);
   const modal=document.getElementById('edit-recurring-modal');
   modal.classList.toggle('is-readonly',recurringReadOnly);

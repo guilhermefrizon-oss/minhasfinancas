@@ -238,7 +238,7 @@ function guessIconKey(nome) {
 function itemIcon(nome, icon) {
   const key = (icon && ICONS[icon]) ? icon : (ICONS[nome] ? nome : guessIconKey(nome));
   const content = iconContent(key);
-  return `<div style="width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${content}</div>`;
+  return `<div class="item-icon-wrap" style="width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${content}</div>`;
 }
 
 /* ══════ ICON PICKER ══════ */
