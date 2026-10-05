@@ -206,7 +206,7 @@ function confirmEndRecurringAccount(){
 }
 
 let editingRecurringId=null,selectedRecurringIcon=null,editingRecurringMonth=null,editingRecurringMonths=new Set(),editingRecurringScope='from',recurringReadOnly=false;
-function syncRecurringModalScroll(){document.body.classList.toggle('recurring-modal-open',!!document.querySelector('.recurring-modal.open'));}
+function syncRecurringModalScroll(){if(typeof syncFinanceModalScroll==='function')syncFinanceModalScroll();document.body.classList.toggle('recurring-modal-open',!!document.querySelector('.recurring-modal.open'));}
 function recurringMonthEditable(r,month){const entry=recurringMonthEntry(r.id,month);return !r.encerradaEm&&!!month&&month>=currentMonthKey()&&(!r.inicio||month>=r.inicio)&&(!r.fim||month<=r.fim)&&!(r.pularMeses||[]).includes(month)&&entry?.status!=='Pago'&&!entry?.pagoEm;}
 function scrollRecurringTimeline(direction){const el=document.getElementById('recurring-timeline');el.scrollBy({left:direction*el.clientWidth*.8,behavior:'smooth'});}
 function recurringTimelineMonths(r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId)){
@@ -476,12 +476,15 @@ function addEntry(forceDuplicate=false){
     if(!existing)DATA.despesas.push({id:Date.now()+Math.random(),recorrenteId:recurringTemplate?.id||null,parcelamentoId:installmentId,parcelaAtual:installmentId?index+1:null,parcelasTotal:installmentId?installmentCount:null,valorTotal:installmentId?val:null,origem:recurringTemplate?'recorrente':installmentId?'parcelamento':'manual',nome:desc,cat,pag,mes,val:installmentId?installmentValues[index]:val,status:entryStatus,venc,diaVenc,tipo:document.getElementById('in-tipo').value||guessTipo(cat),icon:selectedIcon||null,pagoEm: entryStatus==='Pago' ? (venc || new Date().toISOString().slice(0,10)) : null});
   });
   saveData();
+  if(typeof setFinanceMonth==='function')setFinanceMonth(meses[0],false);
   document.getElementById('in-desc').value='';document.getElementById('in-valor').value='';document.getElementById('in-dia-venc').value='';
   setMoneyField('in-valor','');
   selectedIcon=null;document.getElementById('icon-picker-preview').innerHTML=DEFAULT_ICON;
   closeAddDesp();
-  const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  despSelectedMonth=allMonths().includes(cm)?cm:meses[meses.length-1];
+  if(typeof setFinanceMonth!=='function'){
+    const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    despSelectedMonth=allMonths().includes(cm)?cm:meses[meses.length-1];
+  }
   showPage('despesas');
   showToast(recurringTemplate?'Conta recorrente cadastrada!':installmentId?`Compra parcelada em ${installmentCount} vezes!`:'Despesa adicionada!');if(typeof renderEmptyState==='function')renderEmptyState();
 }
@@ -515,6 +518,7 @@ function addReceita(forceDuplicate=false){
   }
   meses.forEach(mes=>{DATA.receitas.push({id:Date.now()+Math.random(),nome:desc,cat:document.getElementById('in-rec-cat').value,mes,val,status:document.getElementById('in-rec-status').value});});
   saveData();
+  if(typeof setFinanceMonth==='function')setFinanceMonth(meses[0],false);
   document.getElementById('in-rec-desc').value='';document.getElementById('in-rec-valor').value='';
   closeAddRec();showPage('receitas');
   showToast(meses.length>1?`${meses.length} receitas adicionadas!`:'Receita adicionada!');if(typeof renderEmptyState==='function')renderEmptyState();
@@ -536,7 +540,9 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 
 // Escape fecha o modal superior sem deixar a página bloqueada para rolagem.
 document.addEventListener('keydown',event=>{
-  if(event.key!=='Escape'||document.querySelector('.modal-overlay.open:not(.recurring-modal)'))return;
+  if(event.key!=='Escape')return;
+  if(typeof topOpenFinanceModal==='function'){if(!topOpenFinanceModal()?.classList.contains('recurring-modal'))return;}
+  else if(document.querySelector('.modal-overlay.open:not(.recurring-modal)'))return;
   if(document.getElementById('end-recurring-modal')?.classList.contains('open')){closeEndRecurringAccount();return;}
   if(document.getElementById('edit-recurring-modal')?.classList.contains('open'))closeEditRecurringAccount();
   else if(document.getElementById('manage-recorr-modal')?.classList.contains('open'))closeManageRecorrentes();

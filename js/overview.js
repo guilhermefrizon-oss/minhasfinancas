@@ -317,6 +317,7 @@ function renderCurMonth(){
   // Nome do mês no botão
   document.getElementById('cur-month-name').textContent =
     monthName.charAt(0).toUpperCase() + monthName.slice(1);
+  if(typeof updateFinanceMonthControls==='function')updateFinanceMonthControls();
 
   // Novo card redesenhado: Saldo em destaque (hero), Receita/Gasto como apoio compacto
   document.getElementById('cur-month-cards').innerHTML = `
@@ -383,59 +384,13 @@ function renderCurMonth(){
 let curPickerYear = null;
 const MONTH_NAMES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-function toggleCurMonthPicker(){
-  const picker = document.getElementById('cur-month-picker');
-  const open = picker.style.display==='block';
-  if(open){ closeCurMonthPicker(); return; }
-  const cm = getCurMonth();
-  curPickerYear = parseInt(cm.split('-')[0]);
-  renderCurPickerYear();
-  picker.style.display='block';
-  document.getElementById('cur-month-chevron').style.transform='rotate(180deg)';
-  setTimeout(()=>document.addEventListener('click', curPickerOutside), 0);
-}
-function closeCurMonthPicker(){
-  document.getElementById('cur-month-picker').style.display='none';
-  document.getElementById('cur-month-chevron').style.transform='rotate(0deg)';
-  document.removeEventListener('click', curPickerOutside);
-}
-function curPickerOutside(e){
-  const picker=document.getElementById('cur-month-picker');
-  const btn=document.getElementById('cur-month-btn');
-  if(!picker.contains(e.target)&&!btn.contains(e.target)) closeCurMonthPicker();
-}
-function shiftCurYear(delta){
-  const years=[...new Set(allMonths().map(m=>parseInt(m.split('-')[0])))];
-  const idx=years.indexOf(curPickerYear)+delta;
-  if(idx<0||idx>=years.length) return;
-  curPickerYear=years[idx];
-  renderCurPickerYear();
-}
-function renderCurPickerYear(){
-  const now=new Date();
-  const realCm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const months=allMonths().filter(m=>parseInt(m.split('-')[0])===curPickerYear);
-  document.getElementById('cur-picker-year').textContent=curPickerYear;
-  document.getElementById('cur-picker-months').innerHTML = months.length
-    ? months.map(m=>{
-        const mo=parseInt(m.split('-')[1]);
-        const active = m===getCurMonth();
-        const isNow  = m===realCm;
-        return `<div onclick="selectCurMonth('${m}')" style="padding:9px 16px;cursor:pointer;font-size:13px;font-weight:${active?700:500};color:${active?'var(--purple)':isNow?'var(--text)':'var(--text2)'};background:${active?'var(--surface2)':'transparent'};display:flex;align-items:center;justify-content:space-between;transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='${active?'var(--surface2)':'transparent'}'">
-          ${MONTH_NAMES_PT[mo-1]}
-          ${isNow?'<span style="font-size:9px;background:var(--purple);color:var(--bg);padding:1px 6px;border-radius:10px;font-weight:700">hoje</span>':''}
-        </div>`;
-      }).join('')
-    : `<div style="padding:10px 16px;font-size:12px;color:var(--text3)">Sem dados em ${curPickerYear}</div>`;
-}
-function selectCurMonth(m){
-  curMonthSelected = m;
-  closeCurMonthPicker();
-  renderCurMonth();
-}
+function toggleCurMonthPicker(){openFinanceMonthPicker();}
+function closeCurMonthPicker(){if(typeof closeFinanceMonthPicker==='function')closeFinanceMonthPicker();}
+function selectCurMonth(month){selectFinanceMonth(month);}
 
 function goToDespesas(){
-  despSelectedMonth = getCurMonth();
+  if(typeof setFinanceMonth==='function')setFinanceMonth(getCurMonth(),false);
+  else despSelectedMonth=getCurMonth();
   showPage('despesas');
 }
 function goToDespesasEntry(id){

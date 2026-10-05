@@ -150,70 +150,14 @@ function renderDespesas(){
   // Mostra skeleton imediatamente
   const tbody = document.getElementById('desp-tbody');
   if(tbody && !tbody.children.length) tbody.innerHTML = tableSkeleton(5,6).replace('<tbody','<tbody id="desp-tbody"').replace('</tbody>','');
-  const months=allMonths();
-  if(!despSelectedMonth||!months.includes(despSelectedMonth)){
-    const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    despSelectedMonth=months.includes(cm)?cm:months[months.length-1];
-  }
+  despSelectedMonth=getCurMonth();
   updateDespMonthBtn();renderDespTable();
 }
-function updateDespMonthBtn(){
-  const[y,mo]=despSelectedMonth.split('-');
-  document.getElementById('desp-month-btn-label').textContent=new Date(+y,+mo-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).toUpperCase();
-}
-function toggleDespMonthPicker(){
-  const picker=document.getElementById('desp-month-picker');
-  const open=picker.style.display==='block';
-  if(open){closeDespMonthPicker();return;}
-  picker.style.display='block';
-  document.getElementById('desp-month-chevron').style.transform='rotate(180deg)';
-  despPickerYear=parseInt(despSelectedMonth.split('-')[0]);
-  renderDespPickerYear();
-  // Posiciona o picker
-  const btn=document.getElementById('desp-month-btn');
-  const r=btn.getBoundingClientRect();
-  if(window.innerWidth<768){
-    // Mobile: centraliza na tela
-    picker.style.width='280px';
-    picker.style.left=((window.innerWidth-280)/2)+'px';
-    picker.style.top=((window.innerHeight-picker.offsetHeight)/2)+'px';
-    const bd=document.getElementById('picker-backdrop');
-    if(bd)bd.style.display='block';
-  } else {
-    // Desktop: abaixo do botão
-    picker.style.width='';
-    picker.style.left=r.left+'px';
-    picker.style.top=(r.bottom+6)+'px';
-  }
-  setTimeout(()=>{
-    document.addEventListener('click',despPickerOutside);
-    document.addEventListener('touchstart',despPickerOutside,{passive:true});
-  },50);
-}
-function despPickerOutside(e){
-  const picker=document.getElementById('desp-month-picker');
-  const btn=document.getElementById('desp-month-btn');
-  if(!picker||!btn)return;
-  if(!picker.contains(e.target)&&!btn.contains(e.target))closeDespMonthPicker();
-}
-function closeDespMonthPicker(){
-  document.getElementById('desp-month-picker').style.display='none';
-  document.getElementById('desp-month-chevron').style.transform='rotate(0deg)';
-  const bd=document.getElementById('picker-backdrop');
-  if(bd)bd.style.display='none';
-  document.removeEventListener('click',despPickerOutside);
-  document.removeEventListener('touchstart',despPickerOutside);
-}
-function shiftDespYear(delta){const years=[...new Set(allMonths().map(m=>parseInt(m.split('-')[0])))];const idx=years.indexOf(despPickerYear)+delta;if(idx<0||idx>=years.length)return;despPickerYear=years[idx];renderDespPickerYear();}
-function renderDespPickerYear(){
-  const months=allMonths().filter(m=>parseInt(m.split('-')[0])===despPickerYear);
-  const MN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('desp-year-label').textContent=despPickerYear;
-  document.getElementById('desp-month-list').innerHTML=months.length?months.map(m=>{const mo=parseInt(m.split('-')[1]),active=m===despSelectedMonth;return`<div onclick="selectDespMonth('${m}')" style="padding:10px 18px;cursor:pointer;font-size:13px;font-weight:${active?700:500};color:${active?'var(--purple)':'var(--text2)'};background:${active?'var(--surface2)':'transparent'};transition:all .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='${active?'var(--surface2)':'transparent'}'"> ${MN[mo-1]}</div>`;}).join(''):`<div style="padding:12px 18px;font-size:12px;color:var(--text3)">Sem dados em ${despPickerYear}</div>`;
-}
-function selectDespMonth(m){despSelectedMonth=m;updateDespMonthBtn();closeDespMonthPicker();renderDespTable();}
-function stepDespMonth(delta){const months=allMonths();const idx=months.indexOf(despSelectedMonth)+delta;if(idx<0||idx>=months.length)return;despSelectedMonth=months[idx];updateDespMonthBtn();renderDespTable();}
-
+function updateDespMonthBtn(){if(typeof updateFinanceMonthControls==='function')updateFinanceMonthControls();}
+function toggleDespMonthPicker(){openFinanceMonthPicker();}
+function closeDespMonthPicker(){if(typeof closeFinanceMonthPicker==='function')closeFinanceMonthPicker();}
+function selectDespMonth(month){selectFinanceMonth(month);}
+function stepDespMonth(delta){stepFinanceMonth(delta);}
 
 /* ── Toggle rápido para Pago ── */
 function bindSwipeActions(wrapper,onRight,onLeft){
@@ -346,6 +290,7 @@ function mobDespCard(d){
     </div>
     <div class="mob-inline-edit" id="inline-edit-${sid}" style="display:none">
       <div class="mie-body">
+        <p class="finance-inline-scope">Altera somente este lançamento de ${mesLabel(d.mes)}.</p>
         <div class="mie-field">
           <div class="mie-lbl">Valor</div>
           <input class="mie-input mie-val" type="text" inputmode="numeric" placeholder="R$ 0,00" value="${d.val>0?d.val:''}" id="mie-valor-${sid}" autocomplete="off" onclick="event.stopPropagation()">
@@ -596,9 +541,10 @@ function openModal(id){
   document.getElementById('edit-venc-scope-wrap').style.display='none';
   document.querySelector('input[name="venc-scope"][value="only"]').checked=true;
   document.getElementById('edit-modal').classList.add('open');
+  if(typeof setupFinanceForm==='function')setupFinanceForm('edit-modal');
 }
 document.getElementById('edit-venc').addEventListener('change',function(){
-  document.getElementById('edit-venc-scope-wrap').style.display=this.value&&this.value!==originalVenc?'block':'none';
+  document.getElementById('edit-venc-scope-wrap').style.display=(this.value||null)!==originalVenc?'block':'none';
 });
 function saveEdit(){
   if(!editingId)return;
@@ -629,6 +575,7 @@ function saveEdit(){
     editingBulkName=null;
   } else {
     const d=DATA.despesas.find(x=>x.id===editingId);if(!d)return;
+    const originalName=d.nome;
     const wasPago=d.status==='Pago';
     d.status=newStatus;
     if(newStatus==='Pago'){ if(!wasPago) d.pagoEm=new Date().toISOString().slice(0,10); } else { d.pagoEm=null; }
@@ -639,7 +586,7 @@ function saveEdit(){
     if(newVenc!==originalVenc){
       if(scope==='forward'){
         DATA.despesas.forEach(x=>{
-          if(x.nome===d.nome&&x.mes>=d.mes){
+          if((x.id===d.id||x.nome===originalName)&&x.mes>=d.mes){
             if(newVenc){const day=new Date(newVenc+'T00:00:00').getDate();const[y,mo]=x.mes.split('-');const maxDay=new Date(+y,+mo,0).getDate();x.venc=`${x.mes}-${String(Math.min(day,maxDay)).padStart(2,'0')}`;}
             else x.venc=null;
           }
@@ -651,6 +598,7 @@ function saveEdit(){
 }
 function closeModal(){
   document.getElementById('edit-modal').classList.remove('open');
+  if(typeof closeFinanceForm==='function')closeFinanceForm('edit-modal');
   // Se era edição em lote, reabre o modal de gerenciamento
   if(editingBulkName) document.getElementById('add-desp-modal').classList.add('open');
   editingId=null;originalVenc=null;editingBulkName=null;selectedIconEdit=null;

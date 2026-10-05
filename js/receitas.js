@@ -51,53 +51,14 @@ function renderReceitas(){
   // Mostra skeleton imediatamente
   const rtbody = document.getElementById('rec-tbody');
   if(rtbody && !rtbody.children.length) rtbody.innerHTML = tableSkeleton(4,5).replace('<tbody','<tbody id="rec-tbody"').replace('</tbody>','');
-  const months=allMonths();
-  if(!recSelectedMonth||!months.includes(recSelectedMonth)){const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;recSelectedMonth=months.includes(cm)?cm:months[months.length-1];}
+  recSelectedMonth=getCurMonth();
   updateRecMonthBtn();renderRecTable();renderRecCharts();
 }
-function updateRecMonthBtn(){const[y,mo]=recSelectedMonth.split('-');document.getElementById('rec-month-btn-label').textContent=new Date(+y,+mo-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).toUpperCase();}
-function toggleRecMonthPicker(){
-  const picker=document.getElementById('rec-month-picker');const open=picker.style.display==='block';
-  if(open){closeRecMonthPicker();return;}
-  picker.style.display='block';document.getElementById('rec-month-chevron').style.transform='rotate(180deg)';
-  recPickerYear=parseInt(recSelectedMonth.split('-')[0]);renderRecPickerYear();
-  // Posiciona o picker
-  const btn=document.getElementById('rec-month-btn');
-  const r=btn.getBoundingClientRect();
-  if(window.innerWidth<768){
-    // Mobile: centraliza na tela
-    picker.style.width='280px';
-    picker.style.left=((window.innerWidth-280)/2)+'px';
-    picker.style.top=((window.innerHeight-picker.offsetHeight)/2)+'px';
-    const bd=document.getElementById('picker-backdrop');
-    if(bd)bd.style.display='block';
-  } else {
-    // Desktop: abaixo do botão
-    picker.style.width='';
-    picker.style.left=r.left+'px';
-    picker.style.top=(r.bottom+6)+'px';
-  }
-  setTimeout(()=>{
-    document.addEventListener('click',recPickerOutside);
-    document.addEventListener('touchstart',recPickerOutside,{passive:true});
-  },50);
-}
-function recPickerOutside(e){
-  const picker=document.getElementById('rec-month-picker');
-  const btn=document.getElementById('rec-month-btn');
-  if(!picker||!btn)return;
-  if(!picker.contains(e.target)&&!btn.contains(e.target))closeRecMonthPicker();
-}
-function closeRecMonthPicker(){document.getElementById('rec-month-picker').style.display='none';document.getElementById('rec-month-chevron').style.transform='rotate(0deg)';const bd=document.getElementById('picker-backdrop');if(bd)bd.style.display='none';document.removeEventListener('click',recPickerOutside);document.removeEventListener('touchstart',recPickerOutside);}
-function shiftRecYear(delta){const years=[...new Set(allMonths().map(m=>parseInt(m.split('-')[0])))];const idx=years.indexOf(recPickerYear)+delta;if(idx<0||idx>=years.length)return;recPickerYear=years[idx];renderRecPickerYear();}
-function renderRecPickerYear(){
-  const months=allMonths().filter(m=>parseInt(m.split('-')[0])===recPickerYear);
-  const MN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('rec-year-label').textContent=recPickerYear;
-  document.getElementById('rec-month-list').innerHTML=months.length?months.map(m=>{const mo=parseInt(m.split('-')[1]),active=m===recSelectedMonth;return`<div onclick="selectRecMonth('${m}')" style="padding:10px 18px;cursor:pointer;font-size:13px;font-weight:${active?700:500};color:${active?'var(--green)':'var(--text2)'};background:${active?'var(--surface2)':'transparent'};transition:all .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='${active?'var(--surface2)':'transparent'}'"> ${MN[mo-1]}</div>`;}).join(''):`<div style="padding:12px 18px;font-size:12px;color:var(--text3)">Sem dados em ${recPickerYear}</div>`;
-}
-function selectRecMonth(m){recSelectedMonth=m;updateRecMonthBtn();closeRecMonthPicker();renderRecTable();}
-function stepRecMonth(delta){const months=allMonths();const idx=months.indexOf(recSelectedMonth)+delta;if(idx<0||idx>=months.length)return;recSelectedMonth=months[idx];updateRecMonthBtn();renderRecTable();}
+function updateRecMonthBtn(){if(typeof updateFinanceMonthControls==='function')updateFinanceMonthControls();}
+function toggleRecMonthPicker(){openFinanceMonthPicker();}
+function closeRecMonthPicker(){if(typeof closeFinanceMonthPicker==='function')closeFinanceMonthPicker();}
+function selectRecMonth(month){selectFinanceMonth(month);}
+function stepRecMonth(delta){stepFinanceMonth(delta);}
 
 function renderRecTable(){
   syncRecSortIndicator();
@@ -180,6 +141,7 @@ function openRecModal(id){
   document.getElementById('edit-rec-status').value=r.status||'Recebido';
   document.getElementById('edit-rec-mes').value=r.mes;
   document.getElementById('edit-rec-modal').classList.add('open');
+  if(typeof setupFinanceForm==='function')setupFinanceForm('edit-rec-modal');
 }
 function saveRecEdit(){
   if(!editingRecId)return;
@@ -193,9 +155,9 @@ function saveRecEdit(){
   if(!nome){ fieldError('edit-rec-nome','Nome obrigatório'); return; }
   if(val!==null&&val<0){ fieldError('edit-rec-valor','Valor inválido'); return; }
   r.nome=nome;r.cat=cat;if(val!==null&&val>0)r.val=val;if(mes)r.mes=mes;r.status=status;
-  saveData();closeRecModal();renderReceitas();showToast('Receita atualizada!');
+  saveData();closeRecModal();if(typeof setFinanceMonth==='function'&&mes)setFinanceMonth(mes,false);renderReceitas();showToast('Receita atualizada!');
 }
-function closeRecModal(){document.getElementById('edit-rec-modal').classList.remove('open');editingRecId=null;}
+function closeRecModal(){document.getElementById('edit-rec-modal').classList.remove('open');if(typeof closeFinanceForm==='function')closeFinanceForm('edit-rec-modal');editingRecId=null;}
 document.getElementById('edit-rec-modal').addEventListener('click',function(e){if(e.target===this)closeRecModal();});
 function deleteRecEntry(id){
   id=Number(id);
