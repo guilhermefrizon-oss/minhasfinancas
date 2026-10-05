@@ -15,14 +15,39 @@ function chartAxis(){
 
 function updateOverviewCards(){}
 
-const currentPeriod = 12; // sem seletor na UI — janela fixa dos últimos 12 meses
+let currentPeriod = 6;
 function filteredMonths(){
-  const now = new Date();
-  const nowKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  // Nunca mostra meses futuros (lançamentos fixos já cadastrados adiante não "aconteceram" ainda)
-  const all = allMonths().filter(m => m <= nowKey);
-  return all.slice(-currentPeriod);
+  const now=new Date();
+  // Calendar months stay consecutive even when one month has no entries.
+  return Array.from({length:currentPeriod},(_,i)=>{
+    const date=new Date(now.getFullYear(),now.getMonth()-currentPeriod+1+i,1);
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+  });
 }
+function syncChartPeriodControls(){
+  document.querySelectorAll('[data-chart-period]').forEach(button=>{
+    const active=Number(button.dataset.chartPeriod)===currentPeriod;
+    button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+  });
+  const months=filteredMonths();
+  document.querySelectorAll('[data-chart-range]').forEach(el=>{
+    el.textContent=`${mesLabel(months[0])} – ${mesLabel(months[months.length-1])}`;
+  });
+}
+function setChartPeriod(period){
+  period=Number(period);if(![6,12].includes(period)||period===currentPeriod)return;
+  currentPeriod=period;
+  if(overviewSelectedMonth&&!filteredMonths().includes(overviewSelectedMonth))overviewSelectedMonth=null;
+  syncChartPeriodControls();
+  const page=document.querySelector('.page.active');
+  if(page?.id==='page-receitas')renderRecCharts();
+  else {
+    const selectedDailyMonth=dailyEvoMonth;
+    renderOverview();
+    if(selectedDailyMonth&&dailyEvoMonth!==selectedDailyMonth){dailyEvoMonth=selectedDailyMonth;renderDailyEvo();}
+  }
+}
+function chartText(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 function renderDonutChart(cm, desp){
   const donutBox = document.getElementById('donut-box');
@@ -39,7 +64,7 @@ function renderDonutChart(cm, desp){
   if(el) el.textContent = mLabel.charAt(0).toUpperCase()+mLabel.slice(1);
 
   // Agrupa por categoria principal
-  const bycat = {};
+  const bycat = Object.create(null);
   desp.forEach(d => {
     const cat = (d.cat||'Outros').split(' · ')[0];
     bycat[cat] = (bycat[cat]||0) + (d.val||0);
@@ -47,52 +72,32 @@ function renderDonutChart(cm, desp){
   const sorted = Object.entries(bycat).sort((a,b)=>b[1]-a[1]);
   const total  = sorted.reduce((s,[,v])=>s+v, 0);
 
-  // Total gasto, exibido como valor único (sem gráfico de pizza)
+  // Total gasto e barras de participação por categoria.
   const centerEl = document.getElementById('donut-center-val');
   if(centerEl){ centerEl.dataset.rawVal='0'; animateValue(centerEl, total, 'var(--red)'); }
 
   // Frase de insight, no espírito da referência "Metas"
   const insightEl = document.getElementById('donut-insight');
-  if(insightEl && sorted.length){
+  if(insightEl && sorted.length && total>0){
     const [topCat, topVal] = sorted[0];
     const topPct = Math.round(topVal/total*100);
-    insightEl.innerHTML = `<strong style="color:var(--text);font-weight:700">${topCat}</strong> concentra o maior gasto do mês: <strong style="color:var(--text);font-weight:700">${topPct}%</strong> do total.`;
+    insightEl.innerHTML = `<strong style="color:var(--text);font-weight:700">${chartText(topCat)}</strong> concentra o maior gasto do mês: <strong style="color:var(--text);font-weight:700">${topPct}%</strong> do total.`;
   } else if(insightEl){
     insightEl.innerHTML = '';
   }
 
-  // Lista — anel de progresso fino por categoria (mesma linguagem em mobile e desktop)
   const listEl = document.getElementById('donut-legend-list');
   if(listEl){
     listEl.innerHTML = sorted.map(([cat,val])=>{
-      const pct = Math.round(val/total*100);
-      const col = catColor(cat);
-      return `<div class="cat-ring-row">
-        ${ringSVG(pct, col, 42)}
-        <span class="cat-ring-name">${cat}</span>
-        <span class="cat-ring-val">${fmt(val)}</span>
+      const pct=total>0?Math.max(0,Math.min(100,val/total*100)):0;
+      const percentage=pct.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
+      const col=catColor(cat);
+      return `<div class="category-bar-row">
+        <div class="category-bar-heading"><span class="category-bar-name">${chartText(cat)}</span><span class="category-bar-numbers"><strong>${fmt(val)}</strong><span>${percentage}</span></span></div>
+        <div class="category-bar-track" aria-hidden="true"><div class="category-bar-fill" style="width:${pct}%;background:${col}"></div></div>
       </div>`;
     }).join('');
   }
-}
-
-/* Anel de progresso fino (estilo "Metas") usado na lista por categoria */
-function ringSVG(pct, color, size){
-  size = size || 36;
-  const stroke = 3.5;
-  const r = size/2 - stroke;
-  const c = size/2;
-  const circ = 2*Math.PI*r;
-  const clamped = Math.max(0, Math.min(100, pct));
-  const dash = (clamped/100)*circ;
-  const fontSize = size <= 36 ? 9 : 10;
-  return `<div class="cat-ring" style="width:${size}px;height:${size}px">
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="position:absolute;inset:0;transform:rotate(-90deg)">
-      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--surface3)" stroke-width="${stroke}"/>
-      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${dash} ${circ-dash}"/>
-    </svg>
-    <span style="font-size:${fontSize}px">${clamped}%</span>
-  </div>`;
 }
 
 /* ══════ PRÓXIMAS TRANSAÇÕES PENDENTES (lista da Home) ══════ */
@@ -153,11 +158,12 @@ function renderOverview(){
   });
   renderCurMonth();
   renderUpcomingTransactions();
+  syncChartPeriodControls();
   const months=filteredMonths();
   const rec=months.map(m=>DATA.receitas.filter(r=>r.mes===m).reduce((s,r)=>s+(r.val||0),0));
   const desp=months.map(m=>DATA.despesas.filter(d=>d.mes===m).reduce((s,d)=>s+(d.val||0),0));
   const saldo=months.map((_,i)=>Math.round((rec[i]-desp[i])*100)/100);
-  const cats=[...new Set(DATA.despesas.map(d=>(d.cat||'Outros').split(' · ')[0]))];
+  const cats=[...new Set(DATA.despesas.filter(d=>months.includes(d.mes)).map(d=>(d.cat||'Outros').split(' · ')[0]))];
   document.getElementById('header-period').textContent=months.length?`${mesLabel(months[0])} – ${mesLabel(months[months.length-1])}`:'';
   updateOverviewCards(months,rec,desp);
   document.getElementById('legend-bar').innerHTML=[
@@ -211,7 +217,7 @@ function renderOverview(){
         catDatasets.forEach((ds,di)=>{const col=catColor(cats[di]);barC.data.datasets[di+1].backgroundColor=months.map((m,i)=>!overviewSelectedMonth||overviewSelectedMonth===m?col:col+'22');});
         barC.update();
       },
-      scales:{x:{ticks:{color:ax.tick,autoSkip:false,maxRotation:45,font:{size:ax.font}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}
+      scales:{x:{ticks:{color:ax.tick,autoSkip:true,maxTicksLimit:6,maxRotation:0,minRotation:0,font:{size:11}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}
     }
   });
   // Usa propriedades do elemento para substituir handlers antigos a cada renderização.
@@ -236,7 +242,7 @@ function renderOverview(){
     el.classList.add('anim-fade-up',`anim-d${i+2}`);
   });
   if(saldoC)saldoC.destroy();
-  saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:ax.tick,autoSkip:false,maxRotation:45,font:{size:ax.font}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}}});
+  saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:ax.tick,autoSkip:true,maxTicksLimit:6,maxRotation:0,minRotation:0,font:{size:11}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}}});
   // Gráfico de evolução diária
   initDailyEvo();
 }
