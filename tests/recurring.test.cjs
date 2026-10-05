@@ -7,13 +7,21 @@ const path = require('node:path');
 function app() {
   const fields = {};
   const storage = new Map();
+  function field(id){
+    if(fields[id])return fields[id];
+    const classes=new Set(),attributes={};
+    return fields[id]={value:'',options:[],hidden:false,disabled:false,innerHTML:'',textContent:'',scrollTop:0,clientWidth:250,
+      addEventListener(){},setAttribute:(name,value)=>attributes[name]=value,getAttribute:name=>attributes[name],
+      focus(){},querySelector:()=>field('modal-body'),scrollTo(){},scrollBy(){},
+      classList:{add:name=>classes.add(name),remove:name=>classes.delete(name),contains:name=>classes.has(name),toggle(name,force){const on=force===undefined?!classes.has(name):force;on?classes.add(name):classes.delete(name);return on;}}};
+  }
   const ctx = vm.createContext({
     DATA: {despesas: [], receitas: [], recorrentes: [], recorrentesVersao: 2},
     Date: class extends Date {
       constructor(...args) { super(...(args.length ? args : ['2026-10-05T15:00:00Z'])); }
     },
-    navigator: {}, uiIcon:()=>'',
-    document: {body:{classList:{add(){},remove(){},contains(){return false}}},getElementById: id => fields[id] ||= {value:'', addEventListener(){},setAttribute(){}, classList:{remove(){}}}},
+    navigator: {}, uiIcon:()=>'',guessIconKey:()=>'',iconContent:()=>'',itemIcon:()=>'',catLabel:cat=>cat,requestAnimationFrame:fn=>fn(),
+    document: {addEventListener(){},body:field('body'),getElementById:field,querySelector:()=>['edit-recurring-modal','manage-recorr-modal'].map(field).find(el=>el.classList.contains('open')),querySelectorAll:()=>[]},
     localStorage: {getItem: key => storage.get(key) || null,setItem:(key,value)=>storage.set(key,value)},
     saves: 0,
     saveData() { ctx.saves++; storage.set('data', JSON.stringify(ctx.DATA)); },
@@ -168,4 +176,45 @@ test('compra parcelada nova gera apenas a quantidade escolhida inclusive após r
   assert.equal(a.ctx.DATA.recorrentes.length,0);
   assert.equal(a.ctx.DATA.despesas.at(-1).mes,'2026-12');
   assert.equal(a.ctx.DATA.despesas.reduce((sum,d)=>sum+Math.round(d.val*100),0),10000);
+});
+
+test('filtros distinguem encerradas de pausadas e mantêm a lista ativa como padrão',()=>{
+  const a=app();a.ctx.DATA.recorrentesVersao=3;
+  a.ctx.DATA.recorrentes=[
+    {id:'a',nome:'Ativa',ativo:true,cadastroManual:true,inicio:'2026-10'},
+    {id:'p',nome:'Pausada',ativo:false,cadastroManual:true,inicio:'2026-10'},
+    {id:'e',nome:'Encerrada',ativo:false,cadastroManual:true,inicio:'2026-01',fim:'2026-09'},
+  ];
+  assert.equal(vm.runInContext('recorrentesFilter',a.ctx),'active');
+  assert.equal(a.ctx.recurringEntries('active')[0].id,'a');
+  assert.equal(a.ctx.recurringEntries('paused').length,1);
+  assert.equal(a.ctx.recurringEntries('paused')[0].id,'p');
+  assert.equal(a.ctx.recurringEntries('ended')[0].id,'e');
+  assert.equal(a.ctx.recurringEntries('all').length,3);
+});
+test('conta encerrada abre consulta e não oferece alteração após o término',()=>{
+  const a=app(),id=legacySchedule(a,'Voo Gol','2026-09');
+  const r=a.ctx.DATA.recorrentes[0];r.fim='2026-09';a.ctx.DATA.recorrentesVersao=3;
+  a.ctx.openEditRecurringAccount(id);
+  assert.equal(a.fields['recurring-modal-title'].textContent,'Conta encerrada');
+  assert.equal(a.fields['recurring-edit-fields'].disabled,true);
+  assert.equal(a.fields['recurring-save-btn'].hidden,true);
+  assert.equal(a.fields['recurring-cancel-btn'].textContent,'Fechar');
+  assert.match(a.fields['recurring-readonly-notice'].textContent,/não gera novas cobranças/);
+  const before=JSON.stringify(a.ctx.DATA),saves=a.ctx.saves;
+  a.ctx.saveRecurringAccount();
+  assert.equal(JSON.stringify(a.ctx.DATA),before);assert.equal(a.ctx.saves,saves);
+  a.ctx.closeEditRecurringAccount();
+  createAccount(a);a.ctx.openEditRecurringAccount(a.ctx.DATA.recorrentes.find(r=>r.cadastroManual).id);
+  assert.equal(a.fields['recurring-edit-fields'].disabled,false);
+  assert.equal(a.fields['recurring-save-btn'].hidden,false);
+  assert.equal(a.fields['recurring-save-btn'].textContent,'Salvar alterações');
+});
+test('seleção de mês bloqueia pago, excluído e posterior ao fim sem alterar dados',()=>{
+  const a=app();createAccount(a);const r=a.ctx.DATA.recorrentes[0];r.fim='2026-12';r.pularMeses=['2026-11'];
+  a.ctx.openEditRecurringAccount(r.id);
+  assert.equal(vm.runInContext('editingRecurringMonth',a.ctx),'2026-12');
+  for(const month of ['2026-10','2026-11','2027-01'])a.ctx.selectRecurringMonth(month);
+  assert.equal(vm.runInContext('editingRecurringMonth',a.ctx),'2026-12');
+  assert.ok(!a.ctx.DATA.despesas.some(d=>d.mes==='2026-11'));
 });

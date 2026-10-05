@@ -1,6 +1,6 @@
 /* ══════ LANÇAMENTOS ══════ */
-let manageFilter='all';
-function filterManage(f,el){manageFilter=f;document.querySelectorAll('#manage-filter .pfchip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderManageList();}
+let manageFilter='active';
+function filterManage(f,el){manageFilter=f;document.querySelectorAll('#manage-filter .pfchip').forEach(c=>{c.classList.toggle('active',c===el);c.setAttribute('aria-pressed',String(c===el));});renderManageList();}
 
 /* ── Inline toggle helper ── */
 function setToggle(groupId, hiddenId, btn){
@@ -16,25 +16,27 @@ function openManageRecorrentes(){
   initializeRecurringAccounts();
   renderManageList();
   document.getElementById('manage-recorr-modal').classList.add('open');
+  syncRecurringModalScroll();
 }
 function closeManageRecorrentes(){
   document.getElementById('manage-recorr-modal').classList.remove('open');
+  syncRecurringModalScroll();
 }
 
 /* ══ PAINEL RECORRENTES (página Despesas) ══ */
-let recorrentesFilter="all";
+let recorrentesFilter="active";
 let recorrentesOpen=false;
 function toggleRecorrentesPanel(){
   recorrentesOpen=!recorrentesOpen;
   const panel=document.getElementById("recorrentes-panel");
   const chevron=document.getElementById("recorrentes-chevron");
+  document.getElementById("recorrentes-panel-toggle").setAttribute("aria-expanded",String(recorrentesOpen));
   if(recorrentesOpen){panel.style.display="block";chevron.style.transform="rotate(180deg)";renderRecorrentesList();
   }else{panel.style.display="none";chevron.style.transform="rotate(0deg)";}
 }
 function filterRecorrentes(f,el){
   recorrentesFilter=f;
-  document.querySelectorAll("#recorrentes-filter .pfchip").forEach(c=>c.classList.remove("active"));
-  el.classList.add("active");
+  document.querySelectorAll("#recorrentes-filter .pfchip").forEach(c=>{c.classList.toggle("active",c===el);c.setAttribute("aria-pressed",String(c===el));});
   renderRecorrentesList();
 }
 function recurringIdForName(nome){
@@ -50,7 +52,8 @@ function recurringConfigForMonth(r,month){
 }
 
 function isInstallmentEntry(d){return d.origem==='parcelamento'||!!d.parcelamentoId||Number(d.parcelasTotal)>1;}
-function recurringIsActive(r,month=currentMonthKey()){return r.ativo!==false&&(!r.fim||r.fim>=month);}
+function recurringIsEnded(r,month=currentMonthKey()){return !!(r.fim&&r.fim<month);}
+function recurringIsActive(r,month=currentMonthKey()){return r.ativo!==false&&!recurringIsEnded(r,month);}
 
 function migrateRecurringAccounts(){
   if(DATA.recorrentesVersao===3)return false;
@@ -110,24 +113,26 @@ function recurringEntries(filter='all'){
   initializeRecurringAccounts(false);
   let entries=[...(DATA.recorrentes||[])];
   if(filter==='active')entries=entries.filter(r=>recurringIsActive(r));
-  if(filter==='paused')entries=entries.filter(r=>r.ativo===false);
+  if(filter==='paused')entries=entries.filter(r=>r.ativo===false&&!recurringIsEnded(r));
+  if(filter==='ended')entries=entries.filter(r=>recurringIsEnded(r));
   return entries.sort((a,b)=>(a.diaVenc||99)-(b.diaVenc||99)||a.nome.localeCompare(b.nome,'pt-BR'));
 }
 function recurringCard(r){
   r=recurringConfigForMonth(r,currentMonthKey());
-  const active=recurringIsActive(r),ended=r.fim&&r.fim<currentMonthKey();
+  const active=recurringIsActive(r),ended=recurringIsEnded(r);
   const value=r.val==null?'Valor variável':fmt(r.val);
   const due=r.diaVenc?`Vence dia ${r.diaVenc}`:'Sem vencimento';
-  return `<article class="recurring-admin-card ${active?'':'is-paused'}">
+  return `<article class="recurring-admin-card">
     <div class="recurring-admin-main">${itemIcon(r.nome,r.icon)}<div class="recurring-admin-copy"><div class="recurring-admin-title">${r.nome}</div><div class="recurring-admin-meta">${catLabel(r.cat)}${r.pag?' · '+r.pag:''}</div><div class="recurring-admin-details"><strong>${value}</strong><span>${due}${r.fim?' · Até '+mesLabel(r.fim):''}</span></div></div></div>
-    <span class="recurring-state ${active?'is-active':'is-paused'}">${ended?'Encerrada':active?'Ativa':'Pausada'}</span>
-    <div class="recurring-admin-actions"><button type="button" class="recurring-action" onclick="toggleRecurringAccount('${r.id}')" ${ended?'disabled':''} title="${active?'Pausar':'Ativar'}">${uiIcon(active?'pause':'play',15)}<span>${active?'Pausar':'Ativar'}</span></button><button type="button" class="recurring-action" onclick="openEditRecurringAccount('${r.id}')" title="Editar">${uiIcon('edit',15)}<span>Editar</span></button><button type="button" class="recurring-action is-danger" onclick="deleteRecurringAccount('${r.id}')" title="Excluir">${uiIcon('trash',15)}<span>Excluir</span></button></div>
+    <span class="recurring-state ${ended?'is-ended':active?'is-active':'is-paused'}">${ended?'Encerrada':active?'Ativa':'Pausada'}</span>
+    <div class="recurring-admin-actions ${ended?'is-ended':''}">${ended?'':`<button type="button" class="recurring-action" onclick="toggleRecurringAccount('${r.id}')">${uiIcon(active?'pause':'play',15)}<span>${active?'Pausar':'Ativar'}</span></button>`}<button type="button" class="recurring-action" onclick="openEditRecurringAccount('${r.id}')">${uiIcon(ended?'eye':'edit',15)}<span>${ended?'Consultar':'Editar'}</span></button><button type="button" class="recurring-action is-danger" onclick="deleteRecurringAccount('${r.id}')">${uiIcon('trash',15)}<span>Excluir</span></button></div>
   </article>`;
 }
+
 function renderRecurringCollection(elementId,filter){
   const el=document.getElementById(elementId);if(!el)return;
   const entries=recurringEntries(filter);
-  el.innerHTML=entries.length?entries.map(recurringCard).join(''):`<div class="recurring-empty">Nenhuma conta ${filter==='paused'?'pausada':filter==='active'?'ativa':'recorrente'}.</div>`;
+  el.innerHTML=entries.length?entries.map(recurringCard).join(''):`<div class="recurring-empty">Nenhuma conta ${filter==='ended'?'encerrada':filter==='paused'?'pausada':filter==='active'?'ativa':'recorrente'}.</div>`;
 }
 function renderRecorrentesList(){renderRecurringCollection('recorrentes-list',recorrentesFilter);updateRecorrentesBadge();}
 function renderManageList(){renderRecurringCollection('manage-list',manageFilter);}
@@ -143,23 +148,28 @@ function deleteRecurringAccount(id){
   showConfirm(`Mover o cadastro recorrente de "${r.nome}" para a lixeira?`,()=>{moveToTrash('recorrente',r);DATA.recorrentes=DATA.recorrentes.filter(x=>x.id!==id);saveData();refreshRecurringAdmin();showToast('Cadastro movido para a lixeira.');},{label:'Mover',sub:'Você poderá restaurá-lo depois. Os lançamentos já criados serão preservados.',tone:'neutral',icon:'trash'});
 }
 
-let editingRecurringId=null,selectedRecurringIcon=null,editingRecurringMonth=null,editingRecurringMonths=new Set(),editingRecurringScope='from';
+let editingRecurringId=null,selectedRecurringIcon=null,editingRecurringMonth=null,editingRecurringMonths=new Set(),editingRecurringScope='from',recurringReadOnly=false;
+function syncRecurringModalScroll(){document.body.classList.toggle('recurring-modal-open',!!document.querySelector('.recurring-modal.open'));}
+function recurringMonthEditable(r,month){const entry=recurringMonthEntry(r.id,month);return !!month&&month>=currentMonthKey()&&(!r.inicio||month>=r.inicio)&&(!r.fim||month<=r.fim)&&!(r.pularMeses||[]).includes(month)&&entry?.status!=='Pago'&&!entry?.pagoEm;}
+function scrollRecurringTimeline(direction){const el=document.getElementById('recurring-timeline');el.scrollBy({left:direction*el.clientWidth*.8,behavior:'smooth'});}
 function recurringTimelineMonths(){
   const now=new Date(),months=[];
   for(let offset=-2;offset<=7;offset++){const d=new Date(now.getFullYear(),now.getMonth()+offset,1);months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}
+  const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);
+  if(r?.inicio&&r.inicio>months.at(-1))months.push(r.inicio);
   return months;
 }
 function recurringMonthEntry(id,month){return DATA.despesas.find(d=>d.recorrenteId===id&&d.mes===month);}
 function recurringMonthLabel(month){const[y,m]=month.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');}
 function renderRecurringTimeline(){
   const el=document.getElementById('recurring-timeline');if(!el)return;
-  const cm=currentMonthKey(),r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);
+  const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);
   el.innerHTML=recurringTimelineMonths().map(month=>{
-    const entry=recurringMonthEntry(editingRecurringId,month),paid=entry?.status==='Pago',past=month<cm,disabled=past||paid||!!(r?.fim&&month>r.fim);
+    const entry=recurringMonthEntry(editingRecurringId,month),paid=entry?.status==='Pago',disabled=!r||!recurringMonthEditable(r,month);
     const state=paid?'is-paid':entry?'is-generated':'is-future';
-    return `<button type="button" class="recurring-month ${state} ${editingRecurringMonths.has(month)?'is-selected':''}" ${disabled?'disabled':''} onclick="selectRecurringMonth('${month}')"><span>${recurringMonthLabel(month)}</span><small>${month.slice(0,4)}</small><i></i></button>`;
+    return `<button type="button" class="recurring-month ${state} ${editingRecurringMonths.has(month)?'is-selected':''}" ${disabled?'disabled':''} aria-pressed="${editingRecurringMonths.has(month)}" onclick="selectRecurringMonth('${month}')"><span>${recurringMonthLabel(month)}</span><small>${month.slice(0,4)}</small><i></i></button>`;
   }).join('');
-  requestAnimationFrame(()=>el.querySelector('.is-selected')?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}));
+  requestAnimationFrame(()=>{const selected=el.querySelector('.is-selected');if(selected)el.scrollTo({left:Math.max(0,selected.offsetLeft-el.offsetLeft-(el.clientWidth-selected.offsetWidth)/2),behavior:'smooth'});});
 }
 function loadRecurringMonthForm(){
   const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);if(!r)return;
@@ -175,6 +185,8 @@ function loadRecurringMonthForm(){
   updateRecurringSaveLabel();
 }
 function selectRecurringMonth(month){
+  const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);
+  if(recurringReadOnly||!r||!recurringMonthEditable(r,month))return;
   if(editingRecurringScope==='only'){
     if(editingRecurringMonths.has(month)){if(editingRecurringMonths.size>1)editingRecurringMonths.delete(month);}
     else editingRecurringMonths.add(month);
@@ -190,24 +202,29 @@ function setRecurringEditScope(scope,btn){
     const first=[...editingRecurringMonths].sort()[0]||editingRecurringMonth;
     editingRecurringMonth=first;editingRecurringMonths=new Set([first]);loadRecurringMonthForm();
   }
-  setToggle('recurring-scope-toggle','recurring-edit-scope',btn);renderRecurringTimeline();updateRecurringSaveLabel();
+  setToggle('recurring-scope-toggle','recurring-edit-scope',btn);
+  document.querySelectorAll('#recurring-scope-toggle .toggle-opt').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.val===scope)));
+  renderRecurringTimeline();updateRecurringSaveLabel();
 }
 function updateRecurringSaveLabel(){
   if(!editingRecurringMonth)return;
   const btn=document.getElementById('recurring-save-btn');
   const label=mesLabel(editingRecurringMonth);
   const count=editingRecurringMonths.size;
-  if(btn)btn.textContent=editingRecurringScope==='only'?(count===1?`Salvar em ${label}`:`Salvar em ${count} meses`):`Salvar a partir de ${label}`;
+  if(btn){btn.textContent='Salvar alterações';btn.setAttribute('aria-label',editingRecurringScope==='only'?(count===1?`Salvar em ${label}`:`Salvar em ${count} meses`):`Salvar a partir de ${label}`);}
+  const hint=document.getElementById('recurring-selection-hint');
+  if(hint)hint.textContent=editingRecurringScope==='only'?'Toque nos meses que deseja alterar. Somente os selecionados serão atualizados.':'As mudanças valem a partir do mês escolhido. Os pagamentos serão preservados.';
   updateRecurringChangeSummary();
 }
 function updateRecurringChangeSummary(){
-  const el=document.getElementById('recurring-change-summary');if(!el||!editingRecurringMonth)return;
+  const el=document.getElementById('recurring-change-summary');if(!el||!editingRecurringMonth||recurringReadOnly)return;
+  const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);
   const months=[...editingRecurringMonths].sort(),count=months.length,val=readMoneyField('recurring-edit-value');
   const day=document.getElementById('recurring-edit-day').value,status=document.getElementById('recurring-edit-status').value;
   const monthNames=months.map(m=>mesLabel(m).replace(' de ','/')).join(' · ');
   const selected=editingRecurringScope==='only';
-  const title=selected?(count===1?'Alteração em 1 mês':`Alteração em ${count} meses`):'Alteração permanente';
-  const period=selected?monthNames:`A partir de ${mesLabel(editingRecurringMonth)}`;
+  const title=selected?(count===1?'Alteração em 1 mês':`Alteração em ${count} meses`):r?.fim?'Alteração até o término':'Alteração permanente';
+  const period=selected?monthNames:`A partir de ${mesLabel(editingRecurringMonth)}${r?.fim?' · Até '+mesLabel(r.fim):''}`;
   const total=val==null?'A definir':selected?fmt(val*count):fmt(val);
   el.innerHTML=`<div class="recurring-impact-top"><span class="recurring-impact-icon">${uiIcon('calendar',15)}</span><div><strong>${title}</strong><span>${period}</span></div></div><div class="recurring-impact-values"><div><small>${selected?'POR MÊS':'NOVO VALOR MENSAL'}</small><b>${val==null?'Variável':fmt(val)}</b></div>${selected?`<div><small>TOTAL PREVISTO</small><b>${total}</b></div>`:''}</div><div class="recurring-impact-foot">${day?`Vencimento dia ${day}`:'Sem vencimento'} <span>•</span> ${status==='Débito auto'?'Débito automático':'Falta pagar'}</div>`;
 }
@@ -241,18 +258,34 @@ function openEditRecurringAccount(id){
   const cat=document.getElementById('recurring-edit-cat'),pag=document.getElementById('recurring-edit-pag');
   if(!cat.options.length)cat.innerHTML=document.getElementById('in-cat').innerHTML;
   if(!pag.options.length)pag.innerHTML=document.getElementById('in-pag').innerHTML;
-  const cm=currentMonthKey(),currentEntry=recurringMonthEntry(id,cm);
-  editingRecurringMonth=currentEntry?.status==='Pago'?recurringTimelineMonths().find(m=>m>cm):cm;
-  editingRecurringMonths=new Set([editingRecurringMonth]);
+  const available=recurringTimelineMonths().filter(month=>recurringMonthEditable(r,month));
+  recurringReadOnly=recurringIsEnded(r)||!available.length;
+  editingRecurringMonth=recurringReadOnly?(r.fim||currentMonthKey()):available[0];
+  editingRecurringMonths=new Set(recurringReadOnly?[]:[editingRecurringMonth]);
+  const modal=document.getElementById('edit-recurring-modal');
+  modal.classList.toggle('is-readonly',recurringReadOnly);
+  document.getElementById('recurring-edit-fields').disabled=recurringReadOnly;
+  document.getElementById('recurring-save-btn').hidden=recurringReadOnly;
+  document.getElementById('recurring-cancel-btn').textContent=recurringReadOnly?'Fechar':'Cancelar';
+  document.getElementById('recurring-modal-title').textContent=recurringIsEnded(r)?'Conta encerrada':recurringReadOnly?'Consultar conta recorrente':'Editar conta recorrente';
+  document.getElementById('recurring-modal-description').textContent=recurringReadOnly?'Consulte os dados do cadastro. Seus pagamentos permanecem preservados.':'Escolha quando aplicar as mudanças. Os pagamentos serão preservados.';
+  const notice=document.getElementById('recurring-readonly-notice');
+  notice.hidden=!recurringReadOnly;
+  notice.textContent=recurringIsEnded(r)?`Esta conta terminou em ${mesLabel(r.fim)} e não gera novas cobranças.`:'Não há meses disponíveis para alteração neste período.';
   document.getElementById('recurring-edit-scope').value='from';
-  document.querySelectorAll('#recurring-scope-toggle .toggle-opt').forEach(btn=>btn.classList.toggle('active',btn.dataset.val==='from'));
-  loadRecurringMonthForm();renderRecurringTimeline();
-  document.getElementById('edit-recurring-modal').classList.add('open');
+  document.querySelectorAll('#recurring-scope-toggle .toggle-opt').forEach(btn=>{btn.classList.toggle('active',btn.dataset.val==='from');btn.setAttribute('aria-pressed',String(btn.dataset.val==='from'));});
+  loadRecurringMonthForm();
+  if(!recurringReadOnly)renderRecurringTimeline();
+  modal.classList.add('open');
+  modal.querySelector('.recurring-modal-body').scrollTop=0;
+  syncRecurringModalScroll();
+  document.getElementById('recurring-modal-close').focus({preventScroll:true});
 }
-function closeEditRecurringAccount(){document.getElementById('edit-recurring-modal').classList.remove('open');editingRecurringId=null;selectedRecurringIcon=null;editingRecurringMonth=null;editingRecurringMonths=new Set();}
+function closeEditRecurringAccount(){document.getElementById('edit-recurring-modal').classList.remove('open');editingRecurringId=null;selectedRecurringIcon=null;editingRecurringMonth=null;editingRecurringMonths=new Set();recurringReadOnly=false;syncRecurringModalScroll();}
+
 function saveRecurringAccount(){
   const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);if(!r)return;
-  if(r.fim&&[...editingRecurringMonths].some(month=>month>r.fim)){showToast('Este cadastro termina em '+mesLabel(r.fim)+'.');return;}
+  if(recurringReadOnly||!editingRecurringMonths.size||[...editingRecurringMonths].some(month=>!recurringMonthEditable(r,month))){showToast('Escolha um mês disponível para alteração.');return;}
   const name=document.getElementById('recurring-edit-name').value.trim();if(!name){fieldError('recurring-edit-name','Nome obrigatório');return;}
   const val=readMoneyField('recurring-edit-value'),dayRaw=document.getElementById('recurring-edit-day').value,day=dayRaw?Math.max(1,Math.min(31,Number(dayRaw))):null;
   const data={nome:name,cat:document.getElementById('recurring-edit-cat').value,pag:document.getElementById('recurring-edit-pag').value,val,diaVenc:day,status:document.getElementById('recurring-edit-status').value,icon:selectedRecurringIcon||null};
@@ -442,3 +475,10 @@ function deleteDespEntry(id){
   },{label:'Mover',sub:'Você poderá restaurar este lançamento depois.',tone:'neutral'});
 }
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// Escape fecha o modal superior sem deixar a página bloqueada para rolagem.
+document.addEventListener('keydown',event=>{
+  if(event.key!=='Escape'||document.querySelector('.modal-overlay.open:not(.recurring-modal)'))return;
+  if(document.getElementById('edit-recurring-modal')?.classList.contains('open'))closeEditRecurringAccount();
+  else if(document.getElementById('manage-recorr-modal')?.classList.contains('open'))closeManageRecorrentes();
+});
