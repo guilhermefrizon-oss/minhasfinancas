@@ -180,3 +180,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .chart-header:has(.chart-period-controls) { flex-wrap:wrap; align-items:center; gap:12px; }
 .chart-header:has(.chart-period-controls)>div:first-child { min-width:0; }
 #legend-bar { flex-basis:100%; }
+
+/* Details remain in the document flow, without covering controls or content. */
+.category-bar-row { width:100%; padding:8px 0; border:0; background:none; text-align:left; cursor:pointer; }
+.category-bar-heading,.category-bar-track { display:block; }
+.category-bar-heading { display:flex; }
+.chart-details { margin-top:16px; padding:16px; border:1px solid var(--border); border-radius:14px; background:var(--surface2); }
+.chart-details[hidden] { display:none; }
+.chart-detail-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.chart-detail-heading strong { min-width:0; overflow-wrap:anywhere; font-size:14px; }
+.chart-detail-heading button { display:flex; align-items:center; justify-content:center; width:44px; height:44px; flex-shrink:0; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text); font-size:24px; cursor:pointer; }
+.chart-details p,.chart-data-note,.chart-tap-hint { color:var(--text2); font-size:12px; line-height:1.6; }
+.chart-details p { margin-top:8px; }
+.chart-data-note { margin:12px 0; padding:12px; border:1px dashed var(--border); border-radius:12px; }
+.chart-details dl { margin-top:12px; }
+.chart-details dl>div { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:4px 12px; padding:8px 0; border-top:1px solid var(--border); font-size:12px; line-height:1.5; }
+.chart-details dt { color:var(--text2); }
+.chart-details dd { color:var(--text); font-weight:700; font-variant-numeric:tabular-nums; }
+.chart-month-detail-label { display:block; margin:16px 0 8px; color:var(--text2); font-size:12px; font-weight:650; }
+.chart-month-detail-select { width:100%; min-height:44px; font-size:16px; }
+.chart-tap-hint { margin-top:12px; }
+.chart-box>div[hidden] { display:none!important; }
