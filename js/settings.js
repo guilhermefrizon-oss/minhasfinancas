@@ -225,7 +225,7 @@ function backupJSON() {
     despesas: DATA.despesas,
     receitas: DATA.receitas,
     recorrentes: DATA.recorrentes||[],
-    recorrentesVersao: DATA.recorrentesVersao||2,
+    recorrentesVersao: DATA.recorrentesVersao||3,
     lixeira: DATA.lixeira||[],
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -243,7 +243,7 @@ function clearAllData() {
     DATA.despesas = [];
     DATA.receitas = [];
     DATA.recorrentes = [];
-    DATA.recorrentesVersao = 2;
+    DATA.recorrentesVersao = 3;
     DATA.lixeira = [];
     saveData();
     renderOverview();

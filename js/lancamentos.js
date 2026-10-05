@@ -49,50 +49,54 @@ function recurringConfigForMonth(r,month){
   return cfg;
 }
 
+function isInstallmentEntry(d){return d.origem==='parcelamento'||!!d.parcelamentoId||Number(d.parcelasTotal)>1;}
+function recurringIsActive(r,month=currentMonthKey()){return r.ativo!==false&&(!r.fim||r.fim>=month);}
+
+function migrateRecurringAccounts(){
+  if(DATA.recorrentesVersao===3)return false;
+  if(!Array.isArray(DATA.recorrentes))DATA.recorrentes=[];
+  const retired=new Set(),ends=new Map();
+  const scheduled=[...DATA.despesas,...(DATA.lixeira||[]).filter(t=>t.tipo==='despesa').map(t=>t.item).filter(Boolean)];
+  DATA.recorrentes.forEach(r=>{
+    // A repetição no histórico não comprova uma recorrência sem prazo.
+    // Os cadastros explícitos do formulário novo não passam por esta correção.
+    if(r.cadastroManual||!(r.migradoAtivo||r.id===recurringIdForName(r.nome)))return;
+    const originals=scheduled.filter(d=>d.origem!=='recorrente'&&(d.recorrenteId===r.id||(!d.recorrenteId&&d.nome===r.nome)));
+    if(!originals.length||originals.every(isInstallmentEntry)){
+      retired.add(r.id);
+      return;
+    }
+    const months=originals.map(d=>d.mes).filter(m=>/^\d{4}-\d{2}$/.test(m||'')).sort();
+    if(!months.length){retired.add(r.id);return;}
+    // O fim vem apenas dos lançamentos originais, nunca dos gerados ao navegar.
+    r.fim=r.fim&&r.fim<months.at(-1)?r.fim:months.at(-1);
+    ends.set(r.id,r.fim);
+  });
+  DATA.despesas=DATA.despesas.filter(d=>{
+    const beyond=retired.has(d.recorrenteId)||(ends.has(d.recorrenteId)&&d.mes>ends.get(d.recorrenteId));
+    if(beyond&&d.origem==='recorrente'&&!isInstallmentEntry(d)&&d.status!=='Pago'&&!d.pagoEm){
+      moveToTrash('despesa',d);
+      return false;
+    }
+    if(retired.has(d.recorrenteId))delete d.recorrenteId;
+    return true;
+  });
+  DATA.recorrentes=DATA.recorrentes.filter(r=>!retired.has(r.id));
+  // Não inferir novos cadastros a partir de despesas repetidas ou parceladas.
+  DATA.recorrentesVersao=3;
+  return true;
+}
 function initializeRecurringAccounts(persist=true){
-  let changed=false;
-  if(!Array.isArray(DATA.recorrentes)){
-    DATA.recorrentes=[];
-    changed=true;
-  }
-  // Corrige a primeira versão da migração, que confundia compras repetidas no
-  // histórico (viagens, passeios etc.) com contas realmente recorrentes.
-  const inferredIds=new Set(DATA.recorrentes
-    .filter(r=>r.id===recurringIdForName(r.nome))
-    .map(r=>r.id));
-  if(inferredIds.size){
-    DATA.despesas=DATA.despesas.filter(d=>!(d.origem==='recorrente'&&inferredIds.has(d.recorrenteId)));
-    DATA.despesas.forEach(d=>{if(inferredIds.has(d.recorrenteId)){delete d.recorrenteId;delete d.origem;}});
-    DATA.recorrentes=DATA.recorrentes.filter(r=>!inferredIds.has(r.id));
-    changed=true;
-  }
-  // Recupera uma única vez apenas as contas que já estavam programadas para
-  // o mês atual ou para o futuro. Despesas encerradas no passado ficam fora.
-  if(DATA.recorrentesVersao!==2){
-    const cm=currentMonthKey(),groups={};
-    DATA.despesas.filter(d=>d.origem!=='recorrente').forEach(d=>{(groups[d.nome]||(groups[d.nome]=[])).push(d);});
-    Object.values(groups).filter(items=>items.length>1&&items.some(d=>(d.mes||'')>=cm)).forEach(items=>{
-      const sorted=[...items].sort((a,b)=>(a.mes||'').localeCompare(b.mes||''));
-      const latest=sorted[sorted.length-1];
-      if(DATA.recorrentes.some(r=>r.nome.toLowerCase()===latest.nome.toLowerCase()))return;
-      const id=`rec-v2-${recurringIdForName(latest.nome).slice(4)}`;
-      items.forEach(d=>{d.recorrenteId=id;});
-      DATA.recorrentes.push({id,nome:latest.nome,cat:latest.cat||'Outros',pag:latest.pag||'',val:latest.val??null,diaVenc:latest.diaVenc||(latest.venc?Number(latest.venc.slice(-2)):null),status:latest.status==='Débito auto'?'Débito auto':'Falta Pagar',tipo:latest.tipo||guessTipo(latest.cat),icon:latest.icon||null,ativo:true,inicio:sorted[0].mes||cm,migradoAtivo:true,criadoEm:Date.now()});
-    });
-    DATA.recorrentesVersao=2;
-    changed=true;
-  }
-  changed=ensureRecurringEntriesForMonth(currentMonthKey(),false)||changed;
+  const changed=ensureRecurringEntriesForMonth(currentMonthKey(),false);
   if(changed&&persist&&typeof saveData==='function')saveData();
   return changed;
 }
 
 function ensureRecurringEntriesForMonth(month,persist=true){
-  if(!Array.isArray(DATA.recorrentes))return false;
-  let changed=false;
-  DATA.recorrentes.filter(r=>r.ativo!==false&&(!r.inicio||r.inicio<=month)).forEach(r=>{
+  let changed=migrateRecurringAccounts();
+  DATA.recorrentes.filter(r=>recurringIsActive(r,month)&&(!r.inicio||r.inicio<=month)).forEach(r=>{
     if((r.pularMeses||[]).includes(month))return;
-    let existing=DATA.despesas.find(d=>d.mes===month&&(d.recorrenteId===r.id||(!d.recorrenteId&&d.nome===r.nome)));
+    const existing=DATA.despesas.find(d=>!isInstallmentEntry(d)&&d.mes===month&&(d.recorrenteId===r.id||(!d.recorrenteId&&d.nome===r.nome)));
     if(existing){if(!existing.recorrenteId){existing.recorrenteId=r.id;changed=true;}return;}
     const cfg=recurringConfigForMonth(r,month);
     DATA.despesas.push({id:Date.now()+Math.random(),recorrenteId:r.id,origem:'recorrente',nome:cfg.nome,cat:cfg.cat,pag:cfg.pag,mes:month,val:cfg.val,status:cfg.status||'Falta Pagar',venc:recurringDueDate(month,cfg.diaVenc),diaVenc:cfg.diaVenc||null,tipo:cfg.tipo||guessTipo(cfg.cat),icon:cfg.icon||null,pagoEm:null});
@@ -105,19 +109,19 @@ function ensureRecurringEntriesForMonth(month,persist=true){
 function recurringEntries(filter='all'){
   initializeRecurringAccounts(false);
   let entries=[...(DATA.recorrentes||[])];
-  if(filter==='active')entries=entries.filter(r=>r.ativo!==false);
+  if(filter==='active')entries=entries.filter(r=>recurringIsActive(r));
   if(filter==='paused')entries=entries.filter(r=>r.ativo===false);
   return entries.sort((a,b)=>(a.diaVenc||99)-(b.diaVenc||99)||a.nome.localeCompare(b.nome,'pt-BR'));
 }
 function recurringCard(r){
   r=recurringConfigForMonth(r,currentMonthKey());
-  const active=r.ativo!==false;
+  const active=recurringIsActive(r),ended=r.fim&&r.fim<currentMonthKey();
   const value=r.val==null?'Valor variável':fmt(r.val);
   const due=r.diaVenc?`Vence dia ${r.diaVenc}`:'Sem vencimento';
   return `<article class="recurring-admin-card ${active?'':'is-paused'}">
-    <div class="recurring-admin-main">${itemIcon(r.nome,r.icon)}<div class="recurring-admin-copy"><div class="recurring-admin-title">${r.nome}</div><div class="recurring-admin-meta">${catLabel(r.cat)}${r.pag?' · '+r.pag:''}</div><div class="recurring-admin-details"><strong>${value}</strong><span>${due}</span></div></div></div>
-    <span class="recurring-state ${active?'is-active':'is-paused'}">${active?'Ativa':'Pausada'}</span>
-    <div class="recurring-admin-actions"><button type="button" class="recurring-action" onclick="toggleRecurringAccount('${r.id}')" title="${active?'Pausar':'Ativar'}">${uiIcon(active?'pause':'play',15)}<span>${active?'Pausar':'Ativar'}</span></button><button type="button" class="recurring-action" onclick="openEditRecurringAccount('${r.id}')" title="Editar">${uiIcon('edit',15)}<span>Editar</span></button><button type="button" class="recurring-action is-danger" onclick="deleteRecurringAccount('${r.id}')" title="Excluir">${uiIcon('trash',15)}<span>Excluir</span></button></div>
+    <div class="recurring-admin-main">${itemIcon(r.nome,r.icon)}<div class="recurring-admin-copy"><div class="recurring-admin-title">${r.nome}</div><div class="recurring-admin-meta">${catLabel(r.cat)}${r.pag?' · '+r.pag:''}</div><div class="recurring-admin-details"><strong>${value}</strong><span>${due}${r.fim?' · Até '+mesLabel(r.fim):''}</span></div></div></div>
+    <span class="recurring-state ${active?'is-active':'is-paused'}">${ended?'Encerrada':active?'Ativa':'Pausada'}</span>
+    <div class="recurring-admin-actions"><button type="button" class="recurring-action" onclick="toggleRecurringAccount('${r.id}')" ${ended?'disabled':''} title="${active?'Pausar':'Ativar'}">${uiIcon(active?'pause':'play',15)}<span>${active?'Pausar':'Ativar'}</span></button><button type="button" class="recurring-action" onclick="openEditRecurringAccount('${r.id}')" title="Editar">${uiIcon('edit',15)}<span>Editar</span></button><button type="button" class="recurring-action is-danger" onclick="deleteRecurringAccount('${r.id}')" title="Excluir">${uiIcon('trash',15)}<span>Excluir</span></button></div>
   </article>`;
 }
 function renderRecurringCollection(elementId,filter){
@@ -129,11 +133,11 @@ function renderRecorrentesList(){renderRecurringCollection('recorrentes-list',re
 function renderManageList(){renderRecurringCollection('manage-list',manageFilter);}
 function updateRecorrentesBadge(){
   const list=Array.isArray(DATA.recorrentes)?DATA.recorrentes:[];
-  const active=list.filter(r=>r.ativo!==false).length;
+  const active=list.filter(r=>recurringIsActive(r)).length;
   const badge=document.getElementById('recorrentes-count-badge');if(badge)badge.textContent=active?`${active} ativa${active>1?'s':''}`:'Nenhuma ativa';
 }
 function refreshRecurringAdmin(){updateRecorrentesBadge();if(recorrentesOpen)renderRecorrentesList();renderManageList();if(typeof renderDespTable==='function')renderDespTable();if(typeof renderOverview==='function')renderOverview();}
-function toggleRecurringAccount(id){const r=(DATA.recorrentes||[]).find(x=>x.id===id);if(!r)return;r.ativo=r.ativo===false;saveData();refreshRecurringAdmin();showToast(r.ativo?'Conta ativada!':'Conta pausada.');}
+function toggleRecurringAccount(id){const r=(DATA.recorrentes||[]).find(x=>x.id===id);if(!r)return;if(r.fim&&r.fim<currentMonthKey()){showToast('Este cadastro terminou em '+mesLabel(r.fim)+'.');return;}r.ativo=r.ativo===false;saveData();refreshRecurringAdmin();showToast(r.ativo?'Conta ativada!':'Conta pausada.');}
 function deleteRecurringAccount(id){
   const r=(DATA.recorrentes||[]).find(x=>x.id===id);if(!r)return;
   showConfirm(`Mover o cadastro recorrente de "${r.nome}" para a lixeira?`,()=>{moveToTrash('recorrente',r);DATA.recorrentes=DATA.recorrentes.filter(x=>x.id!==id);saveData();refreshRecurringAdmin();showToast('Cadastro movido para a lixeira.');},{label:'Mover',sub:'Você poderá restaurá-lo depois. Os lançamentos já criados serão preservados.',tone:'neutral',icon:'trash'});
@@ -149,9 +153,9 @@ function recurringMonthEntry(id,month){return DATA.despesas.find(d=>d.recorrente
 function recurringMonthLabel(month){const[y,m]=month.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');}
 function renderRecurringTimeline(){
   const el=document.getElementById('recurring-timeline');if(!el)return;
-  const cm=currentMonthKey();
+  const cm=currentMonthKey(),r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);
   el.innerHTML=recurringTimelineMonths().map(month=>{
-    const entry=recurringMonthEntry(editingRecurringId,month),paid=entry?.status==='Pago',past=month<cm,disabled=past||paid;
+    const entry=recurringMonthEntry(editingRecurringId,month),paid=entry?.status==='Pago',past=month<cm,disabled=past||paid||!!(r?.fim&&month>r.fim);
     const state=paid?'is-paid':entry?'is-generated':'is-future';
     return `<button type="button" class="recurring-month ${state} ${editingRecurringMonths.has(month)?'is-selected':''}" ${disabled?'disabled':''} onclick="selectRecurringMonth('${month}')"><span>${recurringMonthLabel(month)}</span><small>${month.slice(0,4)}</small><i></i></button>`;
   }).join('');
@@ -248,6 +252,7 @@ function openEditRecurringAccount(id){
 function closeEditRecurringAccount(){document.getElementById('edit-recurring-modal').classList.remove('open');editingRecurringId=null;selectedRecurringIcon=null;editingRecurringMonth=null;editingRecurringMonths=new Set();}
 function saveRecurringAccount(){
   const r=(DATA.recorrentes||[]).find(x=>x.id===editingRecurringId);if(!r)return;
+  if(r.fim&&[...editingRecurringMonths].some(month=>month>r.fim)){showToast('Este cadastro termina em '+mesLabel(r.fim)+'.');return;}
   const name=document.getElementById('recurring-edit-name').value.trim();if(!name){fieldError('recurring-edit-name','Nome obrigatório');return;}
   const val=readMoneyField('recurring-edit-value'),dayRaw=document.getElementById('recurring-edit-day').value,day=dayRaw?Math.max(1,Math.min(31,Number(dayRaw))):null;
   const data={nome:name,cat:document.getElementById('recurring-edit-cat').value,pag:document.getElementById('recurring-edit-pag').value,val,diaVenc:day,status:document.getElementById('recurring-edit-status').value,icon:selectedRecurringIcon||null};

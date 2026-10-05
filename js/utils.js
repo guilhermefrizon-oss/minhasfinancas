@@ -31,7 +31,8 @@ function allMonths(){
     const start=r.inicio||cm;
     const [y,m]=(start>cm?start:cm).split('-').map(Number);
     const endDate=new Date(y,m-1+12,1);
-    const end=`${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}`;
+    const windowEnd=`${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}`;
+    const end=r.fim&&r.fim<windowEnd?r.fim:windowEnd;
     let [sy,sm]=start.split('-').map(Number);
     for(let date=new Date(sy,sm-1,1);;date.setMonth(date.getMonth()+1)){
       const month=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
