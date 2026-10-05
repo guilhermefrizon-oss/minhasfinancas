@@ -535,3 +535,25 @@ body.recurring-modal-open { overflow:hidden; }
 .recurring-admin-main .item-icon-wrap>svg { width:32px; height:32px; flex-shrink:0; display:block; }
 #recurring-edit-icon-preview { display:flex; align-items:center; justify-content:center; width:28px; height:28px; }
 #recurring-edit-icon-preview>svg { width:28px; height:28px; flex-shrink:0; display:block; }
+
+/* Encerramento: lista dos lançamentos e escolha antes de confirmar. */
+.closure-account-name { font-size:16px; line-height:1.4; overflow-wrap:anywhere; margin:0 0 20px; }
+.closure-section-title { font-size:12px; color:var(--text2); margin:0 0 10px; }
+.closure-months { list-style:none; padding:0; margin:0 0 22px; }
+.closure-months li { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+.closure-months li>div { min-width:0; display:flex; flex-direction:column; gap:4px; }
+.closure-months strong { font-size:13px; line-height:1.4; overflow-wrap:anywhere; }
+.closure-months div>span,.closure-empty { font-size:12px; color:var(--text2); }
+.closure-month-state { flex-shrink:0; font-size:10px; font-weight:650; color:var(--text2); }
+.closure-month-state.is-remove { color:var(--red); }
+.closure-options { min-width:0; border:0; margin:0; padding:0; }
+.closure-options legend { font-size:13px; font-weight:700; margin-bottom:10px; }
+.closure-options label { display:flex; align-items:flex-start; gap:10px; padding:14px; border:1px solid var(--border); border-radius:12px; margin-bottom:10px; cursor:pointer; }
+.closure-options label:has(input:checked) { border-color:var(--text); background:var(--surface2); }
+.closure-options input { flex-shrink:0; width:18px; height:18px; margin:1px 0 0; accent-color:var(--text); }
+.closure-options span { min-width:0; }
+.closure-options strong { display:block; font-size:13px; line-height:1.4; }
+.closure-options small { display:block; font-size:12px; line-height:1.5; color:var(--text2); margin-top:5px; }
+.closure-summary { padding:14px; border-radius:12px; background:var(--surface2); color:var(--text2); font-size:12px; line-height:1.6; margin-top:16px; }
+.closure-protection { color:var(--green); font-size:12px; line-height:1.5; margin-top:12px; }
+@media (max-width:359px) { .closure-months li { flex-wrap:wrap; gap:6px; } }
