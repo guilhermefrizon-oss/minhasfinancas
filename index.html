@@ -825,6 +825,28 @@
 </div>
 
 <!-- MODAL EDITAR OU CONSULTAR CADASTRO RECORRENTE -->
+<div id="end-recurring-modal" class="modal-overlay recurring-modal" style="display:none;z-index:560" role="dialog" aria-modal="true" aria-labelledby="end-recurring-title" aria-describedby="end-recurring-description" onclick="if(event.target===this)closeEndRecurringAccount()">
+  <div class="modal-box recurring-modal-box">
+    <div class="recurring-modal-header">
+      <div class="recurring-modal-heading"><h2 id="end-recurring-title" class="modal-title">Encerrar conta recorrente</h2><p id="end-recurring-description">Nenhuma nova cobrança será gerada após o encerramento.</p></div>
+      <button type="button" id="end-recurring-close" class="recurring-modal-close" onclick="closeEndRecurringAccount()" aria-label="Fechar encerramento">×</button>
+    </div>
+    <div class="recurring-modal-body">
+      <h3 id="end-recurring-name" class="closure-account-name"></h3>
+      <h4 class="closure-section-title">Cobranças em aberto já lançadas</h4>
+      <ul id="end-recurring-months" class="closure-months"></ul>
+      <fieldset class="closure-options">
+        <legend>O que fazer com as cobranças?</legend>
+        <label><input type="radio" id="end-recurring-keep" name="end-recurring-mode" value="keep" checked onchange="renderEndRecurringPreview()"><span><strong>Manter e programar a exclusão</strong><small>Mantém os lançamentos. O cadastro vai para a lixeira ao quitar todas as pendências.</small></span></label>
+        <label><input type="radio" id="end-recurring-remove" name="end-recurring-mode" value="remove-future" onchange="renderEndRecurringPreview()"><span><strong>Excluir também as futuras</strong><small>Move para a lixeira as cobranças em aberto dos próximos meses. Mantém o mês atual e os atrasados.</small></span></label>
+      </fieldset>
+      <p id="end-recurring-summary" class="closure-summary" aria-live="polite"></p>
+      <p class="closure-protection">Todos os pagamentos já feitos serão preservados.</p>
+    </div>
+    <div class="modal-actions recurring-modal-footer"><button type="button" class="modal-btn-primary" onclick="confirmEndRecurringAccount()">Encerrar conta</button><button type="button" class="modal-btn-secondary" onclick="closeEndRecurringAccount()">Cancelar</button></div>
+  </div>
+</div>
+
 <div id="edit-recurring-modal" class="modal-overlay recurring-modal" style="display:none;z-index:540" role="dialog" aria-modal="true" aria-labelledby="recurring-modal-title" aria-describedby="recurring-modal-description" onclick="if(event.target===this)closeEditRecurringAccount()">
   <div class="modal-box recurring-modal-box">
     <div class="recurring-modal-header">

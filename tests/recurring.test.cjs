@@ -248,3 +248,69 @@ test('referência ignora meses excluídos e respeita início futuro e término',
   r.inicio='2026-01';r.fim='2026-09';
   assert.equal(a.ctx.recurringReferenceMonth(r),'2026-09');
 });
+
+function closureAccount(a){
+  createAccount(a);const r=a.ctx.DATA.recorrentes[0];
+  visit(a.ctx,'2026-11');visit(a.ctx,'2026-12');
+  a.ctx.DATA.despesas.push({id:99,recorrenteId:r.id,nome:r.nome,mes:'2026-09',val:25,status:'Falta Pagar'});
+  return r;
+}
+test('encerrar mantendo bloqueia geração e agenda exclusão somente ao quitar todas',()=>{
+  const a=app(),r=closureAccount(a),before=JSON.stringify(a.ctx.DATA.despesas);
+  assert.equal(a.ctx.endRecurringAccount(r.id,'keep'),true);
+  assert.equal(a.ctx.recurringIsEnded(r),true);assert.equal(r.excluirAoQuitar,true);
+  assert.equal(JSON.stringify(a.ctx.DATA.despesas),before);
+  visit(a.ctx,'2027-01');assert.equal(a.ctx.DATA.despesas.length,4);
+  a.ctx.DATA=JSON.parse(a.storage.get('data'));
+  assert.equal(a.ctx.finalizeRecurringClosures(),false);
+  a.ctx.DATA.despesas.filter(d=>d.mes!=='2026-09').forEach(d=>d.status='Pago');
+  assert.equal(a.ctx.finalizeRecurringClosures(),false);
+  a.ctx.DATA.despesas.forEach(d=>d.status='Pago');
+  assert.equal(a.ctx.finalizeRecurringClosures(),true);
+  assert.equal(a.ctx.DATA.recorrentes.length,0);assert.equal(a.ctx.DATA.despesas.length,4);
+  assert.equal(a.ctx.DATA.lixeira[0].tipo,'recorrente');
+  assert.equal(a.ctx.DATA.lixeira[0].item.excluirAoQuitar,false);
+  assert.equal(a.ctx.finalizeRecurringClosures(),false);
+});
+test('encerrar removendo futuras mantém atrasadas, mês atual e pagamentos futuros',()=>{
+  const a=app(),r=closureAccount(a);
+  a.ctx.DATA.despesas[0].status='Falta Pagar';a.ctx.DATA.despesas[0].pagoEm=null;
+  a.ctx.DATA.despesas.find(d=>d.mes==='2026-12').pagoEm='2026-10-01';
+  const paid=JSON.stringify(a.ctx.DATA.despesas.find(d=>d.mes==='2026-12'));
+  assert.equal(a.ctx.endRecurringAccount(r.id,'remove-future'),true);
+  assert.deepEqual(Array.from(a.ctx.DATA.despesas,d=>d.mes).sort(),['2026-09','2026-10','2026-12']);
+  assert.equal(JSON.stringify(a.ctx.DATA.despesas.find(d=>d.mes==='2026-12')),paid);
+  assert.equal(a.ctx.DATA.lixeira.length,1);assert.equal(a.ctx.DATA.lixeira[0].item.mes,'2026-11');
+  assert.ok(r.pularMeses.includes('2026-11'));assert.equal(r.excluirAoQuitar,false);
+  visit(a.ctx,'2026-11');visit(a.ctx,'2027-02');assert.equal(a.ctx.DATA.despesas.length,3);
+});
+test('contas ativas e pausadas oferecem Encerrar; Excluir só aparece nas encerradas',()=>{
+  const a=app();createAccount(a);const r=a.ctx.DATA.recorrentes[0];
+  for(const active of [true,false]){r.ativo=active;const html=a.ctx.recurringCard(r);assert.match(html,/>Encerrar</);assert.doesNotMatch(html,/>Excluir</);}
+  a.ctx.deleteRecurringAccount(r.id);
+  assert.equal(a.fields['end-recurring-modal'].classList.contains('open'),true);
+  assert.equal(a.ctx.DATA.recorrentes.length,1);
+  a.ctx.closeEndRecurringAccount();a.ctx.endRecurringAccount(r.id,'keep');
+  const html=a.ctx.recurringCard(r);assert.match(html,/>Excluir</);assert.doesNotMatch(html,/>Encerrar</);
+  const before=JSON.stringify(a.ctx.DATA);a.ctx.toggleRecurringAccount(r.id);assert.equal(JSON.stringify(a.ctx.DATA),before);
+});
+test('prévia lista só pendências e cancelar não altera dados',()=>{
+  const a=app(),r=closureAccount(a),before=JSON.stringify(a.ctx.DATA);
+  a.ctx.openEndRecurringAccount(r.id);
+  const html=a.fields['end-recurring-months'].innerHTML;
+  assert.match(html,/set/);assert.match(html,/nov/);assert.match(html,/dez/);assert.doesNotMatch(html,/out/);
+  a.fields['end-recurring-remove'].checked=true;a.ctx.renderEndRecurringPreview();
+  assert.match(a.fields['end-recurring-months'].innerHTML,/Mover para lixeira/);
+  a.ctx.closeEndRecurringAccount();assert.equal(JSON.stringify(a.ctx.DATA),before);
+});
+test('salvamento real move cadastro quitado à lixeira e persiste o encerramento',()=>{
+  const a=app(),r=closureAccount(a);a.ctx.endRecurringAccount(r.id,'keep');
+  const source=fs.readFileSync(path.join(__dirname,'../js/firebase.js'),'utf8');
+  a.ctx.clearTimeout=()=>{};a.ctx.setTimeout=()=>1;a.ctx.showSyncStatus=()=>{};a.ctx.updateTrashBadge=()=>{};
+  vm.runInContext('let _saveTimer=null,_pendingSync=false;'+source.slice(source.indexOf('function saveData(){'),source.indexOf('async function syncToFirestore(){')),a.ctx);
+  a.ctx.DATA.despesas.forEach(d=>{d.status='Pago';d.pagoEm='2026-10-05';});
+  a.ctx.saveData();
+  assert.equal(JSON.parse(a.storage.get('gastos_cache_recorrentes')).length,0);
+  assert.equal(JSON.parse(a.storage.get('gastos_cache_lixeira'))[0].item.id,r.id);
+  assert.equal(JSON.parse(a.storage.get('gastos_cache_desp')).length,4);
+});

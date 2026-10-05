@@ -190,6 +190,7 @@ function showSyncStatus(status){
 }
 
 function saveData(){
+  if(typeof finalizeRecurringClosures==='function')finalizeRecurringClosures();
   // Salva localmente de imediato
   localStorage.setItem('gastos_cache_desp', JSON.stringify(DATA.despesas));
   localStorage.setItem('gastos_cache_rec',  JSON.stringify(DATA.receitas));
