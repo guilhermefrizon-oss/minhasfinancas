@@ -264,6 +264,7 @@ function getCurMonth(){
 
 function renderCurMonth(){
   const cm = getCurMonth();
+  if(typeof ensureRecurringEntriesForMonth==='function')ensureRecurringEntriesForMonth(cm);
   const now = new Date();
   const realCm = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const isRealNow = cm === realCm;

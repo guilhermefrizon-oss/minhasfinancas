@@ -470,7 +470,10 @@ function renderDespByName(items){
   if(lastRow) lastRow.style.borderBottom = 'none';
 }
 
-function renderDespTable(){updateRecorrentesBadge();if(recorrentesOpen)renderRecorrentesList();
+function renderDespTable(){
+  // Toda navegação (seletor, setas e atualização em tempo real) passa aqui.
+  if(despSelectedMonth&&typeof ensureRecurringEntriesForMonth==='function')ensureRecurringEntriesForMonth(despSelectedMonth);
+  updateRecorrentesBadge();if(recorrentesOpen)renderRecorrentesList();
   syncDespSortIndicator();
   const m=despSelectedMonth;
   const searchEl=document.getElementById('desp-search');

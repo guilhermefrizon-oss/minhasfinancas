@@ -22,7 +22,25 @@ function animateValue(el, targetVal, color) {
   if(color) el.style.color = color;
 }
 function mesLabel(m){const[y,mo]=m.split('-');return new Date(+y,+mo-1,1).toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});}
-function allMonths(){const s=new Set([...DATA.despesas.map(d=>d.mes),...DATA.receitas.map(r=>r.mes)]);return[...s].sort();}
+function allMonths(){
+  const s=new Set([...DATA.despesas.map(d=>d.mes),...DATA.receitas.map(r=>r.mes)]);
+  // Oferece meses futuros mesmo antes de materializar suas cobranças.
+  // A janela acompanha o calendário, sem limitar a duração do cadastro.
+  const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  (DATA.recorrentes||[]).filter(r=>r.ativo!==false).forEach(r=>{
+    const start=r.inicio||cm;
+    const [y,m]=(start>cm?start:cm).split('-').map(Number);
+    const endDate=new Date(y,m-1+12,1);
+    const end=`${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}`;
+    let [sy,sm]=start.split('-').map(Number);
+    for(let date=new Date(sy,sm-1,1);;date.setMonth(date.getMonth()+1)){
+      const month=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+      if(month>end)break;
+      s.add(month);
+    }
+  });
+  return[...s].sort();
+}
 
 let overviewSelectedMonth=null,despSelectedMonth=null,recSelectedMonth=null;
 let barC,saldoC,recC,saldoRecC;
