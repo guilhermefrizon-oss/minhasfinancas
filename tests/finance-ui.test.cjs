@@ -11,9 +11,10 @@ function app(){
  const ctx=vm.createContext({DATA:{despesas:[],receitas:[],recorrentes:[],recorrentesVersao:3},Date:class extends Date{constructor(...args){super(...(args.length?args:['2026-10-05T15:00:00Z']));}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},window:{innerWidth:375,scrollTo(){}},navigator:{},selectedIcon:null,DEFAULT_ICON:'',uiIcon:()=>'',itemIcon:()=>'',iconContent:()=>'',guessIconKey:()=>null,requestAnimationFrame:f=>f(),setTimeout:f=>{},getComputedStyle:el=>({zIndex:el.style.zIndex||510}),document:{activeElement:null,body:field('body'),getElementById:field,addEventListener(){},querySelector(sel){if(sel.includes('venc-scope'))return field(sel.includes('value="only"')?'scope-only':'scope-checked');if(sel==='.page.active')return pages.find(p=>p.classList.contains('active'));if(sel.includes('modal.open'))return Object.values(fields).find(p=>p.classList.contains('open'));return null;},querySelectorAll(sel){if(sel==='.page')return pages;if(sel==='.nav-btn')return nav;if(sel==='[data-finance-step]')return [field('prev'),field('next')];return [];}}});
  field('prev').dataset.financeStep='-1';field('next').dataset.financeStep='1';
  for(const name of ['utils','overview','despesas','receitas','lancamentos','finance-ui','app'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',name+'.js'),'utf8'),ctx);
+ const renderLists={desp:ctx.renderDespTable,rec:ctx.renderRecTable};
  for(const fn of ['renderDespTable','renderRecTable','renderRecCharts','renderOverview','renderCurMonth','renderUpcomingTransactions','renderDonutChart','renderManageList'])ctx[fn]=()=>{counts[fn]=(counts[fn]||0)+1;};
  ctx.saveData=()=>{counts.saves=(counts.saves||0)+1;};ctx.showToast=()=>{};ctx.clearFieldErrors=()=>{};ctx.selectedIconEdit=null;
- return {ctx,fields,field,counts};
+ return {ctx,fields,field,counts,renderLists};
 }
 test('mês escolhido permanece ao trocar entre Geral, Despesas e Receitas',()=>{
  const a=app();a.ctx.DATA.despesas=[{id:1,nome:'Conta',mes:'2026-11',val:20}];
@@ -74,4 +75,64 @@ test('navegação visível tem somente duas setas e não exibe atalho solto',()=
  const navs=[...html.matchAll(/<div class="finance-month-nav"[\s\S]*?<\/div>/g)];
  assert.equal(navs.length,3);
  navs.forEach(nav=>assert.equal((nav[0].match(/data-finance-step=/g)||[]).length,2));
+});
+function listApp(){
+ const a=app();a.ctx.catLabel=c=>c||'';a.ctx.catColor=()=> '#777777';a.ctx.updateNotifBadge=()=>{};a.ctx.syncDespSortIndicator=()=>{};a.ctx.syncRecSortIndicator=()=>{};
+ a.ctx.renderDespTable=a.renderLists.desp;a.ctx.renderRecTable=a.renderLists.rec;
+ a.ctx.setFinanceMonth('2026-10',false);
+ a.ctx.DATA.despesas=[{id:1,nome:'Internet',mes:'2026-10',cat:'Gastos Fixos',val:100,status:'Falta Pagar'},{id:2,nome:'Mercado',mes:'2026-10',cat:'Alimentação',val:50,status:'Pago'}];
+ a.ctx.DATA.receitas=[{id:3,nome:'Salário',mes:'2026-10',cat:'Salário',val:1000,status:'Recebido'},{id:4,nome:'Freela',mes:'2026-10',cat:'Freela',val:300,status:'Aguardando'}];
+ return a;
+}
+test('filtros combinados mostram contagem, vazio correto e remoção isolada em ambas as listas',()=>{
+ for(const type of ['desp','rec']){
+  const a=listApp(),isRec=type==='rec';
+  const set=isRec?a.ctx.setRecFilter:a.ctx.setDespFilter;
+  set('status',isRec?'Aguardando':'Falta Pagar');
+  assert.match(a.field(type+'-filter-summary').innerHTML,/1 de 2/);
+  a.field(type+'-search').value='inexistente';a.ctx.handleCompactSearch(type);
+  assert.match(a.field(type+'-mobile-list').innerHTML,/Nenhum lançamento corresponde aos filtros/);
+  assert.match(a.field(type+'-filter-summary').innerHTML,/0 de 2/);
+  a.ctx.removeHistoryFilter(type,'search');
+  assert.match(a.field(type+'-filter-summary').innerHTML,/1 de 2/);
+  assert.match(a.field(type+'-filter-summary').innerHTML,/Status:/);
+  assert.equal(a.field(type+'-clear-filters').style.display,'inline-flex');
+  (isRec?a.ctx.clearRecFilters:a.ctx.clearDespFilters)();
+  assert.match(a.field(type+'-filter-summary').innerHTML,/2 de 2/);
+  assert.equal(a.field(type+'-clear-filters').style.display,'none');
+  assert.doesNotMatch(a.field('cards-'+type).innerHTML,/Resumo filtrado/);
+ }
+});
+test('busca é escapada nas etiquetas e mês vazio não atribui ausência aos filtros',()=>{
+ const a=listApp();a.field('desp-search').value='<img src=x onerror=alert(1)>';a.ctx.renderDespTable();
+ const summary=a.field('desp-filter-summary').innerHTML;
+ assert.doesNotMatch(summary,/<img/);assert.match(summary,/&lt;img/);
+ a.ctx.setFinanceMonth('2026-11',false);a.ctx.renderDespTable();
+ assert.match(a.field('desp-mobile-list').innerHTML,/Nenhuma despesa neste mês/);
+ assert.doesNotMatch(a.field('desp-mobile-list').innerHTML,/corresponde aos filtros/);
+});
+test('ações explícitas quitam pendência uma vez e preservam status de lançamentos concluídos',()=>{
+ const a=listApp();
+ a.ctx.renderDespTable();a.ctx.renderRecTable();
+ assert.match(a.field('desp-mobile-list').innerHTML,/markExpensePaid\(1\)/);
+ assert.doesNotMatch(a.ctx.mobileEntryActions('desp',2,true),/markExpensePaid|togglePago/);
+ assert.doesNotMatch(a.ctx.mobileEntryActions('rec',3,true),/markRevenueReceived|toggleRecStatus/);
+ a.ctx.markExpensePaid(1);a.ctx.markRevenueReceived(4);
+ assert.equal(a.ctx.DATA.despesas[0].status,'Pago');assert.equal(a.ctx.DATA.receitas[1].status,'Recebido');
+ const saves=a.counts.saves;a.ctx.markExpensePaid(1);a.ctx.markRevenueReceived(4);
+ assert.equal(a.counts.saves,saves);
+ assert.match(a.ctx.mobileEntryActions('rec',3,true),/openRecModal\(3\)/);
+ assert.match(a.ctx.mobileEntryActions('desp',1,true),/deleteDespEntry\(1\)/);
+});
+test('lixeira exige confirmação e preserva o lançamento até confirmar',()=>{
+ for(const type of ['desp','rec']){
+  const a=listApp();let confirm;const archived=[];
+  a.ctx.showConfirm=(text,callback)=>{confirm=callback;assert.match(text,/lixeira/);};
+  a.ctx.moveToTrash=(kind,entry)=>archived.push({kind,entry:{...entry}});
+  const isRec=type==='rec',id=isRec?3:2,key=isRec?'receitas':'despesas';
+  (isRec?a.ctx.deleteRecEntry:a.ctx.deleteDespEntry)(id);
+  assert.ok(a.ctx.DATA[key].some(x=>x.id===id));assert.equal(archived.length,0);
+  confirm();assert.equal(a.ctx.DATA[key].some(x=>x.id===id),false);
+  assert.equal(archived.length,1);assert.equal(archived[0].entry.status,isRec?'Recebido':'Pago');
+ }
 });

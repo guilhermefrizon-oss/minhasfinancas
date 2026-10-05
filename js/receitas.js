@@ -23,16 +23,10 @@ function updateRecCategoryFilter(){
   if(!select) return;
   const categories=[...new Set(DATA.receitas.map(r=>r.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   if(recFilterCat!=='all'&&!categories.includes(recFilterCat)) recFilterCat='all';
-  select.innerHTML=`<option value="all">Categoria</option>`+categories.map(cat=>`<option value="${cat}">${cat}</option>`).join('');
+  select.innerHTML=`<option value="all">Categoria</option>`+categories.map(cat=>`<option value="${historyEscape(cat)}">${historyEscape(cat)}</option>`).join('');
   select.value=recFilterCat;
   const status=document.getElementById('rec-status-filter'); if(status) status.value=recFilterStatus;
-  const clear=document.getElementById('rec-clear-filters');
-  const activeCount = Number(recFilterStatus!=='all') + Number(recFilterCat!=='all') + Number(!!document.getElementById('rec-search')?.value);
-  if(clear){
-    clear.style.display=activeCount?'inline-flex':'none';
-    clear.textContent=`Limpar filtros (${activeCount})`;
-    clear.setAttribute('aria-label', `Limpar ${activeCount} filtro${activeCount>1?'s':''} ativo${activeCount>1?'s':''}`);
-  }
+
 }
 function sortRec(key){
   if(recSortKey===key)recSortDir*=-1; else{recSortKey=key;recSortDir=key==='val'?-1:1;}
@@ -79,12 +73,15 @@ function renderRecTable(){
     if(recSortKey==='status'){va=a.status||'';vb=b.status||'';return recSortDir*(va<vb?-1:va>vb?1:0);}
     return 0;
   });
+  const monthTotal=DATA.receitas.filter(r=>r.mes===m).length;
+  const filtersActive=updateHistoryFilterSummary('rec',items.length,monthTotal);
+  const emptyState=historyEmptyState('rec',monthTotal);
   const totalRecebido=items.filter(r=>(r.status||'Recebido')==='Recebido').reduce((s,r)=>s+(r.val||0),0);
   const totalAguardando=items.filter(r=>r.status==='Aguardando').reduce((s,r)=>s+(r.val||0),0);
   const totalRec=totalRecebido+totalAguardando;
   document.getElementById('cards-rec').innerHTML=`
     <div class="finance-summary-card anim-fade-up anim-d1">
-      <div class="finance-summary-heading"><span class="finance-summary-dot" style="background:var(--green)"></span>Resumo do mês</div>
+      <div class="finance-summary-heading"><span class="finance-summary-dot" style="background:var(--green)"></span>${filtersActive?'Resumo filtrado':'Resumo do mês'}</div>
       <div class="cmv-hero">
         <div class="cmv-hero-label">Total de receitas</div>
         <div class="cmv-hero-val" style="color:var(--green)">${fmt(totalRec)}</div>
@@ -101,11 +98,11 @@ function renderRecTable(){
         <td><div class="entry-name">${r.nome}</div>${r.cat?`<div class="entry-cat">${r.cat}</div>`:''}</td>
         <td><span class="cat-pill" style="background:var(--green-bg);color:var(--green)">${r.cat||'—'}</span></td>
         <td><span style="font-weight:700;color:${aguard?'var(--amber)':'var(--green)'}">${r.val>0?fmt(r.val):'—'}</span></td>
-        <td><span class="badge ${aguard?'falta':'pago'}" style="${aguard?'background:var(--amber-bg);color:var(--amber)':''}">${aguard?'Aguardando':'Recebido'}</span></td>
-        <td style="white-space:nowrap"><button class="edit-btn" onclick="openRecModal(${r.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Editar">${uiIcon('edit',14)}</button><button class="btn-del" onclick="deleteRecEntry(${r.id})" style="display:inline-flex;align-items:center" title="Excluir">${uiIcon('trash',14)}</button></td>
+        <td><span class="badge ${aguard?'falta':'pago'}" style="${aguard?'background:var(--amber-bg);color:var(--amber)':''}">${aguard?'Aguardando':'Recebido'}</span>${aguard?`<button type="button" class="entry-table-pay" onclick="markRevenueReceived(${r.id})">Receber</button>`:''}</td>
+        <td style="white-space:nowrap"><button class="edit-btn" onclick="openRecModal(${r.id})" style="margin-right:4px;display:inline-flex;align-items:center" title="Editar lançamento" aria-label="Editar lançamento">${uiIcon('edit',14)} Editar</button><button class="btn-del" onclick="deleteRecEntry(${r.id})" style="display:inline-flex;align-items:center" title="Enviar à lixeira" aria-label="Enviar lançamento à lixeira">${uiIcon('trash',14)} Lixeira</button></td>
       </tr>`;}).join('')
     +`<tr class="total-row"><td colspan="2">Total recebido</td><td style="color:var(--green)">${fmt(totalRecebido)}</td><td></td><td></td></tr>`
-    :`<tr><td colspan="5" class="empty-msg">Nenhuma receita neste mês.</td></tr>`;
+    :`<tr><td colspan="5" class="empty-msg">${emptyState}</td></tr>`;
   document.getElementById('rec-tbody').innerHTML = recRows;
 
   // Mobile cards
@@ -114,7 +111,7 @@ function renderRecTable(){
     rml.innerHTML = items.length
       ? mobileGestureHint('Marcar como recebido')+items.map((r,ri)=>mobRecCard(r,ri)).join('')+
         `<div class="mob-total-row"><span>Total recebido</span><span style="color:var(--green)">${fmt(totalRecebido)}</span></div>`
-      : `<div class="empty-msg">Nenhuma receita neste mês.</div>`;
+      : `<div class="empty-msg">${emptyState}</div>`;
     initSwipeDeleteRec();
   }
 }
