@@ -1,4 +1,4 @@
-const CACHE = 'meus-gastos-v61';
+const CACHE = 'meus-gastos-v62';
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const ASSETS = [
   './js/icons.js',
   './js/utils.js',
   './js/app.js',
+  './js/finance-ui.js',
   './js/overview.js',
   './js/despesas.js',
   './js/itemdetail.js',

@@ -3,7 +3,7 @@ function openAddPopup(){const p=document.getElementById('add-popup');p.style.dis
 function closeAddPopup(){const p=document.getElementById('add-popup');p.classList.remove('open');p.style.display='none';}
 function openAddForm(tipo){
   closeAddPopup();
-  const now=new Date(),cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const cm=getCurMonth();
   if(tipo==='despesa'){
     document.getElementById('in-mes').value=cm;
     document.getElementById('in-mes-ini').value=cm;
@@ -25,6 +25,7 @@ function openAddForm(tipo){
     document.getElementById('expense-value-hint').textContent='(opcional — pode preencher depois)';
     document.getElementById('add-expense-submit').textContent='+ Adicionar despesa';
     document.getElementById('add-desp-modal').classList.add('open');
+    if(typeof setupFinanceForm==='function')setupFinanceForm('add-desp-modal');
   } else {
     document.getElementById('in-rec-mes').value=cm;
     document.getElementById('in-rec-mes-ini').value=cm;
@@ -40,10 +41,11 @@ function openAddForm(tipo){
     document.getElementById('rec-mes-unico-wrap').style.display='flex';
     document.getElementById('rec-mes-range-wrap').style.display='none';
     document.getElementById('add-rec-modal').classList.add('open');
+    if(typeof setupFinanceForm==='function')setupFinanceForm('add-rec-modal');
   }
 }
-function closeAddDesp(){document.getElementById('add-desp-modal').classList.remove('open');}
-function closeAddRec(){document.getElementById('add-rec-modal').classList.remove('open');}
+function closeAddDesp(){document.getElementById('add-desp-modal').classList.remove('open');if(typeof closeFinanceForm==='function')closeFinanceForm('add-desp-modal');}
+function closeAddRec(){document.getElementById('add-rec-modal').classList.remove('open');if(typeof closeFinanceForm==='function')closeFinanceForm('add-rec-modal');}
 document.getElementById('add-popup').addEventListener('click',function(e){if(e.target===this)closeAddPopup();});
 document.getElementById('add-desp-modal').addEventListener('click',function(e){if(e.target===this)closeAddDesp();});
 document.getElementById('add-rec-modal').addEventListener('click',function(e){if(e.target===this)closeAddRec();});
@@ -52,6 +54,8 @@ document.getElementById('edit-recurring-modal').addEventListener('click',functio
 
 /* ══════ SHOWPAGE — sem "mensal" (FIX 4) ══════ */
 function showPage(id){
+  if(typeof closeFinanceMonthPicker==='function')closeFinanceMonthPicker();
+  if(['overview','despesas','receitas'].includes(id)&&typeof setFinanceMonth==='function')setFinanceMonth(getCurMonth(),false);
   document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');});
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const activePage=document.getElementById('page-'+id);

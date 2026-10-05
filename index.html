@@ -61,11 +61,11 @@
     <!-- Formulário Login -->
     <div id="form-login">
       <div class="login-field">
-        <label>Email</label>
+        <label for="login-email">Email</label>
         <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email">
       </div>
       <div class="login-field">
-        <label>Senha</label>
+        <label for="login-pass">Senha</label>
         <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
           onkeydown="if(event.key==='Enter')doLogin()">
       </div>
@@ -83,19 +83,19 @@
     <!-- Formulário Cadastro -->
     <div id="form-signup" style="display:none">
       <div class="login-field">
-        <label>Nome</label>
+        <label for="signup-name">Nome</label>
         <input type="text" id="signup-name" placeholder="Seu nome" autocomplete="name">
       </div>
       <div class="login-field">
-        <label>Email</label>
+        <label for="signup-email">Email</label>
         <input type="email" id="signup-email" placeholder="seu@email.com" autocomplete="email">
       </div>
       <div class="login-field">
-        <label>Senha</label>
+        <label for="signup-pass">Senha</label>
         <input type="password" id="signup-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
       </div>
       <div class="login-field">
-        <label>Confirmar senha</label>
+        <label for="signup-pass2">Confirmar senha</label>
         <input type="password" id="signup-pass2" placeholder="Repita a senha" autocomplete="new-password"
           onkeydown="if(event.key==='Enter')doSignup()">
       </div>
@@ -109,7 +109,7 @@
         Digite seu email e enviaremos um link para redefinir sua senha.
       </div>
       <div class="login-field">
-        <label>Email</label>
+        <label for="reset-email">Email</label>
         <input type="email" id="reset-email" placeholder="seu@email.com" autocomplete="email"
           onkeydown="if(event.key==='Enter')doReset()">
       </div>
@@ -261,22 +261,7 @@
     <div class="cur-month-header">
       <div class="cur-month-title">
         <div class="cur-month-pulse" id="cur-month-pulse"></div>
-        <!-- Seletor de mês clicável -->
-        <div style="position:relative">
-          <button onclick="toggleCurMonthPicker()" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0;font-family:var(--font)" id="cur-month-btn">
-            <span id="cur-month-name" style="font-size:13px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:.08em"></span>
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" id="cur-month-chevron" style="transition:transform .2s;flex-shrink:0"><path d="M2 3.5l3 3 3-3" stroke="var(--purple)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <!-- Dropdown picker -->
-          <div id="cur-month-picker" style="display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:400;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 12px 40px rgba(0,0,0,.5);min-width:200px;overflow:hidden">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border)">
-              <button onclick="shiftCurYear(-1)" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:17px;padding:0 4px;line-height:1">&#8249;</button>
-              <span id="cur-picker-year" style="font-size:12px;font-weight:700;color:var(--text)"></span>
-              <button onclick="shiftCurYear(1)" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:17px;padding:0 4px;line-height:1">&#8250;</button>
-            </div>
-            <div id="cur-picker-months" style="max-height:320px;overflow-y:auto;padding:4px 0"></div>
-          </div>
-        </div>
+<div class="finance-month-nav" aria-label="Navegar entre meses"><button type="button" class="finance-month-arrow" data-finance-step="-1" onclick="stepFinanceMonth(-1)" aria-label="Mês anterior">‹</button><button type="button" class="finance-month-select" id="cur-month-btn" onclick="openFinanceMonthPicker()" aria-haspopup="dialog"><span id="cur-month-name"></span><span aria-hidden="true">⌄</span></button><button type="button" class="finance-month-arrow" data-finance-step="1" onclick="stepFinanceMonth(1)" aria-label="Próximo mês">›</button><button type="button" class="finance-month-current" onclick="goToCurrentFinanceMonth()">Mês atual</button></div>
       </div>
       <button onclick="goToDespesas()" class="cur-month-details-btn"><span class="hide-mobile">Ver detalhes </span>→</button>
     </div>
@@ -393,19 +378,7 @@
 
 <!-- DESPESAS -->
 <div class="page" id="page-despesas">
-  <div style="margin-top:.25rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-    <div style="position:relative">
-      <button class="month-picker-btn" id="desp-month-btn" onclick="toggleDespMonthPicker()">
-        <span id="desp-month-btn-label">— —</span>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" id="desp-month-chevron" style="transition:transform .2s"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <div style="display:none" id="desp-month-picker-placeholder"></div>
-    </div>
-    <div style="display:flex;gap:6px">
-      <button onclick="stepDespMonth(-1)" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text2);cursor:pointer;font-size:14px;line-height:1;transition:all .15s">&#8249;</button>
-      <button onclick="stepDespMonth(1)" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text2);cursor:pointer;font-size:14px;line-height:1;transition:all .15s">&#8250;</button>
-    </div>
-  </div>
+<div class="finance-month-nav" aria-label="Navegar entre meses"><button type="button" class="finance-month-arrow" data-finance-step="-1" onclick="stepFinanceMonth(-1)" aria-label="Mês anterior">‹</button><button type="button" class="finance-month-select" id="desp-month-btn" onclick="openFinanceMonthPicker()" aria-haspopup="dialog"><span id="desp-month-btn-label"></span><span aria-hidden="true">⌄</span></button><button type="button" class="finance-month-arrow" data-finance-step="1" onclick="stepFinanceMonth(1)" aria-label="Próximo mês">›</button><button type="button" class="finance-month-current" onclick="goToCurrentFinanceMonth()">Mês atual</button></div>
   <div class="cards" id="cards-desp"></div>
   <div class="table-box" id="desp-byname-box" style="display:none">
     <div class="table-header">
@@ -479,9 +452,10 @@
 </div>
 
 <!-- MODAL EDIÇÃO DESPESA -->
-<div id="edit-modal" class="modal-overlay" style="display:none;z-index:520">
-  <div class="modal-box" style="width:min(460px,92vw)">
-    <div class="modal-title" id="modal-title">Editar lançamento</div>
+<div id="edit-modal" class="modal-overlay finance-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="display:none;z-index:520">
+  <div class="modal-box finance-modal-box">
+    <div class="finance-modal-header"><h2 id="modal-title" class="modal-title">Editar despesa</h2><button type="button" class="finance-modal-close" onclick="closeModal()" aria-label="Fechar formulário">×</button></div>
+    <div class="finance-modal-body">
     <div style="display:grid;gap:12px">
       <div class="form-group" id="edit-name-wrap">
         <label>Nome da conta</label>
@@ -489,46 +463,44 @@
           <button id="edit-icon-btn" onclick="openIconPickerEdit()" style="width:44px;height:44px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:center">
             <div id="edit-icon-preview" style="width:28px;height:28px"></div>
           </button>
-          <input type="text" id="edit-nome" placeholder="Nome da conta" style="flex:1">
+          <input type="text" id="edit-nome" aria-label="Nome da despesa" placeholder="Nome da conta" style="flex:1">
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:4px" id="edit-name-hint"></div>
       </div>
-      <div class="form-group"><label>Status</label>
+      <div class="form-group"><label for="edit-status">Status</label>
         <select id="edit-status">
           <option value="Pago">Pago</option>
           <option value="Falta Pagar">Falta Pagar</option>
           <option value="Débito auto">Débito auto</option>
         </select>
       </div>
-      <div class="form-group"><label>Tipo</label>
+      <div class="form-group"><label for="edit-tipo">Tipo</label>
         <select id="edit-tipo">
           <option value="fixa">Fixa</option>
           <option value="variavel">Variável</option>
         </select>
       </div>
-      <div class="form-group"><label>Valor (R$) — opcional</label>
+      <div class="form-group"><label for="edit-valor">Valor (R$) — opcional</label>
         <input type="text" id="edit-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off">
       </div>
       <div class="form-group">
-        <label>Data de vencimento</label>
+        <label for="edit-venc">Data de vencimento</label>
         <input type="date" id="edit-venc">
       </div>
       <div id="edit-venc-scope-wrap" style="display:none;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600">Aplicar vencimento em:</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600">Alterar somente o vencimento em:</div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);text-transform:none;letter-spacing:0;cursor:pointer">
             <input type="radio" name="venc-scope" value="only" checked style="width:auto;accent-color:var(--purple)"> Só neste mês
           </label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);text-transform:none;letter-spacing:0;cursor:pointer">
-            <input type="radio" name="venc-scope" value="forward" style="width:auto;accent-color:var(--purple)"> Neste e todos os seguintes
+            <input type="radio" name="venc-scope" value="forward" style="width:auto;accent-color:var(--purple)"> Neste e nos seguintes já cadastrados
           </label>
         </div>
       </div>
-      <div class="modal-actions">
-        <button class="modal-btn-primary" onclick="saveEdit()">Salvar</button>
-        <button class="modal-btn-secondary" onclick="closeModal()">Cancelar</button>
-      </div>
+      <p id="expense-edit-scope-summary" class="finance-scope-summary" aria-live="polite"></p>
     </div>
+    </div><div class="modal-actions finance-modal-footer"><button type="button" class="modal-btn-primary" onclick="saveEdit()">Salvar alterações</button><button type="button" class="modal-btn-secondary" onclick="closeModal()">Cancelar</button></div>
   </div>
 </div>
 
@@ -560,19 +532,7 @@
 
 <!-- RECEITAS -->
 <div class="page" id="page-receitas">
-  <div style="margin-top:.25rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-    <div style="position:relative">
-      <button class="month-picker-btn" id="rec-month-btn" onclick="toggleRecMonthPicker()">
-        <span id="rec-month-btn-label">— —</span>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" id="rec-month-chevron" style="transition:transform .2s"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <div style="display:none" id="rec-month-picker-placeholder"></div>
-    </div>
-    <div style="display:flex;gap:6px">
-      <button onclick="stepRecMonth(-1)" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text2);cursor:pointer;font-size:14px;line-height:1;transition:all .15s">&#8249;</button>
-      <button onclick="stepRecMonth(1)" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text2);cursor:pointer;font-size:14px;line-height:1;transition:all .15s">&#8250;</button>
-    </div>
-  </div>
+<div class="finance-month-nav" aria-label="Navegar entre meses"><button type="button" class="finance-month-arrow" data-finance-step="-1" onclick="stepFinanceMonth(-1)" aria-label="Mês anterior">‹</button><button type="button" class="finance-month-select" id="rec-month-btn" onclick="openFinanceMonthPicker()" aria-haspopup="dialog"><span id="rec-month-btn-label"></span><span aria-hidden="true">⌄</span></button><button type="button" class="finance-month-arrow" data-finance-step="1" onclick="stepFinanceMonth(1)" aria-label="Próximo mês">›</button><button type="button" class="finance-month-current" onclick="goToCurrentFinanceMonth()">Mês atual</button></div>
   <div class="cards" id="cards-rec"></div>
   <div class="table-box">
     <div class="table-header" style="gap:10px">
@@ -628,12 +588,13 @@
 </div>
 
 <!-- MODAL EDITAR RECEITA -->
-<div id="edit-rec-modal" class="modal-overlay" style="display:none;z-index:500">
-  <div class="modal-box" style="width:min(420px,92vw)">
-    <div class="modal-title" id="edit-rec-modal-title">Editar receita</div>
+<div id="edit-rec-modal" class="modal-overlay finance-modal" role="dialog" aria-modal="true" aria-labelledby="edit-rec-modal-title" style="display:none;z-index:500">
+  <div class="modal-box finance-modal-box">
+    <div class="finance-modal-header"><h2 id="edit-rec-modal-title" class="modal-title">Editar receita</h2><button type="button" class="finance-modal-close" onclick="closeRecModal()" aria-label="Fechar formulário">×</button></div>
+    <div class="finance-modal-body">
     <div style="display:grid;gap:12px">
-      <div class="form-group"><label>Descrição</label><input type="text" id="edit-rec-nome" placeholder="Ex: Salário"></div>
-      <div class="form-group"><label>Categoria</label>
+      <div class="form-group"><label for="edit-rec-nome">Descrição</label><input type="text" id="edit-rec-nome" aria-label="Nome da receita" placeholder="Ex: Salário"></div>
+      <div class="form-group"><label for="edit-rec-cat">Categoria</label>
         <select id="edit-rec-cat">
           <optgroup label="Trabalho"><option value="Salário">Salário</option><option value="Freela">Freela / Autônomo</option><option value="Bônus">Bônus / Comissão</option><option value="13º Salário">13º Salário</option><option value="Férias">Férias</option><option value="PLR">PLR</option></optgroup>
           <optgroup label="Benefícios"><option value="Vale Alimentação">Vale Alimentação</option><option value="Vale Refeição">Vale Refeição</option><option value="Vale Transporte">Vale Transporte</option></optgroup>
@@ -641,14 +602,12 @@
           <optgroup label="Extras"><option value="Aluguel Recebido">Aluguel Recebido</option><option value="Reembolso">Reembolso</option><option value="Presente">Presente / Doação</option><option value="Venda">Venda</option><option value="Outros">Outros</option></optgroup>
         </select>
       </div>
-      <div class="form-group"><label>Valor (R$)</label><input type="text" id="edit-rec-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off"></div>
-      <div class="form-group"><label>Status</label><select id="edit-rec-status"><option value="Recebido">Recebido</option><option value="Aguardando">Aguardando Pagamento</option></select></div>
-      <div class="form-group"><label>Mês</label><input type="month" id="edit-rec-mes"></div>
-      <div class="modal-actions">
-        <button class="modal-btn-primary" onclick="saveRecEdit()">Salvar</button>
-        <button class="modal-btn-secondary" onclick="closeRecModal()">Cancelar</button>
-      </div>
+      <div class="form-group"><label for="edit-rec-valor">Valor (R$)</label><input type="text" id="edit-rec-valor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off"></div>
+      <div class="form-group"><label for="edit-rec-status">Status</label><select id="edit-rec-status"><option value="Recebido">Recebido</option><option value="Aguardando">Aguardando Pagamento</option></select></div>
+      <div class="form-group"><label for="edit-rec-mes">Mês</label><input type="month" id="edit-rec-mes"></div>
+      <p id="revenue-edit-scope-summary" class="finance-scope-summary" aria-live="polite"></p>
     </div>
+    </div><div class="modal-actions finance-modal-footer"><button type="button" class="modal-btn-primary" onclick="saveRecEdit()">Salvar alterações</button><button type="button" class="modal-btn-secondary" onclick="closeRecModal()">Cancelar</button></div>
   </div>
 </div>
 
@@ -685,15 +644,11 @@
 </div>
 
 <!-- MODAL ADICIONAR DESPESA -->
-<div id="add-desp-modal" class="modal-overlay" style="display:none;z-index:510">
-  <div class="modal-box" style="width:min(520px,92vw)">
+<div id="add-desp-modal" class="modal-overlay finance-modal" role="dialog" aria-modal="true" aria-labelledby="add-expense-title" style="display:none;z-index:510">
+  <div class="modal-box finance-modal-box">
 
-    <!-- Header com título e botão fechar -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div class="modal-title" style="margin-bottom:0">Nova Despesa</div>
-      <button onclick="closeAddDesp()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center" title="Fechar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-    </div>
-
+<div class="finance-modal-header"><h2 id="add-expense-title" class="modal-title">Nova despesa</h2><button type="button" class="finance-modal-close" onclick="closeAddDesp()" aria-label="Fechar formulário">×</button></div>
+    <div class="finance-modal-body">
     <div style="display:grid;gap:0">
 
       <!-- ── SEÇÃO: O QUE É ── -->
@@ -703,11 +658,11 @@
           <button id="icon-picker-btn" onclick="openIconPicker()" style="width:44px;height:44px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:center">
             <div id="icon-picker-preview" style="width:28px;height:28px"></div>
           </button>
-          <input type="text" id="in-desc" placeholder="Nome da despesa (ex: Condomínio)" style="flex:1">
+          <input type="text" id="in-desc" aria-label="Nome da despesa" placeholder="Nome da despesa (ex: Condomínio)" style="flex:1">
         </div>
       </div>
       <div class="form-group" style="margin-bottom:20px">
-        <select id="in-cat">
+        <select id="in-cat" aria-label="Categoria da despesa">
           <optgroup label="Moradia"><option value="Moradia · Aluguel">Aluguel</option><option value="Moradia · Condomínio">Condomínio</option><option value="Moradia · Outros">Outros de Moradia</option></optgroup>
           <optgroup label="Gastos Fixos"><option value="Gastos Fixos · Luz">Luz</option><option value="Gastos Fixos · Água">Água</option><option value="Gastos Fixos · Gás">Gás</option><option value="Gastos Fixos · Internet">Internet</option><option value="Gastos Fixos · Celular">Celular</option></optgroup>
           <optgroup label="Transporte"><option value="Transporte · Combustível">Combustível</option><option value="Transporte · Seguro">Seguro do Carro</option><option value="Transporte · Manutenção">Manutenção</option><option value="Transporte · Uber/Taxi">Uber / Taxi</option><option value="Transporte · Outros">Outros de Transporte</option></optgroup>
@@ -732,11 +687,11 @@
       <div class="form-section-label">Detalhes</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div class="form-group">
-          <label>Pagamento</label>
+          <label for="in-pag">Pagamento</label>
           <select id="in-pag"><option>Cartão</option><option>Vale Alimentação</option><option>PIX</option><option>Boleto</option><option>Débito automático</option><option>Dinheiro</option></select>
         </div>
         <div class="form-group">
-          <label>Vencimento</label>
+          <label for="in-dia-venc">Vencimento</label>
           <input type="number" id="in-dia-venc" placeholder="Dia (ex: 10)" min="1" max="31">
         </div>
       </div>
@@ -777,31 +732,25 @@
       </div>
 
       <div id="mes-unico-wrap" class="form-group" style="margin-bottom:20px;display:flex">
-        <input type="month" id="in-mes" style="flex:1">
+        <input type="month" id="in-mes" aria-label="Mês da despesa" style="flex:1">
       </div>
       <div id="mes-range-wrap" style="display:none;margin-bottom:20px">
-        <div class="form-group"><label>Começa em</label><input type="month" id="in-mes-ini"></div>
+        <div class="form-group"><label for="in-mes-ini">Começa em</label><input type="month" id="in-mes-ini"></div>
         <div class="form-hint" style="margin-top:7px">A conta será criada automaticamente todos os meses. Você poderá pausá-la quando quiser.</div>
         <div id="new-recurring-summary" class="recurring-impact-card new-recurring-impact" style="display:none"></div>
       </div>
       <div id="parcela-range-wrap" style="display:none;margin-bottom:20px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="form-group"><label>Primeira parcela</label><input type="month" id="in-parcela-mes"></div>
-          <div class="form-group"><label>Quantidade</label><input type="number" id="in-parcelas-total" min="2" max="60" value="2" inputmode="numeric"></div>
+          <div class="form-group"><label for="in-parcela-mes">Primeira parcela</label><input type="month" id="in-parcela-mes"></div>
+          <div class="form-group"><label for="in-parcelas-total">Quantidade</label><input type="number" id="in-parcelas-total" min="2" max="60" value="2" inputmode="numeric"></div>
         </div>
         <div class="form-hint" style="margin-top:7px">O valor total será dividido automaticamente entre os meses.</div>
         <div id="new-installment-summary" class="recurring-impact-card new-recurring-impact"></div>
       </div>
 
-      <!-- ── AÇÕES ── -->
-      <div style="margin-top:4px">
-        <button id="add-expense-submit" class="modal-btn-primary" style="width:100%" onclick="addEntry()">+ Adicionar despesa</button>
-        <button onclick="openManageRecorrentes()" style="width:100%;margin-top:10px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:12px;color:var(--text3);padding:6px;text-align:center;transition:color .15s" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text3)'">
-          Gerenciar contas recorrentes →
-        </button>
-      </div>
-
+<p id="expense-add-scope-summary" class="finance-scope-summary" aria-live="polite"></p><button type="button" class="finance-manage-link" onclick="openManageRecorrentes()">Gerenciar contas recorrentes →</button>
     </div>
+    </div><div class="modal-actions finance-modal-footer"><button type="button" id="add-expense-submit" class="modal-btn-primary" onclick="addEntry()">Adicionar despesa</button><button type="button" class="modal-btn-secondary" onclick="closeAddDesp()">Cancelar</button></div>
   </div>
 </div>
 
@@ -887,24 +836,20 @@
 </div>
 
 <!-- MODAL ADICIONAR RECEITA -->
-<div id="add-rec-modal" class="modal-overlay" style="display:none;z-index:510">
-  <div class="modal-box" style="width:min(480px,92vw)">
+<div id="add-rec-modal" class="modal-overlay finance-modal" role="dialog" aria-modal="true" aria-labelledby="add-revenue-title" style="display:none;z-index:510">
+  <div class="modal-box finance-modal-box">
 
-    <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div class="modal-title" style="margin-bottom:0">Nova Receita</div>
-      <button onclick="closeAddRec()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center" title="Fechar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-    </div>
-
+<div class="finance-modal-header"><h2 id="add-revenue-title" class="modal-title">Nova receita</h2><button type="button" class="finance-modal-close" onclick="closeAddRec()" aria-label="Fechar formulário">×</button></div>
+    <div class="finance-modal-body">
     <div style="display:grid;gap:0">
 
       <!-- ── O QUE É ── -->
       <div class="form-section-label">O que é</div>
       <div class="form-group" style="margin-bottom:10px">
-        <input type="text" id="in-rec-desc" placeholder="Ex: Salário, Freela, Vale Refeição">
+        <input type="text" id="in-rec-desc" aria-label="Nome da receita" placeholder="Ex: Salário, Freela, Vale Refeição">
       </div>
       <div class="form-group" style="margin-bottom:20px">
-        <select id="in-rec-cat">
+        <select id="in-rec-cat" aria-label="Categoria da receita">
           <optgroup label="Trabalho"><option value="Salário">Salário</option><option value="Freela">Freela / Autônomo</option><option value="Bônus">Bônus / Comissão</option><option value="13º Salário">13º Salário</option><option value="Férias">Férias</option><option value="PLR">PLR</option></optgroup>
           <optgroup label="Benefícios"><option value="Vale Alimentação">Vale Alimentação</option><option value="Vale Refeição">Vale Refeição</option><option value="Vale Transporte">Vale Transporte</option></optgroup>
           <optgroup label="Investimentos"><option value="Rendimento">Rendimento / Juros</option><option value="Dividendos">Dividendos</option><option value="Venda de Ativo">Venda de Ativo</option></optgroup>
@@ -940,21 +885,18 @@
       </div>
 
       <div id="rec-mes-unico-wrap" class="form-group" style="margin-bottom:20px;display:flex">
-        <input type="month" id="in-rec-mes" style="flex:1">
+        <input type="month" id="in-rec-mes" aria-label="Mês da receita" style="flex:1">
       </div>
       <div id="rec-mes-range-wrap" style="display:none;margin-bottom:20px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="form-group"><label>Mês inicial</label><input type="month" id="in-rec-mes-ini"></div>
-          <div class="form-group"><label>Mês final</label><input type="month" id="in-rec-mes-fim"></div>
+          <div class="form-group"><label for="in-rec-mes-ini">Mês inicial</label><input type="month" id="in-rec-mes-ini"></div>
+          <div class="form-group"><label for="in-rec-mes-fim">Mês final</label><input type="month" id="in-rec-mes-fim"></div>
         </div>
       </div>
 
-      <!-- ── AÇÕES ── -->
-      <div style="margin-top:4px">
-        <button class="modal-btn-primary" style="width:100%" onclick="addReceita()">+ Adicionar receita</button>
-      </div>
-
+<p id="revenue-add-scope-summary" class="finance-scope-summary" aria-live="polite"></p>
     </div>
+    </div><div class="modal-actions finance-modal-footer"><button type="button" class="modal-btn-primary" onclick="addReceita()">Adicionar receita</button><button type="button" class="modal-btn-secondary" onclick="closeAddRec()">Cancelar</button></div>
   </div>
 </div>
 
@@ -1000,9 +942,9 @@
   <div class="modal-box" style="width:min(380px,92vw)">
     <div class="modal-title" id="create-profile-title">Novo perfil</div>
     <div style="display:grid;gap:12px">
-      <div class="form-group"><label>Nome</label><input type="text" id="cp-nome" placeholder="Ex: João, Maria..." maxlength="20"></div>
-      <div class="form-group"><label>PIN (4 dígitos)</label><input type="password" id="cp-pin" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*"></div>
-      <div class="form-group"><label>Confirmar PIN</label><input type="password" id="cp-pin2" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*"></div>
+      <div class="form-group"><label for="cp-nome">Nome</label><input type="text" id="cp-nome" placeholder="Ex: João, Maria..." maxlength="20"></div>
+      <div class="form-group"><label for="cp-pin">PIN (4 dígitos)</label><input type="password" id="cp-pin" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*"></div>
+      <div class="form-group"><label for="cp-pin2">Confirmar PIN</label><input type="password" id="cp-pin2" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*"></div>
       <div id="cp-error" style="font-size:12px;color:var(--red);min-height:16px"></div>
       <div class="modal-actions">
         <button class="modal-btn-primary" onclick="saveProfile()">Salvar</button>
@@ -1199,7 +1141,7 @@
     <div style="font-size:17px;font-weight:800;color:var(--text)" id="parcela-title">Somar valor</div>
     <div style="font-size:12px;color:var(--text3);margin:5px 0 18px" id="parcela-sub"></div>
     <div class="form-group">
-      <label>Valor a somar</label>
+      <label for="parcela-valor">Valor a somar</label>
       <input id="parcela-valor" type="text" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off" style="font-size:22px;font-weight:700;padding:12px 14px">
     </div>
     <div class="modal-actions" style="margin-top:18px">
@@ -1247,6 +1189,7 @@
 <script src="js/notif.js"></script>
 <script src="js/receitas.js"></script>
 <script src="js/lancamentos.js"></script>
+<script src="js/finance-ui.js"></script>
 <script src="js/profiles.js"></script>
 <script src="js/init.js"></script>
 <script src="js/search.js"></script>
@@ -1401,22 +1344,9 @@
 <div id="picker-backdrop" onclick="closeAllPickers()" style="display:none;position:fixed;inset:0;z-index:590;background:rgba(0,0,0,0.6)"></div>
 
 <!-- Month pickers fora de qualquer stacking context -->
-<div class="month-picker-dropdown" id="desp-month-picker">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
-    <button onclick="shiftDespYear(-1)" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 6px;line-height:1">&#8249;</button>
-    <span id="desp-year-label" style="font-size:13px;font-weight:700;color:var(--text)"></span>
-    <button onclick="shiftDespYear(1)" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 6px;line-height:1">&#8250;</button>
-  </div>
-  <div id="desp-month-list" style="max-height:224px;overflow-y:auto;padding:6px 0"></div>
-</div>
 
-<div class="month-picker-dropdown" id="rec-month-picker">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
-    <button onclick="shiftRecYear(-1)" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 6px;line-height:1">&#8249;</button>
-    <span id="rec-year-label" style="font-size:13px;font-weight:700;color:var(--text)"></span>
-    <button onclick="shiftRecYear(1)" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 6px;line-height:1">&#8250;</button>
-  </div>
-  <div id="rec-month-list" style="max-height:224px;overflow-y:auto;padding:6px 0"></div>
-</div>
+
+
+<div id="finance-month-modal" class="modal-overlay finance-modal" style="display:none;z-index:610" role="dialog" aria-modal="true" aria-labelledby="finance-month-title" onclick="if(event.target===this)closeFinanceMonthPicker()"><div class="modal-box finance-modal-box"><div class="finance-modal-header"><h2 id="finance-month-title" class="modal-title">Escolher mês</h2><button type="button" class="finance-modal-close" onclick="closeFinanceMonthPicker()" aria-label="Fechar escolha de mês">×</button></div><div class="finance-modal-body"><div class="finance-year-nav"><button type="button" id="finance-year-prev" onclick="shiftFinanceYear(-1)" aria-label="Ano anterior">‹</button><strong id="finance-picker-year"></strong><button type="button" id="finance-year-next" onclick="shiftFinanceYear(1)" aria-label="Próximo ano">›</button></div><div id="finance-picker-months" class="finance-picker-months"></div></div><div class="modal-actions finance-modal-footer"><button type="button" class="modal-btn-primary" onclick="goToCurrentFinanceMonth();closeFinanceMonthPicker()">Mês atual</button><button type="button" class="modal-btn-secondary" onclick="closeFinanceMonthPicker()">Cancelar</button></div></div></div>
 </body>
 </html>
