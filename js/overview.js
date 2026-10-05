@@ -51,10 +51,8 @@ function chartText(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'
 
 function renderDonutChart(cm, desp){
   const donutBox = document.getElementById('donut-box');
-  if(!desp || !desp.length){
-    if(donutBox) donutBox.style.display='none';
-    return;
-  }
+  desp=desp||[];
+  closeChartDetails('donut');
   if(donutBox) donutBox.style.display='';
 
   // Label do mês
@@ -71,6 +69,9 @@ function renderDonutChart(cm, desp){
   });
   const sorted = Object.entries(bycat).sort((a,b)=>b[1]-a[1]);
   const total  = sorted.reduce((s,[,v])=>s+v, 0);
+  chartCategories={month:cm,categories:sorted.map(([cat])=>cat)};
+  const notice=document.getElementById('donut-empty');
+  if(notice){notice.textContent=chartValueNote(desp);notice.hidden=!notice.textContent;}
 
   // Total gasto e barras de participação por categoria.
   const centerEl = document.getElementById('donut-center-val');
@@ -88,14 +89,14 @@ function renderDonutChart(cm, desp){
 
   const listEl = document.getElementById('donut-legend-list');
   if(listEl){
-    listEl.innerHTML = sorted.map(([cat,val])=>{
+    listEl.innerHTML = sorted.map(([cat,val],index)=>{
       const pct=total>0?Math.max(0,Math.min(100,val/total*100)):0;
       const percentage=pct.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
       const col=catColor(cat);
-      return `<div class="category-bar-row">
+      return `<button type="button" class="category-bar-row" onclick="categoryChartDetails(${index})" aria-label="${chartText('Ver detalhes de '+cat)}">
         <div class="category-bar-heading"><span class="category-bar-name">${chartText(cat)}</span><span class="category-bar-numbers"><strong>${fmt(val)}</strong><span>${percentage}</span></span></div>
         <div class="category-bar-track" aria-hidden="true"><div class="category-bar-fill" style="width:${pct}%;background:${col}"></div></div>
-      </div>`;
+      </button>`;
     }).join('');
   }
 }
@@ -178,63 +179,22 @@ function renderOverview(){
     borderRadius:0,stack:'despesas',
   }));
   const recDataset={label:'Receita',data:rec.map(v=>Math.round(v*100)/100),backgroundColor:months.map((_,i)=>alpha(i)?'rgba(52,210,122,0.55)':'rgba(52,210,122,0.15)'),borderRadius:4,stack:'receita'};
-  const tt=document.getElementById('chartTooltip');
-  const ttBase={backgroundColor:'#18181b',borderColor:'#3a3a3d',borderWidth:1};
+  document.getElementById('chartTooltip').style.display='none';
+  prepareMonthlyChart('chartBar',months);prepareMonthlyChart('chartSaldo',months);
   const ax=chartAxis();
+  const present=months.map(month=>chartMonthEntries(month).entries.length>0);
+  recDataset.data=recDataset.data.map((value,index)=>present[index]?value:null);
+  catDatasets.forEach(dataset=>{dataset.data=dataset.data.map((value,index)=>present[index]?value:null);});
   if(barC)barC.destroy();
   barC=new Chart(document.getElementById('chartBar'),{
     type:'bar',data:{labels:months.map(mesLabel),datasets:[recDataset,...catDatasets]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},
-      onHover(evt,elements){
-        if(!elements.length){tt.style.display='none';return;}
-        const idx=elements[0].index,m=months[idx];
-        const totalDesp=Math.round(desp[idx]*100)/100,totalRec=Math.round(rec[idx]*100)/100,saldoM=totalRec-totalDesp;
-        const despRows=cats.map(cat=>{const v=DATA.despesas.filter(d=>d.mes===m&&(d.cat||'Outros').split(' · ')[0]===cat).reduce((s,d)=>s+(d.val||0),0);return v>0?{cat,v}:null;}).filter(Boolean).sort((a,b)=>b.v-a.v).map(({cat,v})=>`<div class="tt-row"><div class="tt-label"><div class="tt-dot" style="background:${catColor(cat)}"></div>${cat}</div><div class="tt-val">${fmt(v)}</div></div>`).join('');
-        const recRows=DATA.receitas.filter(r=>r.mes===m).sort((a,b)=>b.val-a.val).map(r=>`<div class="tt-row"><div class="tt-label"><div class="tt-dot" style="background:#34d27a"></div>${r.nome}</div><div class="tt-val" style="color:#34d27a">${fmt(r.val)}</div></div>`).join('');
-        document.getElementById('tt-month').textContent=mesLabel(m).toUpperCase();
-        document.getElementById('tt-rows').innerHTML=`<div class="tt-section">RECEITAS</div>`+(recRows||`<div class="tt-row" style="color:#9a9aa2;font-size:11px">Sem receitas</div>`)+`<div class="tt-rec-total"><span>Total receita</span><span style="color:#34d27a">${fmt(totalRec)}</span></div><div class="tt-divider"></div><div class="tt-section">DESPESAS</div>`+(despRows||`<div class="tt-row" style="color:#9a9aa2;font-size:11px">Sem despesas</div>`)+`<div class="tt-saldo" style="color:${saldoM>=0?'#34d27a':'#f06060'}"><span>Saldo</span><span>${fmt(saldoM)}</span></div>`;
-        document.getElementById('tt-total-val').textContent=fmt(totalDesp);
-        tt.style.display='block';
-        const ttW=tt.offsetWidth||270,ttH=tt.offsetHeight||420;
-        const margin=8;
-        let x=evt.native.clientX+18,y=evt.native.clientY-20;
-        // Se não cabe à direita, coloca à esquerda
-        if(x+ttW+margin>window.innerWidth) x=evt.native.clientX-ttW-12;
-        // Garante que não sai pela esquerda
-        if(x<margin) x=margin;
-        // Ajuste vertical
-        if(y+ttH+margin>window.innerHeight) y=window.innerHeight-ttH-margin;
-        if(y<margin) y=margin;
-        tt.style.left=x+'px';tt.style.top=y+'px';
-      },
-      onClick(evt){
-        const pts=barC.getElementsAtEventForMode(evt,'index',{intersect:false},true);
-        if(!pts.length)return;
-        const clickedM=months[pts[0].index];
-        overviewSelectedMonth=overviewSelectedMonth===clickedM?null:clickedM;
-        updateOverviewCards(months,rec,desp);
-        barC.data.datasets[0].backgroundColor=months.map((m,i)=>!overviewSelectedMonth||overviewSelectedMonth===m?'rgba(52,210,122,0.55)':'rgba(52,210,122,0.15)');
-        catDatasets.forEach((ds,di)=>{const col=catColor(cats[di]);barC.data.datasets[di+1].backgroundColor=months.map((m,i)=>!overviewSelectedMonth||overviewSelectedMonth===m?col:col+'22');});
-        barC.update();
-      },
+    options:{responsive:true,maintainAspectRatio:false,events:['click'],plugins:{legend:{display:false},tooltip:{enabled:false}},
+      onClick(event,elements,chart){monthlyChartClick('chartBar',chart,months,event,elements);},
       scales:{x:{ticks:{color:ax.tick,autoSkip:true,maxTicksLimit:6,maxRotation:0,minRotation:0,font:{size:11}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}
     }
   });
-  // Usa propriedades do elemento para substituir handlers antigos a cada renderização.
-  // Assim, alternar entre telas não acumula listeners de toque no mesmo canvas.
   const barCanvas=document.getElementById('chartBar');
-  barCanvas.onmouseleave=()=>{tt.style.display='none';};
-  // Suporte a toque no mobile — simula hover ao tocar na barra
-  barCanvas.ontouchstart=e=>{
-    e.preventDefault();
-    const touch=e.touches[0];
-    const pts=barC.getElementsAtEventForMode(touch,'index',{intersect:false},true);
-    if(!pts.length){tt.style.display='none';return;}
-    const fakeEvt={native:touch};
-    barC.options.onHover(fakeEvt,pts);
-  };
-  barCanvas.ontouchend=()=>{setTimeout(()=>{tt.style.display='none';},2000);};
-  barCanvas.ontouchcancel=()=>{tt.style.display='none';};
+  barCanvas.onmouseleave=null;barCanvas.ontouchstart=null;barCanvas.ontouchend=null;barCanvas.ontouchcancel=null;
   // Anima chart boxes
   document.querySelectorAll('#page-overview .chart-box').forEach((el,i)=>{
     el.classList.remove('anim-fade-up','anim-d1','anim-d2','anim-d3','anim-d4');
@@ -242,7 +202,7 @@ function renderOverview(){
     el.classList.add('anim-fade-up',`anim-d${i+2}`);
   });
   if(saldoC)saldoC.destroy();
-  saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:ctx=>` Saldo: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:ax.tick,autoSkip:true,maxTicksLimit:6,maxRotation:0,minRotation:0,font:{size:11}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}}});
+  saldoC=new Chart(document.getElementById('chartSaldo'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[{label:'Saldo',data:saldo.map((value,index)=>present[index]?value:null),backgroundColor:saldo.map(v=>v>=0?'rgba(52,210,122,0.7)':'rgba(240,96,96,0.7)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,events:['click'],onClick(event,elements,chart){monthlyChartClick('chartSaldo',chart,months,event,elements);},plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{ticks:{color:ax.tick,autoSkip:true,maxTicksLimit:6,maxRotation:0,minRotation:0,font:{size:11}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:ax.font}},grid:{color:ax.grid}}}}});
   // Gráfico de evolução diária
   initDailyEvo();
 }
@@ -685,7 +645,14 @@ function renderDailyEvo() {
   }
 
   // Gráfico
+  dailyChartDetailState={month:m,lastDay,accumulated,average:avgAccum,dailySpend,entries:despMonth};
+  const daySelect=document.getElementById('chartDailyEvo-day');
+  if(daySelect){daySelect.innerHTML='<option value="">Escolher dia para detalhes</option>'+Array.from({length:lastDay},(_,i)=>`<option value="${i+1}">${String(i+1).padStart(2,'0')}/${String(mo).padStart(2,'0')}</option>`).join('');}
+  closeChartDetails('chartDailyEvo');
+  const notice=document.getElementById('chartDailyEvo-empty');
+  if(notice){notice.textContent=!DATA.despesas.some(d=>d.mes===m)?'Sem despesas neste mês.':!despMonth.length?'Há despesas neste mês, mas nenhuma paga ou em débito automático para este gráfico.':chartValueNote(despMonth);notice.hidden=!notice.textContent;}
   const ctx = document.getElementById('chartDailyEvo');
+  if(ctx?.parentElement)ctx.parentElement.hidden=!despMonth.length;
   if (!ctx) return;
   if (dailyEvoC) { dailyEvoC.destroy(); dailyEvoC = null; }
 
@@ -731,10 +698,13 @@ function renderDailyEvo() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      events:['click'],
+      onClick(event,elements,chart){const index=chartClickIndex(chart,event,elements,daysInMonth);if(index!==null)dailyChartDetails(m,index,accumulated,avgAccum,dailySpend,despMonth);},
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: {
+          enabled:false,
           backgroundColor: '#18181b',
           borderColor: '#3a3a3d',
           borderWidth: 1,

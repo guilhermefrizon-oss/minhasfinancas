@@ -118,16 +118,16 @@ function renderRecTable(){
 function renderRecCharts(){
   syncChartPeriodControls();
   const months=filteredMonths();
-  const rec=months.map(m=>DATA.receitas.filter(r=>r.mes===m).reduce((s,r)=>s+(r.val||0),0));
+  prepareMonthlyChart('chartRec',months,true);
+  const present=months.map(month=>chartMonthEntries(month,true).entries.length>0);
   const recebido=months.map(m=>DATA.receitas.filter(r=>r.mes===m&&(r.status||'Recebido')==='Recebido').reduce((s,r)=>s+(r.val||0),0));
   const aguard=months.map(m=>DATA.receitas.filter(r=>r.mes===m&&r.status==='Aguardando').reduce((s,r)=>s+(r.val||0),0));
-  const ttB={backgroundColor:'#18181b',borderColor:'#3a3a3d',borderWidth:1};
   const ax=chartAxis();
   if(recC)recC.destroy();
   recC=new Chart(document.getElementById('chartRec'),{type:'bar',data:{labels:months.map(mesLabel),datasets:[
-    {label:'Recebido',data:recebido.map(v=>Math.round(v*100)/100),backgroundColor:'rgba(52,210,122,0.7)',borderRadius:4},
-    {label:'Aguardando',data:aguard.map(v=>Math.round(v*100)/100),backgroundColor:'rgba(245,197,66,0.5)',borderRadius:4}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttB,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:ax.tick,autoSkip:true,maxTicksLimit:6,maxRotation:0,minRotation:0,font:{size:11}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:11}},grid:{color:ax.grid}}}}});
+    {label:'Recebido',data:recebido.map((v,i)=>present[i]?Math.round(v*100)/100:null),backgroundColor:'rgba(52,210,122,0.7)',borderRadius:4},
+    {label:'Aguardando',data:aguard.map((v,i)=>present[i]?Math.round(v*100)/100:null),backgroundColor:'rgba(245,197,66,0.5)',borderRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,events:['click'],onClick(event,elements,chart){monthlyChartClick('chartRec',chart,months,event,elements);},plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{ticks:{color:ax.tick,autoSkip:true,maxTicksLimit:6,maxRotation:0,minRotation:0,font:{size:11}},grid:{color:ax.grid}},y:{ticks:{color:ax.tick,callback:ax.money,font:{size:11}},grid:{color:ax.grid}}}}});
   if(saldoRecC)saldoRecC.destroy();saldoRecC=null;
 }
 function openRecModal(id){
