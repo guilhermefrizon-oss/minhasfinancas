@@ -218,3 +218,33 @@ test('seleção de mês bloqueia pago, excluído e posterior ao fim sem alterar 
   assert.equal(vm.runInContext('editingRecurringMonth',a.ctx),'2026-12');
   assert.ok(!a.ctx.DATA.despesas.some(d=>d.mes==='2026-11'));
 });
+
+test('card e edição usam novembro corrigido sem modificar outubro pago',()=>{
+  const a=app();createAccount(a);const r=a.ctx.DATA.recorrentes[0];r.val=50;r.alteracoes=[{from:'2026-11',data:{val:39}}];
+  a.ctx.DATA.despesas[0].val=50;
+  const before=JSON.stringify(a.ctx.DATA);
+  const html=a.ctx.recurringCard(r);
+  assert.match(html,/R\$\s*39,00/);assert.match(html,/Referência: nov/);assert.doesNotMatch(html,/50,00/);
+  a.ctx.openEditRecurringAccount(r.id);
+  assert.equal(vm.runInContext('editingRecurringMonth',a.ctx),'2026-11');
+  assert.match(a.fields['recurring-edit-value'].value,/39,00/);
+  assert.equal(JSON.stringify(a.ctx.DATA),before);
+});
+test('alteração em mês específico aparece tanto no card quanto na edição',()=>{
+  const a=app();createAccount(a);const r=a.ctx.DATA.recorrentes[0];
+  a.ctx.DATA.despesas.push({id:2,recorrenteId:r.id,mes:'2026-11',nome:r.nome,val:31,status:'Falta Pagar'});
+  assert.match(a.ctx.recurringCard(r),/31,00/);
+  assert.equal(a.ctx.recurringFormConfig(r,'2026-11').id,r.id);
+  a.ctx.openEditRecurringAccount(r.id);
+  assert.match(a.fields['recurring-edit-value'].value,/31,00/);
+  assert.equal(a.fields['recurring-edit-day'].value,5);
+  assert.equal(r.val,25);
+});
+test('referência ignora meses excluídos e respeita início futuro e término',()=>{
+  const a=app();createAccount(a);const r=a.ctx.DATA.recorrentes[0];r.pularMeses=['2026-11'];r.alteracoes=[{from:'2026-12',data:{val:40}}];
+  assert.equal(a.ctx.recurringReferenceMonth(r),'2026-12');assert.match(a.ctx.recurringCard(r),/40,00/);
+  r.inicio='2028-01';r.pularMeses=[];
+  assert.equal(a.ctx.recurringReferenceMonth(r),'2028-01');
+  r.inicio='2026-01';r.fim='2026-09';
+  assert.equal(a.ctx.recurringReferenceMonth(r),'2026-09');
+});

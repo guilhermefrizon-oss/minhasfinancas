@@ -530,3 +530,8 @@ body.recurring-modal-open { overflow:hidden; }
 .modal-overlay .form-section-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--purple) !important; margin:0 0 10px; padding-top:16px; border-top:1px solid var(--border); }
 /* Valor grande */
 .modal-overlay #in-valor, .modal-overlay #in-rec-valor { font-size:22px !important; font-weight:700 !important; padding:12px 14px !important; }
+
+/* Dimensões explícitas para desenhos SVG nos cards e na edição. */
+.recurring-admin-main .item-icon-wrap>svg { width:32px; height:32px; flex-shrink:0; display:block; }
+#recurring-edit-icon-preview { display:flex; align-items:center; justify-content:center; width:28px; height:28px; }
+#recurring-edit-icon-preview>svg { width:28px; height:28px; flex-shrink:0; display:block; }
