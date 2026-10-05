@@ -385,6 +385,7 @@ const UI_PATHS = {
   calendar:   `<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>`,
   tag:        `<path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><path d="M7.5 7.5h.01"/>`,
   type:       `<path d="M4 7V4h16v3M9 20h6M12 4v16"/>`,
+  eye:        `<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>`,
   pin:        `<path d="M12 17v5"/><path d="M9 10.8V4h6v6.8a3 3 0 0 0 .9 2.1l1.4 1.4a1 1 0 0 1-.7 1.7H7.4a1 1 0 0 1-.7-1.7l1.4-1.4a3 3 0 0 0 .9-2.1Z"/>`,
 };
 
