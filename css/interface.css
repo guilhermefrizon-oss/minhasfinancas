@@ -142,13 +142,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .history-empty strong { display:block; font-size:14px; color:var(--text2); line-height:1.5; }
 .history-empty p { margin:8px auto 16px; max-width:360px; font-size:13px; line-height:1.5; }
 .history-empty-clear { min-height:44px; padding:10px 16px; border:1px solid var(--border); border-radius:12px; background:var(--surface2); color:var(--text); font-weight:650; cursor:pointer; }
-.entry-mobile-actions { position:relative; z-index:1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:0 16px 12px; background:var(--bg); }
-.entry-mobile-actions button,.entry-done { display:flex; align-items:center; justify-content:center; gap:6px; min-width:0; min-height:44px; padding:8px 4px; font-size:12px; font-weight:650; line-height:1.4; }
-.entry-mobile-actions button { border:1px solid var(--border); border-radius:12px; color:var(--text2); background:var(--surface2); cursor:pointer; }
-.entry-mobile-actions svg { display:block; width:16px; height:16px; flex-shrink:0; }
-.entry-mobile-actions .entry-pay { color:var(--green); border-color:var(--green); }
-.entry-mobile-actions .entry-trash { color:var(--red); }
-.entry-done { color:var(--green); }
 .entry-table-pay { display:block; margin-top:8px; min-height:44px; padding:8px 12px; border:1px solid var(--green); border-radius:12px; background:var(--surface2); color:var(--green); font-size:12px; font-weight:650; cursor:pointer; }
 .mob-card-pago { opacity:1; }
 @media(max-width:767px) {
@@ -160,10 +153,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .history-search.search-open .history-search-input-icon { top:50%; left:12px; }
   .history-filter { flex-basis:0; }
   .mobile-gesture-hint { flex-direction:column; align-items:flex-start; font-size:10px; line-height:1.5; }
-}
-@media(max-width:359px) {
-  .entry-mobile-actions { padding-left:12px; padding-right:12px; gap:6px; }
-  .entry-mobile-actions button,.entry-done { font-size:11px; gap:4px; }
 }
 
 /* Categories: lengths share the same 0–100% scale, with exact values in text. */

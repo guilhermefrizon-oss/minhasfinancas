@@ -115,14 +115,18 @@ test('ações explícitas quitam pendência uma vez e preservam status de lança
  const a=listApp();
  a.ctx.renderDespTable();a.ctx.renderRecTable();
  assert.match(a.field('desp-mobile-list').innerHTML,/markExpensePaid\(1\)/);
- assert.doesNotMatch(a.ctx.mobileEntryActions('desp',2,true),/markExpensePaid|togglePago/);
- assert.doesNotMatch(a.ctx.mobileEntryActions('rec',3,true),/markRevenueReceived|toggleRecStatus/);
+ assert.doesNotMatch(a.ctx.mobilePaymentControl('desp',2,true),/markExpensePaid|togglePago/);
+ assert.doesNotMatch(a.ctx.mobilePaymentControl('rec',3,true),/markRevenueReceived|toggleRecStatus/);
  a.ctx.markExpensePaid(1);a.ctx.markRevenueReceived(4);
  assert.equal(a.ctx.DATA.despesas[0].status,'Pago');assert.equal(a.ctx.DATA.receitas[1].status,'Recebido');
  const saves=a.counts.saves;a.ctx.markExpensePaid(1);a.ctx.markRevenueReceived(4);
  assert.equal(a.counts.saves,saves);
- assert.match(a.ctx.mobileEntryActions('rec',3,true),/openRecModal\(3\)/);
- assert.match(a.ctx.mobileEntryActions('desp',1,true),/deleteDespEntry\(1\)/);
+ assert.match(a.ctx.mobilePaymentControl('rec',3,true),/openRecModal\(3\)/);
+ assert.match(a.ctx.mobilePaymentControl('desp',2,true),/openModal\(2\)/);
+ assert.doesNotMatch(a.field('desp-mobile-list').innerHTML,/entry-mobile-actions/);
+ assert.doesNotMatch(a.field('rec-mobile-list').innerHTML,/entry-mobile-actions/);
+ assert.match(a.field('desp-mobile-list').innerHTML,/mob-toggle-btn pago/);
+ assert.match(a.field('desp-mobile-list').innerHTML,/mie-btn-del/);
 });
 test('lixeira exige confirmação e preserva o lançamento até confirmar',()=>{
  for(const type of ['desp','rec']){

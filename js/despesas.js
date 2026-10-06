@@ -41,12 +41,11 @@ function historyEmptyState(type,total){
   return `<div class="history-empty"><strong>${filtered?'Nenhum lançamento corresponde aos filtros.':`Nenhuma ${type==='rec'?'receita':'despesa'} neste mês.`}</strong>`+
     (filtered?`<p>Há ${total} ${type==='rec'?'receitas':'despesas'} neste mês. Limpe os filtros para ver todas.</p><button type="button" class="history-empty-clear" onclick="${type==='rec'?'clearRecFilters':'clearDespFilters'}()">Limpar filtros</button>`:'')+'</div>';
 }
-function mobileEntryActions(type,id,done){
+function mobilePaymentControl(type,id,done,automatic=false){
   const isRec=type==='rec';
-  const paidLabel=isRec?'Recebido':'Pago';
-  return `<div class="entry-mobile-actions">`+
-    (done?`<span class="entry-done">${uiIcon('check',16)}${paidLabel}</span>`:`<button type="button" class="entry-pay" onclick="${isRec?'markRevenueReceived':'markExpensePaid'}(${id})" aria-label="${isRec?'Marcar como recebido':'Marcar como pago'}">${uiIcon('check',16)}${isRec?'Receber':'Pagar'}</button>`)+
-    `<button type="button" onclick="${isRec?'openRecModal':'openModal'}(${id})">${uiIcon('edit',16)}Editar</button><button type="button" class="entry-trash" onclick="${isRec?'deleteRecEntry':'deleteDespEntry'}(${id})" aria-label="Enviar lançamento à lixeira">${uiIcon('trash',16)}Lixeira</button></div>`;
+  const label=done?(isRec?'Recebido: editar receita':'Pago: editar despesa'):(isRec?'Marcar como recebido':'Marcar como pago');
+  const action=done?(isRec?'openRecModal':'openModal'):(isRec?'markRevenueReceived':'markExpensePaid');
+  return `<button type="button" class="mob-toggle-btn ${done?'pago':automatic?'debito':''}" onclick="event.stopPropagation();${action}(${id})" title="${label}" aria-label="${label}">${uiIcon(done?'check':'circle',20)}</button>`;
 }
 
 /* ── Painel de ordenação mobile ── */
@@ -314,10 +313,9 @@ function mobDespCard(d){
       </div>
       <div class="mob-card-right">
         <span class="mob-card-val" style="color:${isPago?'var(--text3)':d.val>0?'var(--text)':'var(--text3)'}">${d.val>0?fmt(d.val):'—'}</span>
-
+        <div class="mob-card-actions">${mobilePaymentControl('desp',d.id,isPago,isDebito)}</div>
       </div>
     </div>
-    ${mobileEntryActions('desp',d.id,isPago)}
     <div class="mob-inline-edit" id="inline-edit-${sid}" style="display:none">
       <div class="mie-body">
         <p class="finance-inline-scope">Altera somente este lançamento de ${mesLabel(d.mes)}.</p>
@@ -372,10 +370,9 @@ function mobRecCard(r, ri){
       </div>
       <div class="mob-card-right">
         <span class="mob-card-val" style="color:${aguard?'var(--amber)':'var(--green)'}">${r.val>0?fmt(r.val):'—'}</span>
-
+        <div class="mob-card-actions">${mobilePaymentControl('rec',r.id,!aguard)}</div>
       </div>
     </div>
-    ${mobileEntryActions('rec',r.id,!aguard)}
     <div class="mob-inline-edit" id="rec-inline-edit-${sid}" style="display:none">
       <div class="mie-body">
         <div class="mie-field">
